@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/sdk:7.0.100-bullseye-slim
+
+WORKDIR /app
+COPY . .
+RUN dotnet restore
+
+ENTRYPOINT [ "dotnet", "watch", "run", "--urls", "http://*:8080" ]
