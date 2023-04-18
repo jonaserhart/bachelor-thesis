@@ -18,9 +18,18 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_SERVER=db
+      - SCRUM_BACKEND_ConnectionStrings__PostgresDatabase=Host=db;Database=postgres;Username=postgres;Password=postgres
+      - SCRUM_BACKEND_OAuth__AuthorizationUri=https://app.vssps.visualstudio.com/oauth2/authorize
+      - SCRUM_BACKEND_OAuth__TokenUri=https://app.vssps.visualstudio.com/oauth2/token
+      - SCRUM_BACKEND_OAuth__ClientId=
+      - SCRUM_BACKEND_OAuth__ClientSecret=
+      - SCRUM_BACKEND_OAuth__Scope=vso.analytics vso.code vso.work
+      - SCRUM_BACKEND_OAuth__RedirectUri=
+      - SCRUM_BACKEND_OAuth__JWTIssuer=
+      - SCRUM_BACKEND_OAuth__JWTAudience=
+      - SCRUM_BACKEND_DevOps__ServerUrl=https://dev.azure.com/vertigis
     volumes:
-      - ./backend:/app
+      - ./backend/src:/app
     depends_on:
       db:
         condition: service_healthy
@@ -30,6 +39,8 @@ services:
       dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=/api
     volumes:
       - "./frontend:/app"
       - "/app/node_modules"
