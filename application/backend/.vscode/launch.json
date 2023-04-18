@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/bin/Debug/net7.0/backend.dll",
+            "program": "${workspaceFolder}/src/bin/Debug/net7.0/backend.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
@@ -23,13 +23,22 @@
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
             "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
+                "/Views": "${workspaceFolder}/src/Views"
             }
         },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
+        },
+        {
+            "name": "Attach to docker",
+            "type": "docker",
+            "request": "attach",
+            "containerName": "backend-1",
+            "netCore": {
+                "appProject": "${workspaceFolder}/src/backend.csproj"
+            }
         }
     ]
 }

@@ -1,9 +1,9 @@
-FROM node:18-alpine AS build
+FROM node:19-alpine AS build
 WORKDIR /build
 
 COPY package.json ./
 COPY yarn.lock ./
-RUN yarn
+RUN yarn install --frozen-lockfile
 
 COPY . ./
 RUN yarn build
