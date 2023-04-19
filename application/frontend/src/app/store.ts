@@ -1,9 +1,11 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
-import analysisReducer from '../analysis/analysisSlice';
+import analysisReducer from '../features/analysis/analysisSlice';
+import authReducer from '../features/oauth/authSlice';
 
 export const store = configureStore({
   reducer: {
-    analysis: analysisReducer
+    analysis: analysisReducer,
+    auth: authReducer
   },
 });
 

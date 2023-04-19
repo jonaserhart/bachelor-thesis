@@ -27,13 +27,21 @@ public class OAuthController : Controller
     }
 
     [HttpPost("callback")]
-    [ProducesResponseType(typeof(TokenModel), 200)]
+    [ProducesResponseType(typeof(AuthenticationResponse), 200)]
     [ProducesResponseType(typeof(ApiError), 400)]
     public async Task<ActionResult> Callback([FromBody] OAuthCallbackModel submission)
     {
-        var token = await _oauthService.HandleOAuthCallback(submission);
-        SetTokenCookie(token.RefreshToken);
-        return Ok(token);
+        var response = await _oauthService.HandleOAuthCallback(submission);
+        SetTokenCookie(response.Token?.RefreshToken ?? "");
+        return Ok(response);
+    }
+
+    
+    [HttpGet("refresh-token")]
+    public ActionResult<string> RefreshToken()
+    {
+        //TODO
+        return Ok();
     }
 
     private void SetTokenCookie(string token)

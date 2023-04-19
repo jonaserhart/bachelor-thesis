@@ -63,7 +63,7 @@ public class OAuthService : IOAuthService
     /// </summary>
     /// <param name="submission"></param>
     /// <returns>A token for the user to authenticate</returns>
-    public async Task<TokenModel> HandleOAuthCallback(OAuthCallbackModel submission)
+    public async Task<AuthenticationResponse> HandleOAuthCallback(OAuthCallbackModel submission)
     {
         var code = submission.Code;
         var state = submission.State;
@@ -119,7 +119,11 @@ public class OAuthService : IOAuthService
         });
         await _context.SaveChangesAsync();
 
-        return token;
+        return new AuthenticationResponse
+        {
+            User = UserResponse.From(user),
+            Token = TokenResponse.From(token)
+        };
     }
 
     /// <summary>

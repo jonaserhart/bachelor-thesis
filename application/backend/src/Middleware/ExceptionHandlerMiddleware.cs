@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
+using Newtonsoft.Json;
 
 namespace backend.Middleware;
 
@@ -40,7 +41,7 @@ public class ExceptionHandlerMiddleware
                 break;
         }
 
-        var exceptionResult = JsonSerializer.Serialize(new ApiError { Error = e.Message });
+        var exceptionResult = JsonConvert.SerializeObject(new ApiError { Error = e.Message });
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)status;
         await context.Response.WriteAsync(exceptionResult);

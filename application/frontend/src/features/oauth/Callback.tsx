@@ -1,6 +1,7 @@
-import axios from '../backendClient';
+import axios from '../../backendClient';
 import * as React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { AuthResponse } from './types';
 
 export default function Callback() {
 
@@ -13,7 +14,7 @@ export default function Callback() {
         const state = searchParams.get('state');
         if (code && state && !sent) {
             setSent(true);
-            axios.post('/oauth/callback', {
+            axios.post<AuthResponse>('/oauth/callback', {
                 code,
                 state
             })

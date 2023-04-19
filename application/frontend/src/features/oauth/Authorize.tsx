@@ -1,4 +1,4 @@
-import axios from '../backendClient';
+import axios from '../../backendClient';
 import * as React from 'react';
 
 export default function Authorize() {

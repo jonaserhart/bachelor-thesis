@@ -1,19 +1,10 @@
 import React from 'react';
-import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Root from './components/Root';
-import Analysis from './analysis/Analysis';
-import Callback from './oauth/Callback';
+import Analysis from './features/analysis/Analysis';
+import Callback from './features/oauth/Callback';
 import NavBar from './components/Navbar';
-import Authorize from './oauth/Authorize';
-
-const HeaderLayout = () => (
-  <>
-    <header>
-      <NavBar />
-    </header>
-    <Outlet />
-  </>
-);
+import Authorize from './features/oauth/Authorize';
 
 function App() {
 
@@ -21,7 +12,7 @@ function App() {
   const router = createBrowserRouter(
     [
       {
-        element: <HeaderLayout />,
+        element: <NavBar />,
         children: [
           {
             path: '/',
