@@ -7,7 +7,7 @@ export type User = {
 
 export type AuthResponse = {
     user: User;
-    tokenInfo: {
+    token: {
         jwt: string;
         expires: number;
     }

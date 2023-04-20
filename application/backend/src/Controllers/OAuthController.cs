@@ -31,26 +31,33 @@ public class OAuthController : Controller
     [ProducesResponseType(typeof(ApiError), 400)]
     public async Task<ActionResult> Callback([FromBody] OAuthCallbackModel submission)
     {
-        var response = await _oauthService.HandleOAuthCallback(submission);
-        SetTokenCookie(response.Token?.RefreshToken ?? "");
+        var response = await _oauthService.HandleOAuthCallbackAsync(submission);
+        SetTokenCookie(response.Token?.RefreshToken);
         return Ok(response);
     }
 
     
     [HttpGet("refresh-token")]
-    public ActionResult<string> RefreshToken()
+    [ProducesResponseType(typeof(AuthenticationResponse), 200)]
+    public async Task<ActionResult<string>> RefreshToken()
     {
-        //TODO
-        return Ok();
+        var refreshToken = Request.Cookies["refreshToken"];
+        var response = await _oauthService.RefreshTokenAsync(refreshToken);
+        SetTokenCookie(response.Token?.RefreshToken);
+        return Ok(response);
     }
 
-    private void SetTokenCookie(string token)
+    private void SetTokenCookie(string? token)
     {
+        if (token == null)
+            return;
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
             Expires = DateTime.UtcNow.AddDays(7),
         };
+        
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }
 

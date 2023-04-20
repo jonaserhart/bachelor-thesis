@@ -35,16 +35,16 @@ function App() {
             //   }
             // ]
           },
-          {
-            path: 'oauth-authorize',
-            element: <Authorize />
-          },
-          {
-            path: 'oauth-callback',
-            element: <Callback />,    
-          },
         ]
-      }
+      },
+      {
+        path: '/oauth-authorize',
+        element: <Authorize />
+      },
+      {
+        path: '/oauth-callback',
+        element: <Callback />,    
+      },
     ]
   );
 

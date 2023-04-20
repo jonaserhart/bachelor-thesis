@@ -96,24 +96,24 @@ instance.interceptors.response.use(
                     })
                     .then(({ data }) => {
                         const {
-                            tokenInfo,
+                            token,
                             user
                         } = data;
-                        if (!tokenInfo || !user?.id) {
+                        if (!token || !user?.id) {
                             reject({ error: 'New token could not be retrieved. Please log in again.' });
                         }
 
                         store.dispatch(setUser(user));
-                        store.dispatch(setToken(tokenInfo));
+                        store.dispatch(setToken(token));
 
-                        processQueue(null, tokenInfo.jwt);
+                        processQueue(null, token.jwt);
                         
                         resolve(
                             instance({
                                 ...originalRequest,
                                 headers: {
                                     ...originalRequest.headers,
-                                    Authorization: `Bearer ${tokenInfo.jwt}`
+                                    Authorization: `Bearer ${token.jwt}`
                                 }
                             })
                         );

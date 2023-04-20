@@ -34,6 +34,7 @@ public class ExceptionHandlerMiddleware
         switch (e)
         {
             case BadRequestException:
+            case ArgumentException:
                 status = HttpStatusCode.BadRequest;
                 break;
             default:

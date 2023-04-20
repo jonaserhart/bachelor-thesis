@@ -1,5 +1,3 @@
-using System.Linq;
-using System;
 using System.IdentityModel.Tokens.Jwt;
 using backend.Middleware;
 using backend.Model.Config;
@@ -11,7 +9,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,10 +35,10 @@ builder.Services.Configure<OAuthConfig>(builder.Configuration.GetSection("OAuth"
 builder.Services.Configure<DevOpsConfig>(builder.Configuration.GetSection("DevOps"));
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
-
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
 
 builder.Services.AddAuthentication((x) => {

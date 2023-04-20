@@ -1,21 +1,18 @@
 import axios from '../backendClient';
 import * as React from 'react';
+import { useAppSelector } from '../app/hooks';
+import { selectAuthenticatedUser } from '../features/oauth/authSlice';
 
 export default function Root() {
 
-    const [t, setT] = React.useState("");
+    const user = useAppSelector(selectAuthenticatedUser);
 
     return (
         <div>
             <h1>
-                root
+                {`Hello ${user?.displayName ?? ''}`}
             </h1>
-            <input value={t} onChange={(ev) => setT(ev.target.value)} type='text'/>
-            <button onClick={() => axios.get('/workitems/health', {
-                headers: {
-                    "Authorization": `Bearer ${t}` 
-                }
-            }).then(console.log).catch(console.log)}>
+            <button onClick={() => axios.get('/workitems/health').then(console.log).catch(console.log)}>
                 health
             </button>
         </div>

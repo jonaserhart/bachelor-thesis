@@ -10,7 +10,6 @@ export default function AppLayout() {
   } = theme.useToken();
 
   const nav = useNavigate();
-
   const location = useLocation();
 
   const selectedKey = React.useMemo(() => {

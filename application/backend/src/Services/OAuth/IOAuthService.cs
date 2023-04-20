@@ -6,5 +6,6 @@ namespace backend.Services.OAuth;
 public interface IOAuthService
 {
     string GetNewAuthorizeUrl();
-    Task<AuthenticationResponse> HandleOAuthCallback(OAuthCallbackModel submission);
+    Task<AuthenticationResponse> HandleOAuthCallbackAsync(OAuthCallbackModel submission);
+    Task<AuthenticationResponse> RefreshTokenAsync(string? token);
 }

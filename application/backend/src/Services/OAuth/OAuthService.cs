@@ -11,6 +11,7 @@ using backend.Services.Database;
 using backend.Services.Users;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace backend.Services.OAuth;
 
@@ -21,18 +22,18 @@ public class OAuthService : IOAuthService
     private readonly OAuthConfig _oauthConfig;
     private readonly IUserService _userService;
     private readonly IApiClientFactory _apiClientFactory;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    
     private static readonly ConcurrentDictionary<Guid, TokenModel> s_authorizationRequests = new();
-    private static readonly HttpClient s_httpClient = new HttpClient();
-    
-    public OAuthService(DataContext context, ILogger<OAuthService> logger, IOptions<OAuthConfig> oauthConfig, IUserService userService, IApiClientFactory apiClientFactory)
+
+    public OAuthService(DataContext context, ILogger<OAuthService> logger, IOptions<OAuthConfig> oauthConfig, IUserService userService, IApiClientFactory apiClientFactory, IHttpClientFactory httpClientFactory)
     {
         _context = context;
         _logger = logger;
         _oauthConfig = oauthConfig.Value;
         _userService = userService;
         _apiClientFactory = apiClientFactory;
+        _httpClientFactory = httpClientFactory;
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ public class OAuthService : IOAuthService
     /// </summary>
     /// <param name="submission"></param>
     /// <returns>A token for the user to authenticate</returns>
-    public async Task<AuthenticationResponse> HandleOAuthCallback(OAuthCallbackModel submission)
+    public async Task<AuthenticationResponse> HandleOAuthCallbackAsync(OAuthCallbackModel submission)
     {
         var code = submission.Code;
         var state = submission.State;
@@ -78,7 +79,7 @@ public class OAuthService : IOAuthService
             _logger.LogError($"Error when validating parameters: '{error}'");
             throw new BadRequestException(error);
         }
-        
+
         var tokenRequest = new HttpRequestMessage(HttpMethod.Post, _oauthConfig.TokenUri);
         tokenRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
@@ -93,7 +94,7 @@ public class OAuthService : IOAuthService
 
         tokenRequest.Content = new FormUrlEncodedContent(form);
 
-        var response = await s_httpClient.SendAsync(tokenRequest);
+        var response = await _httpClientFactory.CreateClient().SendAsync(tokenRequest);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -102,12 +103,22 @@ public class OAuthService : IOAuthService
             _logger.LogError($"Content: {content}");
             throw new BadRequestException($"Token request failed: {response.ReasonPhrase} {response.StatusCode}");
         }
-        
+
         var body = await response.Content.ReadAsStringAsync();
 
         var token = s_authorizationRequests[state];
         JsonConvert.PopulateObject(body, token);
+        var user = await GetUserInfoAndAddToken(token);
 
+        return new AuthenticationResponse
+        {
+            User = UserResponse.From(user),
+            Token = TokenResponse.From(token)
+        };
+    }
+
+    private async Task<User> GetUserInfoAndAddToken(TokenModel token)
+    {
         var apiClient = await _apiClientFactory.GetApiClientAsync(token.AccessToken);
         var user = await apiClient.GetSelfAsync();
 
@@ -118,12 +129,7 @@ public class OAuthService : IOAuthService
             IsActive = true
         });
         await _context.SaveChangesAsync();
-
-        return new AuthenticationResponse
-        {
-            User = UserResponse.From(user),
-            Token = TokenResponse.From(token)
-        };
+        return user;
     }
 
     /// <summary>
@@ -157,4 +163,45 @@ public class OAuthService : IOAuthService
         return error == string.Empty;
     }
 
+    public async Task<AuthenticationResponse> RefreshTokenAsync(string? token)
+    {
+        if (string.IsNullOrEmpty(token))
+            throw new ArgumentNullException(nameof(token));
+
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, _oauthConfig.TokenUri);
+        requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var form = new Dictionary<String, String>()
+                {
+                    { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
+                    { "client_assertion", _oauthConfig.ClientSecret },
+                    { "grant_type", "refresh_token" },
+                    { "assertion", token },
+                    { "redirect_uri", _oauthConfig.RedirectUri }
+                };
+        requestMessage.Content = new FormUrlEncodedContent(form);
+
+        var responseMessage = await _httpClientFactory.CreateClient().SendAsync(requestMessage);
+
+        if (responseMessage.IsSuccessStatusCode)
+        {
+            // Handle successful request
+            String body = await responseMessage.Content.ReadAsStringAsync();
+            var newToken = JObject.Parse(body).ToObject<TokenModel>();
+            if (newToken == null)
+            {
+                throw new BadRequestException("Could not get new token.");
+            }
+            var user = await GetUserInfoAndAddToken(newToken);
+            return new AuthenticationResponse
+            {
+                User = UserResponse.From(user),
+                Token = TokenResponse.From(newToken)
+            };
+        }
+        else
+        {
+            throw new BadRequestException(responseMessage.ReasonPhrase);
+        }
+    }
 }
