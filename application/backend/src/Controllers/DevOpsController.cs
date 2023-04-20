@@ -6,11 +6,11 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class WorkItemsController : Controller
+public class DevOpsController : Controller
 {
-    private readonly ILogger<WorkItemsController> _logger;
+    private readonly ILogger<DevOpsController> _logger;
 
-    public WorkItemsController(ILogger<WorkItemsController> logger)
+    public DevOpsController(ILogger<DevOpsController> logger)
     {
         _logger = logger;
     }
@@ -22,5 +22,5 @@ public class WorkItemsController : Controller
     {
         _logger.LogInformation($"Health requested by user id {HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value} IsAuthenticated: {HttpContext.User.Identity?.IsAuthenticated ?? false} ({string.Join(',', HttpContext.User.Claims.Select(x => x.Type))})");
         return true;
-    }
+    }    
 }

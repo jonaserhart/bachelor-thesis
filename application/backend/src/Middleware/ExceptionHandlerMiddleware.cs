@@ -37,6 +37,12 @@ public class ExceptionHandlerMiddleware
             case ArgumentException:
                 status = HttpStatusCode.BadRequest;
                 break;
+            case DbKeyNotFoundException:
+                status = HttpStatusCode.NotFound;
+                break;
+            case UnauthorizedException:
+                status = HttpStatusCode.Unauthorized;
+                break;
             default:
                 status = HttpStatusCode.InternalServerError;
                 break;

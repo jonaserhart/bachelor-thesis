@@ -1,6 +1,6 @@
 import React from 'react';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
-import Root from './components/Root';
+import Dashboard from './components/Dashboard';
 import Analysis from './features/analysis/Analysis';
 import Callback from './features/oauth/Callback';
 import NavBar from './components/Navbar';
@@ -16,7 +16,7 @@ function App() {
         children: [
           {
             path: '/',
-            element: <Root />
+            element: <Dashboard />
           },
           {
             path: '/analyze',

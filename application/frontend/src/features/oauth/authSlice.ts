@@ -1,6 +1,11 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { User } from "./types";
 import { RootState } from "../../app/store";
+import axios from '../../backendClient';
+
+const PREFIX = 'auth';
+
+const prefix = (s: string) => `${PREFIX}/${s}`;
 
 type AuthState = {
     jwt: string | null;
@@ -14,8 +19,16 @@ const initialState : AuthState = {
     user: null
 }
 
+export const getMe = createAsyncThunk(
+    prefix('getMe'),
+    async function () {
+        const response = await axios.get<User>('/user/me');
+        return response.data;
+    }
+)
+
 const authSlice = createSlice({
-    name: 'auth',
+    name: PREFIX,
     initialState,
     reducers: {
         setUser: (state, action: PayloadAction<User>) => {
@@ -25,6 +38,11 @@ const authSlice = createSlice({
             state.jwt = action.payload.jwt;
             state.expires = action.payload.expires;
         }
+    },
+    extraReducers(builder) {
+        builder.addCase(getMe.fulfilled, (state, action) => {
+            state.user = action.payload;
+        });
     }
 });
 

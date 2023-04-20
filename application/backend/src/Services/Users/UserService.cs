@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using backend.Model.Exceptions;
 using backend.Model.Users;
+using backend.Services.API;
 using backend.Services.Database;
 
 namespace backend.Services.Users;
@@ -8,11 +10,15 @@ public class UserService : IUserService
 {
     private readonly DataContext _context;
     private readonly ILogger<UserService> _logger;
-
-    public UserService(DataContext context, ILogger<UserService> logger)
+    private readonly IApiClientFactory _apiClientFactory;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+ 
+    public UserService(DataContext context, ILogger<UserService> logger, IApiClientFactory apiClientFactory, IHttpContextAccessor contextAccessor)
     {
         _context = context;
         _logger = logger;
+        _apiClientFactory = apiClientFactory;
+        _httpContextAccessor = contextAccessor;
     }
 
     /// <summary>
@@ -40,14 +46,32 @@ public class UserService : IUserService
         return existing;
     }
 
+    public async Task<User?> GetByIdAsync(string userId)
+    {
+        return await _context.Users.FindAsync(userId);
+    }
+
     public async Task DeleteUser(string userId)
     {
-        var found = await _context.Users.FindAsync(userId);
+        var found = await GetByIdAsync(userId);
         if (found == null)
             throw new DbKeyNotFoundException(userId, typeof(User));
         
         _context.Users.Remove(found);
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<User> GetSelfAsync()
+    {
+        var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedException("Could not find nameidentifier claim in token.");
+        
+        var user = await GetByIdAsync(userId);
+        if (user == null)
+            throw new UnauthorizedException();
+        
+        return user;
     }
 }

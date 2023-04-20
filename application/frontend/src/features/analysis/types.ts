@@ -59,7 +59,7 @@ export type Wiql = {
 }
 
 export type AnalysisModel = {
-    id: number;
+    id: string;
     project: string;
     team: string;
     wiql: Wiql;

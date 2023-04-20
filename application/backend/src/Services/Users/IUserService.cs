@@ -6,4 +6,5 @@ public interface IUserService
 {
     Task<User> CreateOrUpdateUser(User user);
     Task DeleteUser(string userId);
+    Task<User> GetSelfAsync();
 }
