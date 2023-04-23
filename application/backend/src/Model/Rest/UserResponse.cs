@@ -4,7 +4,7 @@ namespace backend.Model.Rest;
 
 public class UserResponse
 {
-    public string? Id { get; set; }
+    public Guid? Id { get; set; }
     public string? DisplayName { get; set; }
     public string? EMail { get; set; }
 

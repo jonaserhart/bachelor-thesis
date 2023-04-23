@@ -1,4 +1,7 @@
 using System.Security.Claims;
+using backend.Model.Analysis;
+using backend.Model.Rest;
+using backend.Services.DevOps;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +12,12 @@ namespace backend.Controllers;
 public class DevOpsController : Controller
 {
     private readonly ILogger<DevOpsController> _logger;
+    private readonly IAnalysisModelService _analysisModelService;
 
-    public DevOpsController(ILogger<DevOpsController> logger)
+    public DevOpsController(ILogger<DevOpsController> logger, IAnalysisModelService analysisModelService)
     {
         _logger = logger;
+        _analysisModelService = analysisModelService;
     }
 
     [HttpGet("health")]
@@ -22,5 +27,50 @@ public class DevOpsController : Controller
     {
         _logger.LogInformation($"Health requested by user id {HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value} IsAuthenticated: {HttpContext.User.Identity?.IsAuthenticated ?? false} ({string.Join(',', HttpContext.User.Claims.Select(x => x.Type))})");
         return true;
-    }    
+    }
+
+    [HttpGet("mymodels")]
+    [ProducesResponseType(typeof(AnalysisModel[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<AnalysisModel>>> GetMyModels()
+    {
+        var models = await _analysisModelService.GetMyModelsAsync();
+        return Ok(models);
+    }
+
+    [HttpGet("projects")]
+    [ProducesResponseType(typeof(Project[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Project>>> GetMyProjects()
+    {
+        var projects = await _analysisModelService.GetProjectsAsync();
+        return Ok(projects);
+    }
+
+    [HttpGet("getmodel/{id}")]
+    [ProducesResponseType(typeof(Project[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Project>>> GetModelById(Guid id)
+    {
+        var model = await _analysisModelService.GetByIdAsync(id);
+        return Ok(model);
+    }
+
+    [HttpPost("createmodel")]
+    [ProducesResponseType(typeof(AnalysisModel), 200)]
+    [Authorize]
+    public async Task<ActionResult<AnalysisModel>> CreateModel(AnalysisModelRequest request)
+    {
+        var model = await _analysisModelService.CreateAsync(request);
+        return Ok(model);
+    }
+
+    [HttpPut("updatemodel/{id}")]
+    [ProducesResponseType(typeof(AnalysisModel), 200)]
+    [Authorize]
+    public async Task<ActionResult<AnalysisModel>> UpdateModel(Guid id, [FromBody]AnalysisModelUpdate request)
+    {
+        var model = await _analysisModelService.UpdateAsync(id, request);
+        return Ok(model);
+    }
 }

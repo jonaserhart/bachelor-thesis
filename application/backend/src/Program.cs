@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using backend.Services.DevOps;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
+builder.Services.AddScoped<IAnalysisModelService, AnalysisModelService>();
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
 
 builder.Services.AddAuthentication((x) => {

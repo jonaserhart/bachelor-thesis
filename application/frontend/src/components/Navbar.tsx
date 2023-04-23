@@ -28,12 +28,28 @@ export default function AppLayout() {
   }, [me, nav, dispatch]);
 
   const selectedKey = React.useMemo(() => {
-    switch(location.pathname) {
-      case '/': return 'root';
-      case '/analyze': return 'analyze';
+    switch(true) {
+      case location.pathname === '/': return 'root';
+      case location.pathname.includes('/analyze'): return 'analyze';
       default: return 'unknown';
     }
   }, [location]); 
+
+  const getTokenName = React.useCallback((tn: string) => {
+    switch (tn) {
+      case 'analyze': return 'Analysis';
+      default: return tn;
+    }
+  }, []);
+
+  const pathTokens = React.useMemo(() => {
+    console.log(location.pathname);
+    const tokens = location.pathname.split("/");
+    if (tokens.length > 1) {
+      return tokens.filter(x => x.trim().length > 0).map(getTokenName);
+    }
+    return []
+  }, [getTokenName, location.pathname]);
 
   return (
     <Layout>
@@ -72,18 +88,26 @@ export default function AppLayout() {
             ]}
           />
           <Space>
-            <Button type="primary" ghost icon={<UserOutlined />} size="large">
+            <Button type="primary" ghost icon={<UserOutlined />} >
               Hello, {me?.displayName}
-            </Button>
-            <Button danger icon={<LogoutOutlined />} size="large">
-              Log out
             </Button>
           </Space>
         </div>
       </Header>
       <Content className="site-layout" style={{ padding: "0 50px" }}>
+        <Breadcrumb style={{
+          marginTop: 10
+        }} items={[
+          {
+            title: 'Scrum tool'
+          },
+          ...pathTokens.map(x => ({
+            title: x,
+          }))
+        ]}>
+        </Breadcrumb>
         <div
-          style={{ margin: "16px 0", padding: 24, minHeight: 380, background: colorBgContainer }}
+          style={{ margin: "16px 0", padding: 10, minHeight: 380, background: colorBgContainer }}
         >
           <Outlet />
         </div>

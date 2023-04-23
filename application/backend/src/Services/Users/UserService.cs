@@ -3,6 +3,7 @@ using backend.Model.Exceptions;
 using backend.Model.Users;
 using backend.Services.API;
 using backend.Services.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services.Users;
 
@@ -46,12 +47,13 @@ public class UserService : IUserService
         return existing;
     }
 
-    public async Task<User?> GetByIdAsync(string userId)
+    public async Task<User?> GetByIdAsync(Guid userId)
     {
-        return await _context.Users.FindAsync(userId);
+        return await _context.Users
+            .Include(x => x.UserModels).FirstOrDefaultAsync(x => x.Id == userId);
     }
 
-    public async Task DeleteUser(string userId)
+    public async Task DeleteUser(Guid userId)
     {
         var found = await GetByIdAsync(userId);
         if (found == null)
@@ -65,10 +67,10 @@ public class UserService : IUserService
     public async Task<User> GetSelfAsync()
     {
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var id))
             throw new UnauthorizedException("Could not find nameidentifier claim in token.");
         
-        var user = await GetByIdAsync(userId);
+        var user = await GetByIdAsync(id);
         if (user == null)
             throw new UnauthorizedException();
         

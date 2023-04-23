@@ -38,8 +38,10 @@ export type Fields = {
 };
 
 export type FieldInfo = {
+    id: string;
     name: string;
-    displayName: string;
+    type: string;
+    referenceName: string;
 }
 
 export type WorkItem = {
@@ -52,17 +54,37 @@ export type Sprint = {
     workItems: WorkItem[];
 }
 
-export type Wiql = {
+export type Query = {
+    id: string;
     select: string[];
     where: string[];
-    orderBy: string[];
+    fieldInfos: FieldInfo[];
+}
+
+export type Project = {
+    id: string;
+    name: string;
+    description: string;
+    imgeUrl: string;
+}
+
+export type Team = {
+    id: string;
+    name: string;
+    description: string;
 }
 
 export type AnalysisModel = {
     id: string;
-    project: string;
+    name: string;
+    project: Project;
     team: string;
-    wiql: Wiql;
-    fields: FieldInfo[];
-    data: Sprint[];
+    queries: Query[];
+    // data: Sprint[];
+}
+
+// Request/Response
+export type AnalysisModelChange = { 
+    id: string, 
+    name: string 
 }

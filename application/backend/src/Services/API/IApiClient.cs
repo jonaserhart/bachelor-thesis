@@ -1,11 +1,13 @@
+using backend.Model.Analysis;
 using backend.Model.Users;
-using Microsoft.TeamFoundation.Core.WebApi;
-using Microsoft.VisualStudio.Services.WebApi;
 
 namespace backend.Services.API;
 
 public interface IApiClient
 {
     Task<User> GetSelfAsync();
-    Task<IPagedList<TeamProjectReference>> GetProjectsAsync(int skip = 0);
+    Task<IEnumerable<Project>> GetProjectsAsync(int skip = 0);
+    Task<IEnumerable<Team>> GetTeamsAsync(string projectId);
+    Task<IEnumerable<Model.Analysis.FieldInfo>> GetWiqlFieldsAsync(Query wiql, string iterationPath);
+    Task<IEnumerable<Iteration>> GetIterationsAsync(Guid projectId, Guid teamId);
 }

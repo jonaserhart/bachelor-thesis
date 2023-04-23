@@ -8,5 +8,5 @@ public class RefreshToken
     public string Token { get; set; } = string.Empty;
     public bool IsActive { get; set; } = false;
     public User? User { get; set; }
-    public string? UserId { get; set; }
+    public Guid? UserId { get; set; }
 }
