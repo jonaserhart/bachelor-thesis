@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { useParams } from 'react-router-dom';
-import { Spin, Typography, message, theme } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { Spin, Typography, message, theme, Tabs } from 'antd';
+import { CloudServerOutlined, EditOutlined, FileDoneOutlined } from '@ant-design/icons';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { getModelDetails, selectModel, updateModelDetails } from '../../features/analysis/analysisSlice';
+import Queries from './queries/Queries';
 
 const { Title } = Typography;
 
@@ -11,11 +12,11 @@ export default function ModelDetail() {
 
   const params = useParams();
 
-  const [loading, setLoading] = React.useState(false);
-
   const modelId = React.useMemo(() => {
     return params.modelId ?? '';
   }, [params]);
+
+  const [loading, setLoading] = React.useState(false);
 
   const model = useAppSelector(selectModel(modelId));
 
@@ -55,7 +56,32 @@ export default function ModelDetail() {
           onChange: onNameChange,
           icon: <EditOutlined style={{color: colorPrimary}} />,
           tooltip: 'click to edit name',
-        }} level={4} style={{ marginTop: 0 }}>{model?.name}</Title>
+        }} level={4} style={{ marginTop: 0 }}>
+          {model?.name}
+        </Title>
+        <Tabs 
+          items={[
+            {
+              key: '1',
+              label: (
+                <span>
+                  <CloudServerOutlined />
+                  Queries
+                </span>
+              ),
+              children: <Queries />
+            },
+            {
+              key: '2',
+              label: (
+                <span>
+                  <FileDoneOutlined />
+                  Latest Reports
+                </span>
+              ), 
+            },
+          ]}
+        />
       </div>
     </Spin>
   )

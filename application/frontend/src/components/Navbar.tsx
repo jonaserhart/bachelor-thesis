@@ -1,4 +1,4 @@
-import { DashboardOutlined, DotChartOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
+import { DashboardOutlined, DotChartOutlined, UserOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import * as React from "react";
@@ -56,7 +56,7 @@ export default function AppLayout() {
       <Header style={{ padding: 0 }}>
         <div style={{
           display: 'flex',
-          background: 'white',
+          background: '#141414',
           alignItems: 'center',
           justifyContent: 'space-between',
           paddingInline: 20
@@ -107,7 +107,7 @@ export default function AppLayout() {
         ]}>
         </Breadcrumb>
         <div
-          style={{ margin: "16px 0", padding: 10, minHeight: 380, background: colorBgContainer }}
+          style={{ margin: "16px 0", padding: 30, minHeight: 380, background: colorBgContainer }}
         >
           <Outlet />
         </div>

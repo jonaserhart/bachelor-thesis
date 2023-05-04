@@ -9,6 +9,7 @@ public class Query
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
     [JsonIgnore]
     public AnalysisModel? Model { get; set; }
     public IEnumerable<FieldInfo> FieldInfos { get; set; } = new List<FieldInfo>();

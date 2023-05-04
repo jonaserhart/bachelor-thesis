@@ -94,4 +94,18 @@ public class AnalysisModelService : IAnalysisModelService
         await _context.SaveChangesAsync();
         return model;
     }
+
+    public async Task<IEnumerable<Team>> GetTeamsAsync(string projectId)
+    {
+        var client = await _apiClientFactory.GetApiClientAsync();
+        return await client.GetTeamsAsync(projectId);
+    }
+
+    public async Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId)
+    {
+        var client = await _apiClientFactory.GetApiClientAsync();
+        var iterations = await client.GetIterationsAsync(projectId, teamId);
+        return iterations;
+    }
+
 }

@@ -47,6 +47,15 @@ public class DevOpsController : Controller
         return Ok(projects);
     }
 
+    [HttpGet("teams/{projectId}")]
+    [ProducesResponseType(typeof(Team[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Project>>> GetTeams(string projectId)
+    {
+        var teams = await _analysisModelService.GetTeamsAsync(projectId);
+        return Ok(teams);
+    }
+
     [HttpGet("getmodel/{id}")]
     [ProducesResponseType(typeof(Project[]), 200)]
     [Authorize]

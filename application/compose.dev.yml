@@ -21,12 +21,12 @@ services:
       - SCRUM_BACKEND_ConnectionStrings__PostgresDatabase=Host=db;Database=postgres;Username=postgres;Password=postgres
       - SCRUM_BACKEND_OAuth__AuthorizationUri=https://app.vssps.visualstudio.com/oauth2/authorize
       - SCRUM_BACKEND_OAuth__TokenUri=https://app.vssps.visualstudio.com/oauth2/token
-      - SCRUM_BACKEND_OAuth__ClientId=
-      - SCRUM_BACKEND_OAuth__ClientSecret=
+      - SCRUM_BACKEND_OAuth__ClientId=29AEE975-4685-42DE-9FC7-EB9DCCB1981C
+      - SCRUM_BACKEND_OAuth__ClientSecret=eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Im9PdmN6NU1fN3AtSGpJS2xGWHo5M3VfVjBabyJ9.eyJjaWQiOiIyOWFlZTk3NS00Njg1LTQyZGUtOWZjNy1lYjlkY2NiMTk4MWMiLCJjc2kiOiJkMDAxOTIxYy1iNmM1LTRjNTUtOTdmNi1iM2I1ZWQ4OWE5ODMiLCJuYW1laWQiOiI3ZTdlNWJlNi1kMDdhLTYxYmMtYTUxMC05NDZjZmZmNmRmMzQiLCJpc3MiOiJhcHAudnN0b2tlbi52aXN1YWxzdHVkaW8uY29tIiwiYXVkIjoiYXBwLnZzdG9rZW4udmlzdWFsc3R1ZGlvLmNvbSIsIm5iZiI6MTY4MTUwMDY5OSwiZXhwIjoxODM5MzUzNDk5fQ.ubptWyXdmPO5eBvBmXZiYxOrfM-W1xF6areTe9d-OyWCBg0Ddr32RgoG1oZiZV_YlXElLApfkxa2wR_bjbkQq8Eg09cuFu2s_FtbBoYLVUctFZB0mwoqcnP6t-Zb1h1lbI0QE8G_UIMnY5BCtg7AZTh4Pwjx96gZ05RRIsugwRXyVCxJpt54vBxLCXJ_pTi_oaT6gj8asYfRcZobM4fXHNWkD6s-ZCAJlPc0gFTHmouX0FqO5Bi2Ud94rM_qQpS7lhLbnrSXowdiINYnN-tkILX22LZx_yUb95isNBOfdBopDUzsgMymXTUvxyiHvv_Ty6T8wq81lFYlhGU_PGQ3PQ
       - SCRUM_BACKEND_OAuth__Scope=vso.analytics vso.code vso.work
-      - SCRUM_BACKEND_OAuth__RedirectUri=
-      - SCRUM_BACKEND_OAuth__JWTIssuer=
-      - SCRUM_BACKEND_OAuth__JWTAudience=
+      - SCRUM_BACKEND_OAuth__RedirectUri=https://tinyurl.com/2p94p683
+      - SCRUM_BACKEND_OAuth__JWTIssuer=app.vstoken.visualstudio.com
+      - SCRUM_BACKEND_OAuth__JWTAudience=app.vstoken.visualstudio.com
       - SCRUM_BACKEND_DevOps__ServerUrl=https://dev.azure.com/vertigis
     volumes:
       - ./backend/src:/app

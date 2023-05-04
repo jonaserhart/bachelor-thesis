@@ -46,7 +46,7 @@ public class ApiClient : IApiClient
 
     public async Task<IEnumerable<Team>> GetTeamsAsync(string projectId)
     {
-        _logger.LogDebug($"Requested 'GeTeamsAsync': for {_connection.AuthorizedIdentity.Descriptor}");
+        _logger.LogDebug($"Requested 'GetTeamsAsync': for {_connection.AuthorizedIdentity.Descriptor}");
         using var teamClient = _connection.GetClient<TeamHttpClient>();
         var teams = await teamClient.GetTeamsAsync(projectId);
         return teams.Select(Team.From);
@@ -73,7 +73,7 @@ public class ApiClient : IApiClient
         return fieldInfos;
     }
 
-    public async Task<IEnumerable<Iteration>> GetIterationsAsync(Guid projectId, Guid teamId)
+    public async Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId)
     {
         using var workClient = _connection.GetClient<WorkHttpClient>();
         var iterations = await workClient.GetTeamIterationsAsync(new TeamContext(projectId, teamId));

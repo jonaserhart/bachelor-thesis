@@ -9,12 +9,12 @@ type EditableTableProps = Parameters<typeof Table>[0];
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 type Props<T> = {
-    dataSource: T[]
+    dataSource: readonly T[]
     defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: keyof T | 'actions' })[],
-    handleSave: (row: T) => void | Promise<void>
+    handleSave?: (row: T) => void | Promise<void>
 }
 
-export default function EditableTable<T>(props: EditableTableProps & Props<T>) {
+export default function CustomTable<T>(props: Omit<EditableTableProps, 'dataSource'> & Props<T>) {
 
     const {
         defaultColumns, 
@@ -51,7 +51,7 @@ export default function EditableTable<T>(props: EditableTableProps & Props<T>) {
             components={components}
             rowClassName={() => 'editable-row'}
             bordered
-            dataSource={dataSource}
+            dataSource={dataSource as readonly object[]}
             columns={columns as ColumnTypes}
             {...rest}
             />

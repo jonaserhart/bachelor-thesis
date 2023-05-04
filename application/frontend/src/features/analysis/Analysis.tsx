@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import { createModel, getMyModels, selectModels, updateModelDetails } from './analysisSlice';
 import { Button, Popover, Space, Spin, Typography, message } from 'antd';
-import EditableTable from '../../components/table/EditableTable';
+import CustomTable from '../../components/table/EditableTable';
 import { AnalysisModel, Project, Query } from './types';
 import ProjectPopover from '../../components/ProjectPopover';
 import { useNavigate } from 'react-router-dom';
@@ -81,7 +81,7 @@ export default function Analysis() {
                     </Button>
                 </Popover>
             </div>
-            <EditableTable
+            <CustomTable
                 dataSource={models}
                 defaultColumns={[
                     {

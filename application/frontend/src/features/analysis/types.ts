@@ -56,6 +56,7 @@ export type Sprint = {
 
 export type Query = {
     id: string;
+    name: string;
     select: string[];
     where: string[];
     fieldInfos: FieldInfo[];

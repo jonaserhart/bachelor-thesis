@@ -24,7 +24,7 @@ function App() {
           {
             element: <ModelDetail/>,
             path: 'analyze/:modelId'
-          }
+          },
         ]
       },
       {
