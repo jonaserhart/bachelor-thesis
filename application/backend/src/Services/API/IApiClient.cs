@@ -10,4 +10,5 @@ public interface IApiClient
     Task<IEnumerable<Team>> GetTeamsAsync(string projectId);
     Task<IEnumerable<Model.Analysis.FieldInfo>> GetWiqlFieldsAsync(Query wiql, string iterationPath);
     Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId);
+    Task<IEnumerable<Model.Analysis.FieldInfo>> GetFieldInfosAsync(string projectId);
 }

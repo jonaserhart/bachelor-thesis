@@ -27,4 +27,9 @@ public class FieldInfo
             Type = field.Type.ToString(),
         };
     }
+
+  public override string ToString()
+  {
+    return $"{this.Name} [{this.ReferenceName}] ({this.Type})";
+  }
 }

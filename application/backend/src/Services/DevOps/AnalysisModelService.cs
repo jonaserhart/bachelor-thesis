@@ -108,4 +108,12 @@ public class AnalysisModelService : IAnalysisModelService
         return iterations;
     }
 
+    public async Task<IEnumerable<FieldInfo>> GetFieldInfosAsync(string projectId)
+    {
+        var client = await _apiClientFactory.GetApiClientAsync();
+        var fields = await client.GetFieldInfosAsync(projectId);
+
+        return fields;
+    }
+
 }

@@ -11,4 +11,5 @@ public interface IAnalysisModelService
     Task<AnalysisModel> UpdateAsync(Guid id,  AnalysisModelUpdate request);
     Task<IEnumerable<Project>> GetProjectsAsync();
     Task<IEnumerable<Team>> GetTeamsAsync(string projectId);
+    Task<IEnumerable<FieldInfo>> GetFieldInfosAsync(string projectId);
 }

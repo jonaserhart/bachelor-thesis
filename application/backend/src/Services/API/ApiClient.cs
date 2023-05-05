@@ -73,6 +73,19 @@ public class ApiClient : IApiClient
         return fieldInfos;
     }
 
+    public async Task<IEnumerable<Model.Analysis.FieldInfo>> GetFieldInfosAsync(string projectId)
+    {
+        _logger.LogDebug($"Requested 'GetFieldInfo': for {_connection.AuthorizedIdentity.Descriptor}");
+        using var witClient = _connection.GetClient<WorkItemTrackingHttpClient>();
+        var infos = await witClient.GetFieldsAsync(projectId);
+
+        var fieldInfos = infos.Select(Model.Analysis.FieldInfo.From);
+
+        _logger.LogDebug($"Got field infos: {fieldInfos.Select(x => $"\n\t{x.ToString()}")}");
+
+        return fieldInfos;
+    }
+
     public async Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId)
     {
         using var workClient = _connection.GetClient<WorkHttpClient>();
