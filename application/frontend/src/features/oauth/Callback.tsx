@@ -3,7 +3,7 @@ import * as React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AuthResponse } from "./types";
 import { useAppDispatch } from "../../app/hooks";
-import { setToken, setUser } from "./authSlice";
+import { setToken, setTokenExpired, setUser } from "./authSlice";
 
 export default function Callback() {
   const [searchParams] = useSearchParams();
@@ -24,6 +24,9 @@ export default function Callback() {
           console.log("response:", r);
           dispatch(setUser(r.data.user));
           dispatch(setToken(r.data.token));
+          setTimeout(() => {
+            dispatch(setTokenExpired(true));
+          }, r.data.token.expires);
           nav("/");
         })
         .catch(console.error);

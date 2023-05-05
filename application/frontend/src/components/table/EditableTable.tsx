@@ -1,59 +1,56 @@
-import { Table } from 'antd';
-import * as React from 'react';
-import EditableRow from './EditableRow';
-import EditableCell from './EditableCell';
-
+import { Table } from "antd";
+import EditableRow from "./EditableRow";
+import EditableCell from "./EditableCell";
 
 type EditableTableProps = Parameters<typeof Table>[0];
 
-type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
+type ColumnTypes = Exclude<EditableTableProps["columns"], undefined>;
 
 type Props<T> = {
-    dataSource: readonly T[]
-    defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: keyof T | 'actions' })[],
-    handleSave?: (row: T) => void | Promise<void>
-}
+  dataSource: readonly T[];
+  defaultColumns: (ColumnTypes[number] & {
+    editable?: boolean;
+    dataIndex: keyof T | "actions";
+  })[];
+  handleSave?: (row: T) => void | Promise<void>;
+};
 
-export default function CustomTable<T>(props: Omit<EditableTableProps, 'dataSource'> & Props<T>) {
+export default function CustomTable<T>(
+  props: Omit<EditableTableProps, "dataSource"> & Props<T>
+) {
+  const { defaultColumns, dataSource, handleSave, ...rest } = props;
 
-    const {
-        defaultColumns, 
-        dataSource,
+  const columns = defaultColumns.map((col) => {
+    if (!col.editable) {
+      return col;
+    }
+    return {
+      ...col,
+      onCell: (record: T) => ({
+        record,
+        editable: col.editable,
+        dataIndex: col.dataIndex,
+        title: col.title,
         handleSave,
-        ...rest
-    } = props;
+      }),
+    };
+  });
 
-    const columns = defaultColumns.map((col) => {
-        if (!col.editable) {
-          return col;
-        }
-        return {
-          ...col,
-          onCell: (record: T) => ({
-            record,
-            editable: col.editable,
-            dataIndex: col.dataIndex,
-            title: col.title,
-            handleSave,
-          }),
-        };
-      });
+  const components = {
+    body: {
+      row: EditableRow,
+      cell: EditableCell<T>,
+    },
+  };
 
-    const components = {
-        body: {
-          row: EditableRow,
-          cell: EditableCell<T>,
-        },
-      };
-    
-      return (
-        <Table
-            components={components}
-            rowClassName={() => 'editable-row'}
-            bordered
-            dataSource={dataSource as readonly object[]}
-            columns={columns as ColumnTypes}
-            {...rest}
-            />
-      )
+  return (
+    <Table
+      components={components}
+      rowClassName={() => "editable-row"}
+      bordered
+      dataSource={dataSource as readonly object[]}
+      columns={columns as ColumnTypes}
+      {...rest}
+    />
+  );
 }

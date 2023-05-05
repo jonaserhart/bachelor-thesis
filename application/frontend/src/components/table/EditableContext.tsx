@@ -1,4 +1,6 @@
 import { FormInstance } from "antd";
-import * as React from "react";
+import React from "react";
 
-export const EditableContext = React.createContext<FormInstance<any> | null>(null);
+export const EditableContext = React.createContext<FormInstance<any> | null>(
+  null
+);

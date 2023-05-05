@@ -1,4 +1,8 @@
-import { DashboardOutlined, DotChartOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  DashboardOutlined,
+  DotChartOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import { Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
 import * as React from "react";
@@ -28,17 +32,22 @@ export default function AppLayout() {
   }, [me, nav, dispatch]);
 
   const selectedKey = React.useMemo(() => {
-    switch(true) {
-      case location.pathname === '/': return 'root';
-      case location.pathname.includes('/analyze'): return 'analyze';
-      default: return 'unknown';
+    switch (true) {
+      case location.pathname === "/":
+        return "root";
+      case location.pathname.includes("/analyze"):
+        return "analyze";
+      default:
+        return "unknown";
     }
-  }, [location]); 
+  }, [location]);
 
   const getTokenName = React.useCallback((tn: string) => {
     switch (tn) {
-      case 'analyze': return 'Analysis';
-      default: return tn;
+      case "analyze":
+        return "Analysis";
+      default:
+        return tn;
     }
   }, []);
 
@@ -46,68 +55,75 @@ export default function AppLayout() {
     console.log(location.pathname);
     const tokens = location.pathname.split("/");
     if (tokens.length > 1) {
-      return tokens.filter(x => x.trim().length > 0).map(getTokenName);
+      return tokens.filter((x) => x.trim().length > 0).map(getTokenName);
     }
-    return []
+    return [];
   }, [getTokenName, location.pathname]);
 
   return (
     <Layout>
       <Header style={{ padding: 0 }}>
-        <div style={{
-          display: 'flex',
-          background: '#141414',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingInline: 20
-        }}>
+        <div
+          style={{
+            display: "flex",
+            background: "#141414",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingInline: 20,
+          }}
+        >
           <Menu
             theme="light"
             mode="horizontal"
             defaultSelectedKeys={[selectedKey]}
-            selectedKeys={[
-              selectedKey,
-            ]}
+            selectedKeys={[selectedKey]}
             items={[
               {
-                key: 'root',
-                label: 'Dashboard',
+                key: "root",
+                label: "Dashboard",
                 icon: <DashboardOutlined />,
                 onClick() {
-                  nav('/')
+                  nav("/");
                 },
               },
               {
-                key: 'analyze',
-                label: 'Analysis',
+                key: "analyze",
+                label: "Analysis",
                 icon: <DotChartOutlined />,
                 onClick() {
-                  nav('/analyze')
-                }
+                  nav("/analyze");
+                },
               },
             ]}
           />
           <Space>
-            <Button type="primary" ghost icon={<UserOutlined />} >
+            <Button type="primary" ghost icon={<UserOutlined />}>
               Hello, {me?.displayName}
             </Button>
           </Space>
         </div>
       </Header>
       <Content className="site-layout" style={{ padding: "0 50px" }}>
-        <Breadcrumb style={{
-          marginTop: 10
-        }} items={[
-          {
-            title: 'Scrum tool'
-          },
-          ...pathTokens.map(x => ({
-            title: x,
-          }))
-        ]}>
-        </Breadcrumb>
+        <Breadcrumb
+          style={{
+            marginTop: 10,
+          }}
+          items={[
+            {
+              title: "Scrum tool",
+            },
+            ...pathTokens.map((x) => ({
+              title: x,
+            })),
+          ]}
+        ></Breadcrumb>
         <div
-          style={{ margin: "16px 0", padding: 30, minHeight: 380, background: colorBgContainer }}
+          style={{
+            margin: "16px 0",
+            padding: 30,
+            minHeight: 380,
+            background: colorBgContainer,
+          }}
         >
           <Outlet />
         </div>
