@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using Newtonsoft.Json;

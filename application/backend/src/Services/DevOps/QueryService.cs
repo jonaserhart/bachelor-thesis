@@ -83,5 +83,23 @@ public class QueryService : IQueryService
         }
     }
 
+    public async Task<QueryChange> UpdateQueryAsync(QueryChange queryChange)
+    {
+        if (queryChange == null || string.IsNullOrEmpty(queryChange.Name))
+        {
+            throw new BadRequestException($"Name argument has to be provided.");
+        }
 
+        var query = await _context.Queries.FindAsync(queryChange.Id);
+
+        if (query == null)
+        {
+            throw new DbKeyNotFoundException(queryChange.Id, typeof(Query));
+        }
+
+        query.Name = queryChange.Name;
+
+        await _context.SaveChangesAsync();
+        return queryChange;
+    }
 }

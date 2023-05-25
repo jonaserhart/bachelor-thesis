@@ -87,7 +87,7 @@ public class ApiClient : IApiClient
         var queries = await workItemTrackingHttpClient.GetQueriesAsync(projectId, depth: 2);
         return queries.Select(QueryResponse.From);
     }
-    
+
     public async Task<Query> GetQueryByIdAsync(string projectId, string queryId)
     {
         using var workItemTrackingHttpClient = _connection.GetClient<WorkItemTrackingHttpClient>();
@@ -100,13 +100,13 @@ public class ApiClient : IApiClient
         var result = Query.From(query);
         var fieldInfos = new List<Model.Analysis.FieldInfo>();
         foreach (var field in query.Columns)
-        {     
+        {
             var info = await workItemTrackingHttpClient.GetFieldAsync(field.ReferenceName);
             var fieldInfo = Model.Analysis.FieldInfo.From(info);
             fieldInfos.Add(fieldInfo);
         }
         result.Select = fieldInfos;
-        
+
         return result;
     }
 

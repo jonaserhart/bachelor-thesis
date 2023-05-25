@@ -1,14 +1,14 @@
-import { Button, Select, Space, TreeSelect, message } from "antd";
-import { HasId, HierachyItem } from "../features/analysis/types";
-import axios from "../backendClient";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Button, Space, TreeSelect, message } from 'antd';
+import { HasId, HierachyItem } from '../features/analysis/types';
+import axios from '../backendClient';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import handleError from '../util/handleError';
 
 interface Props<T> {
   request: string;
   title: string;
-  onSubmit: (val: T | undefined) => void;
+  onSubmit: (val: T | undefined) => Promise<void>;
   labelSelector?: (val: T) => string;
-  loading: boolean;
 }
 
 interface TreeSelectOption {
@@ -19,16 +19,10 @@ interface TreeSelectOption {
 }
 
 const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
-  const {
-    onSubmit,
-    request,
-    labelSelector,
-    title,
-    loading: submitLoading,
-  } = props;
+  const { onSubmit, request, labelSelector, title } = props;
 
   const [options, setOptions] = useState<HierachyItem<T>[]>([]);
-  const [selected, setSelected] = useState<string>("");
+  const [selected, setSelected] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   const selectLabel = useMemo(
@@ -41,7 +35,6 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
     axios
       .get<HierachyItem<T>[]>(request)
       .then((response) => {
-        console.log(response.data);
         setOptions(response.data);
       })
       .catch((err) => message.error(err.error))
@@ -50,7 +43,7 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
 
   const findByIdRec = useCallback(
     (id: string, objs: HierachyItem<T>[]): HierachyItem<T> | undefined => {
-      const idArray = id.split("/");
+      const idArray = id.split('/');
 
       for (const obj of objs) {
         if (obj.id === idArray[0]) {
@@ -58,7 +51,7 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
             return obj;
           } else if (obj.children) {
             const foundObj = findByIdRec(
-              idArray.slice(1).join("/"),
+              idArray.slice(1).join('/'),
               obj.children
             );
             if (foundObj) {
@@ -86,8 +79,8 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
   }, [selected]);
 
   const mapOption = useCallback(
-    (o: HierachyItem<T>, id: string = ""): TreeSelectOption => {
-      const prefix = id.length > 0 ? `${id}/` : "";
+    (o: HierachyItem<T>, id: string = ''): TreeSelectOption => {
+      const prefix = id.length > 0 ? `${id}/` : '';
       const idPath = `${prefix}${o.id}`;
       return {
         value: idPath,
@@ -100,13 +93,13 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
   );
 
   return (
-    <Space direction="vertical" style={{ width: "400px" }}>
+    <Space direction="vertical" style={{ width: '400px' }}>
       <TreeSelect
-        loading={loading || submitLoading}
+        loading={loading}
         showSearch
-        style={{ width: "100%" }}
+        style={{ width: '100%' }}
         value={selected}
-        dropdownStyle={{ maxHeight: 400, overflow: "auto" }}
+        dropdownStyle={{ maxHeight: 400, overflow: 'auto' }}
         placeholder={title}
         allowClear
         onChange={(id: string) => {
@@ -116,18 +109,19 @@ const CustomTreeSelect = <T,>(props: Props<HierachyItem<T>>) => {
       />
       <div
         style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row-reverse",
-        }}
-      >
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'row-reverse',
+        }}>
         <Button
-          loading={submitLoading || loading}
-          disabled={selected === ""}
+          loading={loading}
+          disabled={selected === ''}
           type="primary"
           ghost
-          onClick={() => onSubmit(selectedOption)}
-        >
+          onClick={() => {
+            setLoading(true);
+            onSubmit(selectedOption).catch(handleError);
+          }}>
           Create
         </Button>
       </div>

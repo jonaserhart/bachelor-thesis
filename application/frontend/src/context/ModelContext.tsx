@@ -1,12 +1,12 @@
-import { createContext, useEffect, useMemo, useState } from "react";
-import { AnalysisModel } from "../features/analysis/types";
-import { useParams } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
+import { createContext, useEffect, useMemo, useState } from 'react';
+import { AnalysisModel } from '../features/analysis/types';
+import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   getModelDetails,
   selectModel,
-} from "../features/analysis/analysisSlice";
-import { message } from "antd";
+} from '../features/analysis/analysisSlice';
+import { message } from 'antd';
 
 interface ModelContextType {
   model: AnalysisModel | undefined;
@@ -25,7 +25,7 @@ const ModelContextProvider = (props: React.PropsWithChildren) => {
   const params = useParams();
 
   const modelId = useMemo(() => {
-    return params.modelId ?? "";
+    return params.modelId ?? '';
   }, [params]);
 
   const [loading, setLoading] = useState(false);
@@ -49,8 +49,7 @@ const ModelContextProvider = (props: React.PropsWithChildren) => {
       value={{
         model: model,
         loading: loading,
-      }}
-    >
+      }}>
       {children}
     </ModelContext.Provider>
   );

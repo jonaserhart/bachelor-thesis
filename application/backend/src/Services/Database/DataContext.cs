@@ -19,11 +19,11 @@ public class DataContext : DbContext
             .WithOne(x => x.User)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.ClientCascade);
-        modelBuilder.Entity<User>() 
+        modelBuilder.Entity<User>()
             .HasKey(x => x.Id);
         modelBuilder.Entity<RefreshToken>()
             .HasKey(x => x.Token);
-        
+
         modelBuilder.Entity<UserModel>()
             .HasKey(x => new { x.UserId, x.ModelId });
         modelBuilder.Entity<UserModel>()
@@ -42,10 +42,10 @@ public class DataContext : DbContext
         modelBuilder.Entity<UserModel>()
                 .Property(x => x.Permissions)
                 .HasConversion(
-                    permissions => string.Join(',', permissions), 
+                    permissions => string.Join(',', permissions),
                     str => str.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => Enum.Parse<ModelPermission>(x)) ?? new List<ModelPermission>())
                     .Metadata.SetValueComparer(permissionValueComparer);
-        
+
         modelBuilder.Entity<Query>()
             .HasOne(x => x.Where)
             .WithOne(x => x.Query);
@@ -53,7 +53,7 @@ public class DataContext : DbContext
             .HasMany(x => x.Select)
             .WithOne(x => x.Query)
             .HasForeignKey(x => x.QueryId);
-            
+
         modelBuilder.Entity<Clause>()
             .HasMany(x => x.Clauses)
             .WithOne(x => x.ParentClause)
@@ -73,7 +73,7 @@ public class DataContext : DbContext
             .HasMany(x => x.Queries)
             .WithOne(x => x.Model)
             .OnDelete(DeleteBehavior.ClientCascade);
-    
+
     }
 
     public DbSet<User> Users { get; set; }

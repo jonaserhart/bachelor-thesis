@@ -1,13 +1,13 @@
-import { Outlet, RouterProvider, createBrowserRouter } from "react-router-dom";
-import Dashboard from "./components/Dashboard";
-import Analysis from "./features/analysis/Analysis";
-import Callback from "./features/oauth/Callback";
-import NavBar from "./components/Navbar";
-import Authorize from "./features/oauth/Authorize";
-import ModelDetail from "./components/analysis/ModelDetail";
-import QueryDetail from "./components/analysis/queries/QueryDetail";
-import ModelContextProvider from "./context/ModelContext";
-import QueryContextProvider from "./context/QueryContext";
+import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import Dashboard from './components/Dashboard';
+import Analysis from './features/analysis/Analysis';
+import Callback from './features/oauth/Callback';
+import NavBar from './components/Navbar';
+import Authorize from './features/oauth/Authorize';
+import ModelDetail from './components/analysis/ModelDetail';
+import QueryDetail from './components/analysis/queries/QueryDetail';
+import ModelContextProvider from './context/ModelContext';
+import QueryContextProvider from './context/QueryContext';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -15,11 +15,11 @@ const App = () => {
       element: <NavBar />,
       children: [
         {
-          path: "/",
+          path: '/',
           element: <Dashboard />,
         },
         {
-          path: "analyze",
+          path: 'analyze',
           element: <Analysis />,
         },
         {
@@ -28,14 +28,14 @@ const App = () => {
               <Outlet />
             </ModelContextProvider>
           ),
-          path: "analyze/:modelId",
+          path: 'analyze/:modelId',
           children: [
             {
               index: true,
               element: <ModelDetail />,
             },
             {
-              path: "query/:queryId",
+              path: 'query/:queryId',
               element: (
                 <QueryContextProvider>
                   <Outlet />
@@ -53,11 +53,11 @@ const App = () => {
       ],
     },
     {
-      path: "/oauth-authorize",
+      path: '/oauth-authorize',
       element: <Authorize />,
     },
     {
-      path: "/oauth-callback",
+      path: '/oauth-callback',
       element: <Callback />,
     },
   ]);

@@ -1,19 +1,19 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 import {
   AnalysisModel,
   AnalysisModelChange,
-  Condition,
-  FieldInfo,
   Project,
   Query,
-  Clause,
   QueryModelChange,
-} from "./types";
-import axios from "../../backendClient";
-import { RootState } from "../../app/store";
-import { createAppAsyncThunk } from "../../app/hooks";
+} from './types';
+import axios from '../../backendClient';
+import { RootState } from '../../app/store';
+import { createAppAsyncThunk } from '../../app/hooks';
+import { getLogger } from '../../util/logger';
 
-const PREFIX = "analysis";
+const logger = getLogger('analysisSlice');
+
+const PREFIX = 'analysis';
 
 const prefix = (s: string) => `${PREFIX}/${s}`;
 
@@ -26,18 +26,18 @@ const initialState: AnalysisState = {
 };
 
 export const getMyModels = createAppAsyncThunk(
-  prefix("getMyModels"),
+  prefix('getMyModels'),
   async function () {
-    const response = await axios.get<AnalysisModel[]>("/devops/mymodels");
+    const response = await axios.get<AnalysisModel[]>('/devops/mymodels');
     return response.data;
   }
 );
 
 export const createModel = createAppAsyncThunk(
-  prefix("createModel"),
+  prefix('createModel'),
   async function (model: { name: string; project: Project }) {
     const response = await axios.post<AnalysisModel>(
-      "/devops/createmodel",
+      '/devops/createmodel',
       model
     );
     return response.data;
@@ -45,7 +45,7 @@ export const createModel = createAppAsyncThunk(
 );
 
 export const updateModelDetails = createAppAsyncThunk(
-  prefix("updateModelDetails"),
+  prefix('updateModelDetails'),
   async function (changedModel: AnalysisModelChange) {
     const response = await axios.put<AnalysisModel>(
       `/devops/model/${changedModel.id}/update`,
@@ -56,7 +56,7 @@ export const updateModelDetails = createAppAsyncThunk(
 );
 
 export const getModelDetails = createAppAsyncThunk(
-  prefix("getModelDetails"),
+  prefix('getModelDetails'),
   async function (modelId: string) {
     const response = await axios.get<AnalysisModel>(
       `/devops/model/${modelId}/details`
@@ -66,7 +66,7 @@ export const getModelDetails = createAppAsyncThunk(
 );
 
 export const getQueryDetails = createAppAsyncThunk(
-  prefix("getQueryDetails"),
+  prefix('getQueryDetails'),
   async function (args: { queryId: string; modelId: string }) {
     const { queryId } = args;
     const response = await axios.get<Query>(`/devops/query/${queryId}`);
@@ -75,7 +75,7 @@ export const getQueryDetails = createAppAsyncThunk(
 );
 
 export const updateQueryDetails = createAppAsyncThunk(
-  prefix("updateQueryDetails"),
+  prefix('updateQueryDetails'),
   async function (args: { modelId: string; changeQuery: QueryModelChange }) {
     const response = await axios.put<QueryModelChange>(
       `/devops/query`,
@@ -86,7 +86,7 @@ export const updateQueryDetails = createAppAsyncThunk(
 );
 
 export const createQueryFrom = createAppAsyncThunk(
-  prefix("createQueryFrom"),
+  prefix('createQueryFrom'),
   async function (args: { modelId: string; queryId: string }) {
     const response = await axios.post<Query>(
       `/devops/createqueryfrom?modelId=${args.modelId}&queryId=${args.queryId}`
@@ -125,7 +125,7 @@ const analysisSlice = createSlice({
       const modelId = action.meta.arg.modelId;
       const modelIndex = state.models.findIndex((x) => x.id === modelId);
       if (modelIndex < 0) {
-        console.error(`Could not find model containing query ${queryId}`);
+        logger.logError(`Could not find model containing query ${queryId}`);
         return;
       }
 
@@ -133,7 +133,7 @@ const analysisSlice = createSlice({
         (x) => x.id === queryId
       );
       if (queryIndex < 0) {
-        console.error(
+        logger.logError(
           `Could not find query ${queryId} within modelIndex ${modelIndex}`
         );
         return;
@@ -146,7 +146,7 @@ const analysisSlice = createSlice({
       const modelId = action.meta.arg.modelId;
       const modelIndex = state.models.findIndex((x) => x.id === modelId);
       if (modelIndex < 0) {
-        console.error(`Could not find model with id ${modelId}`);
+        logger.logError(`Could not find model with id ${modelId}`);
         return;
       }
       state.models[modelIndex].queries.push(action.payload);
@@ -157,7 +157,7 @@ const analysisSlice = createSlice({
       const queryId = action.meta.arg.changeQuery.id;
       const modelIndex = state.models.findIndex((x) => x.id === modelId);
       if (modelIndex < 0) {
-        console.error(`Could not find model with id ${modelId}`);
+        logger.logError(`Could not find model with id ${modelId}`);
         return;
       }
 

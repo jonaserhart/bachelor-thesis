@@ -36,7 +36,7 @@ public class OAuthController : Controller
         return Ok(response);
     }
 
-    
+
     [HttpGet("refresh-token")]
     [ProducesResponseType(typeof(AuthenticationResponse), 200)]
     public async Task<ActionResult<string>> RefreshToken()
@@ -57,7 +57,7 @@ public class OAuthController : Controller
             HttpOnly = true,
             Expires = DateTime.UtcNow.AddDays(7),
         };
-        
+
         Response.Cookies.Append("refreshToken", token, cookieOptions);
     }
 

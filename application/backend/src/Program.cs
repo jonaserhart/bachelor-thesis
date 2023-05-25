@@ -16,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers().AddNewtonsoftJson(opts => 
+builder.Services.AddControllers().AddNewtonsoftJson(opts =>
 {
     opts.SerializerSettings.Converters.Add(new StringEnumConverter());
 });
@@ -32,7 +32,8 @@ foreach (var c in builder.Configuration.AsEnumerable())
 }
 
 builder.Services
-    .AddDbContext<DataContext>(opts => {
+    .AddDbContext<DataContext>(opts =>
+    {
         opts.UseNpgsql(builder.Configuration.GetConnectionString("PostgresDatabase"));
     });
 
@@ -48,18 +49,20 @@ builder.Services.AddScoped<IAnalysisModelService, AnalysisModelService>();
 builder.Services.AddScoped<IQueryService, QueryService>();
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
 
-builder.Services.AddAuthentication((x) => {
+builder.Services.AddAuthentication((x) =>
+{
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     x.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer((x) => {
+.AddJwtBearer((x) =>
+{
     x.RequireHttpsMetadata = false;
     x.SaveToken = true;
     x.TokenValidationParameters = new TokenValidationParameters
     {
         ValidIssuer = builder.Configuration.GetSection("OAuth:JWTIssuer").Value,
-        ValidAudience =  builder.Configuration.GetSection("OAuth:JWTAudience").Value,
+        ValidAudience = builder.Configuration.GetSection("OAuth:JWTAudience").Value,
         ValidateIssuer = true,
         ValidateAudience = true,
         ClockSkew = TimeSpan.Zero,
@@ -88,6 +91,7 @@ if (app.Environment.IsDevelopment())
     Console.WriteLine("DEVELOPMENT");
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(cp => cp.WithOrigins("http://localhost:3050").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 }
 app.UseHttpsRedirection();
 

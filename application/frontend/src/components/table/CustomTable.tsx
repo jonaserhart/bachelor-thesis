@@ -1,22 +1,22 @@
-import { Table } from "antd";
-import EditableRow from "./EditableRow";
-import EditableCell from "./EditableCell";
+import { Table } from 'antd';
+import EditableRow from './EditableRow';
+import EditableCell from './EditableCell';
 
 type EditableTableProps = Parameters<typeof Table>[0];
 
-type ColumnTypes = Exclude<EditableTableProps["columns"], undefined>;
+type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
 interface Props<T> {
   dataSource: readonly T[];
   defaultColumns: (ColumnTypes[number] & {
     editable?: boolean;
-    dataIndex: keyof T | "actions";
+    dataIndex: keyof T | 'actions';
   })[];
   handleSave?: (row: T) => void | Promise<void>;
-};
+}
 
 const CustomTable = <T,>(
-  props: Omit<EditableTableProps, "dataSource"> & Props<T>
+  props: Omit<EditableTableProps, 'dataSource'> & Props<T>
 ) => {
   const { defaultColumns, dataSource, handleSave, ...rest } = props;
 
@@ -46,13 +46,13 @@ const CustomTable = <T,>(
   return (
     <Table
       components={components}
-      rowClassName={() => "editable-row"}
+      rowClassName={() => 'editable-row'}
       bordered
       dataSource={dataSource as readonly object[]}
       columns={columns as ColumnTypes}
       {...rest}
     />
   );
-}
+};
 
 export default CustomTable;

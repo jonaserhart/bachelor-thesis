@@ -1,16 +1,17 @@
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   createModel,
   getMyModels,
   selectModels,
   updateModelDetails,
-} from "./analysisSlice";
-import { Button, Popover, Space, Spin, Typography, message } from "antd";
-import CustomTable from "../../components/table/CustomTable";
-import { AnalysisModel, Project, Query } from "./types";
-import CustomSelect from "../../components/CustomSelect";
-import { useNavigate } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+} from './analysisSlice';
+import { Button, Popover, Space, Spin, Typography, message } from 'antd';
+import CustomTable from '../../components/table/CustomTable';
+import { AnalysisModel, Project, Query } from './types';
+import CustomSelect from '../../components/CustomSelect';
+import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useState } from 'react';
+import handleError from '../../util/handleError';
 
 const { Title } = Typography;
 
@@ -33,7 +34,7 @@ const Analysis: React.FC = () => {
     setLoading(true);
     dispatch(getMyModels())
       .unwrap()
-      .catch(console.error)
+      .catch(handleError)
       .finally(() => setLoading(false));
   }, [dispatch]);
 
@@ -41,12 +42,11 @@ const Analysis: React.FC = () => {
     return (
       <div
         style={{
-          width: "100%",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
         <Spin tip="Loading models" size="default" />
       </div>
     );
@@ -59,11 +59,10 @@ const Analysis: React.FC = () => {
       </Title>
       <div
         style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row-reverse",
-        }}
-      >
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'row-reverse',
+        }}>
         <Popover
           placement="left"
           content={
@@ -75,7 +74,7 @@ const Analysis: React.FC = () => {
                 if (project) {
                   dispatch(
                     createModel({
-                      name: "new model",
+                      name: 'new model',
                       project,
                     })
                   )
@@ -83,10 +82,10 @@ const Analysis: React.FC = () => {
                     .then((v) =>
                       message.success(`Successfully created model ${v.name}`)
                     )
-                    .catch((err) => message.error(err.error))
+                    .catch(handleError)
                     .finally(() => setCreatePopoverOpen(false));
                 } else {
-                  message.error("No project selected!");
+                  message.error('No project selected!');
                 }
               }}
             />
@@ -94,14 +93,12 @@ const Analysis: React.FC = () => {
           title="Create analysis model"
           trigger="click"
           open={createPopoverOpen}
-          onOpenChange={handleCreatePopoverOpenChange}
-        >
+          onOpenChange={handleCreatePopoverOpenChange}>
           <Button
             ghost
             onClick={() => setCreatePopoverOpen(true)}
             type="primary"
-            style={{ marginBottom: 16 }}
-          >
+            style={{ marginBottom: 16 }}>
             Add a new model
           </Button>
         </Popover>
@@ -110,29 +107,29 @@ const Analysis: React.FC = () => {
         dataSource={models}
         defaultColumns={[
           {
-            key: "name",
-            dataIndex: "name",
+            key: 'name',
+            dataIndex: 'name',
             editable: true,
-            title: "Name",
+            title: 'Name',
           },
           {
-            key: "proj",
-            dataIndex: "project",
-            title: "Project",
+            key: 'proj',
+            dataIndex: 'project',
+            title: 'Project',
             render(value) {
               const proj = value as Project;
-              return proj?.name ?? "No project";
+              return proj?.name ?? 'No project';
             },
           },
           {
-            key: "noQueries",
-            title: "# Queries",
-            dataIndex: "queries",
+            key: 'noQueries',
+            title: '# Queries',
+            dataIndex: 'queries',
             render(value) {
               const queries = value as Query[];
               if (queries.length <= 0) {
                 return (
-                  <div style={{ color: "gray" }}>
+                  <div style={{ color: 'gray' }}>
                     No queries yet
                     <Button type="link">Create one 🚀</Button>
                   </div>
@@ -147,23 +144,22 @@ const Analysis: React.FC = () => {
             },
           },
           {
-            fixed: "right",
+            fixed: 'right',
             width: 100,
-            title: "Action",
-            dataIndex: "actions",
-            key: "action",
+            title: 'Action',
+            dataIndex: 'actions',
+            key: 'action',
             render: (_, record) => (
               <Space size="middle">
                 <Button
                   type="text"
                   onClick={() =>
                     nav(`/analyze/${(record as AnalysisModel).id}`)
-                  }
-                >
+                  }>
                   Details
                 </Button>
                 <Button danger type="text">
-                  Delete{" "}
+                  Delete{' '}
                 </Button>
               </Space>
             ),

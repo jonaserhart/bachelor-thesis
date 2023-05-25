@@ -88,7 +88,7 @@ public class DevOpsController : Controller
     [HttpPut("model/{id}/update")]
     [ProducesResponseType(typeof(AnalysisModel), 200)]
     [Authorize]
-    public async Task<ActionResult<AnalysisModel>> UpdateModel(Guid id, [FromBody]AnalysisModelUpdate request)
+    public async Task<ActionResult<AnalysisModel>> UpdateModel(Guid id, [FromBody] AnalysisModelUpdate request)
     {
         var model = await _analysisModelService.UpdateAsync(id, request);
         return Ok(model);
@@ -111,5 +111,16 @@ public class DevOpsController : Controller
     {
         var query = await _queryService.GetQueryWithClauses(queryId);
         return query;
+    }
+
+    [HttpPut("query")]
+    [ProducesResponseType(typeof(QueryChange), 200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
+    [ProducesResponseType(typeof(ApiError), 400)]
+    [Authorize]
+    public async Task<ActionResult<QueryChange>> UpdateQuery([FromBody] QueryChange queryChange)
+    {
+        var changes = await _queryService.UpdateQueryAsync(queryChange);
+        return changes;
     }
 }

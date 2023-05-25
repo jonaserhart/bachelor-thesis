@@ -13,7 +13,7 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly IApiClientFactory _apiClientFactory;
     private readonly IHttpContextAccessor _httpContextAccessor;
- 
+
     public UserService(DataContext context, ILogger<UserService> logger, IApiClientFactory apiClientFactory, IHttpContextAccessor contextAccessor)
     {
         _context = context;
@@ -37,7 +37,7 @@ public class UserService : IUserService
             existing.DisplayName = user.DisplayName;
             existing.EMail = user.EMail;
         }
-        else 
+        else
         {
             _logger.LogDebug($"Creating user {user.Id}.");
             existing = (await _context.Users.AddAsync(user)).Entity;
@@ -58,7 +58,7 @@ public class UserService : IUserService
         var found = await GetByIdAsync(userId);
         if (found == null)
             throw new DbKeyNotFoundException(userId, typeof(User));
-        
+
         _context.Users.Remove(found);
 
         await _context.SaveChangesAsync();
@@ -69,11 +69,11 @@ public class UserService : IUserService
         var userId = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userId) || !Guid.TryParse(userId, out var id))
             throw new UnauthorizedException("Could not find nameidentifier claim in token.");
-        
+
         var user = await GetByIdAsync(id);
         if (user == null)
             throw new UnauthorizedException();
-        
+
         return user;
     }
 }

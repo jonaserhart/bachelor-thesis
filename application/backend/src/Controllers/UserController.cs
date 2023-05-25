@@ -1,4 +1,3 @@
-using System.Net;
 using backend.Model.Rest;
 using backend.Services.Users;
 using Microsoft.AspNetCore.Authorization;

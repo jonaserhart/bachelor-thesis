@@ -34,7 +34,7 @@ public class ApiClientFactory : IApiClientFactory
         var token = _contextAccessor?.HttpContext?.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
         if (string.IsNullOrEmpty(token))
             throw new UnauthorizedException("No access token found in request, cannot create api client.");
-        
+
         return await GetApiClientAsync(token);
     }
 }

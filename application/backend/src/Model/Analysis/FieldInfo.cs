@@ -28,8 +28,8 @@ public class FieldInfo
         };
     }
 
-  public override string ToString()
-  {
-    return $"{this.Name} [{this.ReferenceName}] ({this.Type})";
-  }
+    public override string ToString()
+    {
+        return $"{this.Name} [{this.ReferenceName}] ({this.Type})";
+    }
 }

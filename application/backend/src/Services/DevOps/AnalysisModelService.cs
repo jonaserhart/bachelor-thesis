@@ -62,7 +62,7 @@ public class AnalysisModelService : IAnalysisModelService
         var project = await _context.Projects.FindAsync(request.Project.Id);
         if (project == null)
             project = Project.From(request.Project);
-        
+
         var model = new AnalysisModel
         {
             Name = request.Name,
@@ -86,12 +86,12 @@ public class AnalysisModelService : IAnalysisModelService
         return model;
     }
 
-    public async Task<AnalysisModel> UpdateAsync(Guid id,  AnalysisModelUpdate request)
+    public async Task<AnalysisModel> UpdateAsync(Guid id, AnalysisModelUpdate request)
     {
         var model = await IncludeUsersProjectsQueriesTeams(_context.AnalysisModels).FirstOrDefaultAsync(x => x.Id == id);
         if (model == null)
             throw new DbKeyNotFoundException(id, typeof(AnalysisModel));
-        
+
         model.Name = request.Name;
 
         await _context.SaveChangesAsync();

@@ -9,4 +9,5 @@ public interface IQueryService
     Task<IEnumerable<QueryResponse>> GetQueriesAsync(string projectId);
     Task<Query> CreateQueryFromDevOps(Guid modelId, Guid queryId);
     Task<Query> GetQueryWithClauses(Guid queryId);
+    Task<QueryChange> UpdateQueryAsync(QueryChange queryChange);
 }

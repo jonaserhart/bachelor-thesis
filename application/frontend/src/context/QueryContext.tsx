@@ -1,12 +1,12 @@
-import { createContext, useEffect, useMemo, useState } from "react";
-import { Query } from "../features/analysis/types";
-import { useParams } from "react-router-dom";
+import { createContext, useEffect, useMemo, useState } from 'react';
+import { Query } from '../features/analysis/types';
+import { useParams } from 'react-router-dom';
 import {
   getQueryDetails,
   selectQuery,
-} from "../features/analysis/analysisSlice";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { message } from "antd";
+} from '../features/analysis/analysisSlice';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { message } from 'antd';
 
 interface QueryContextType {
   query: Query | undefined;
@@ -27,8 +27,8 @@ const QueryContextProvider = (props: React.PropsWithChildren) => {
 
   const ids = useMemo(() => {
     return {
-      query: params.queryId ?? "",
-      model: params.modelId ?? "",
+      query: params.queryId ?? '',
+      model: params.modelId ?? '',
     };
   }, [params]);
 
@@ -53,8 +53,7 @@ const QueryContextProvider = (props: React.PropsWithChildren) => {
       value={{
         loading: loading,
         query: query,
-      }}
-    >
+      }}>
       {children}
     </QueryContext.Provider>
   );

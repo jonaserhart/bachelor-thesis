@@ -1,7 +1,7 @@
-import { Button, Select, Space, message } from "antd";
-import { HasId, HierachyItem } from "../features/analysis/types";
-import axios from "../backendClient";
-import { useEffect, useMemo, useState } from "react";
+import { Button, Select, Space, message } from 'antd';
+import { HasId, HierachyItem } from '../features/analysis/types';
+import axios from '../backendClient';
+import { useEffect, useMemo, useState } from 'react';
 
 type EitherProps<T> = HasId | HierachyItem<T>;
 
@@ -16,7 +16,7 @@ const CustomSelect = <T extends HasId>(props: Props<T>) => {
   const { onSubmit, request, labelSelector, title } = props;
 
   const [options, setOptions] = useState<T[]>([]);
-  const [selected, setSelected] = useState<string>("");
+  const [selected, setSelected] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
   const selectLabel = useMemo(
@@ -48,7 +48,7 @@ const CustomSelect = <T extends HasId>(props: Props<T>) => {
         onSelect={(id) => setSelected(id)}
         showSearch
         filterOption={(input, option) =>
-          (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+          (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
         }
         options={options.map((p) => ({
           label: selectLabel(p),
@@ -58,17 +58,15 @@ const CustomSelect = <T extends HasId>(props: Props<T>) => {
 
       <div
         style={{
-          width: "100%",
-          display: "flex",
-          flexDirection: "row-reverse",
-        }}
-      >
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'row-reverse',
+        }}>
         <Button
-          disabled={selected === ""}
+          disabled={selected === ''}
           type="primary"
           ghost
-          onClick={() => onSubmit(selectedOption)}
-        >
+          onClick={() => onSubmit(selectedOption)}>
           Create
         </Button>
       </div>

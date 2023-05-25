@@ -1,9 +1,9 @@
-import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { User } from "./types";
-import { RootState } from "../../app/store";
-import axios from "../../backendClient";
+import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { User } from './types';
+import { RootState } from '../../app/store';
+import axios from '../../backendClient';
 
-const PREFIX = "auth";
+const PREFIX = 'auth';
 
 const prefix = (s: string) => `${PREFIX}/${s}`;
 
@@ -19,8 +19,8 @@ const initialState: AuthState = {
   user: null,
 };
 
-export const getMe = createAsyncThunk(prefix("getMe"), async function () {
-  const response = await axios.get<User>("/user/me");
+export const getMe = createAsyncThunk(prefix('getMe'), async function () {
+  const response = await axios.get<User>('/user/me');
   return response.data;
 });
 

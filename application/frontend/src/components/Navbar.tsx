@@ -2,13 +2,17 @@ import {
   DashboardOutlined,
   DotChartOutlined,
   UserOutlined,
-} from "@ant-design/icons";
-import { Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
-import { Content, Footer, Header } from "antd/es/layout/layout";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../app/hooks";
-import { getMe, selectAuthenticatedUser } from "../features/oauth/authSlice";
-import { useCallback, useEffect, useMemo } from "react";
+} from '@ant-design/icons';
+import { Breadcrumb, Button, Layout, Menu, Space, message, theme } from 'antd';
+import { Content, Footer, Header } from 'antd/es/layout/layout';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { getMe, selectAuthenticatedUser } from '../features/oauth/authSlice';
+import { useCallback, useEffect, useMemo } from 'react';
+import { getLogger } from '../util/logger';
+import handleError from '../util/handleError';
+
+const logger = getLogger('NavBar');
 
 const NavBar: React.FC = () => {
   const {
@@ -26,34 +30,33 @@ const NavBar: React.FC = () => {
     if (!me) {
       dispatch(getMe())
         .unwrap()
-        .then((user) => console.log(user.id))
-        .catch((err) => console.error(err.message));
+        .then((user) => logger.logDebug(user.id))
+        .catch((err) => handleError(err));
     }
   }, [me, nav, dispatch]);
 
   const selectedKey = useMemo(() => {
     switch (true) {
-      case location.pathname === "/":
-        return "root";
-      case location.pathname.includes("/analyze"):
-        return "analyze";
+      case location.pathname === '/':
+        return 'root';
+      case location.pathname.includes('/analyze'):
+        return 'analyze';
       default:
-        return "unknown";
+        return 'unknown';
     }
   }, [location]);
 
   const getTokenName = useCallback((tn: string) => {
     switch (tn) {
-      case "analyze":
-        return "Analysis";
+      case 'analyze':
+        return 'Analysis';
       default:
         return tn;
     }
   }, []);
 
   const pathTokens = useMemo(() => {
-    console.log(location.pathname);
-    const tokens = location.pathname.split("/");
+    const tokens = location.pathname.split('/');
     if (tokens.length > 1) {
       return tokens.filter((x) => x.trim().length > 0).map(getTokenName);
     }
@@ -65,13 +68,12 @@ const NavBar: React.FC = () => {
       <Header style={{ padding: 0 }}>
         <div
           style={{
-            display: "flex",
-            background: "#141414",
-            alignItems: "center",
-            justifyContent: "space-between",
+            display: 'flex',
+            background: '#141414',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             paddingInline: 20,
-          }}
-        >
+          }}>
           <Menu
             theme="light"
             mode="horizontal"
@@ -79,19 +81,19 @@ const NavBar: React.FC = () => {
             selectedKeys={[selectedKey]}
             items={[
               {
-                key: "root",
-                label: "Dashboard",
+                key: 'root',
+                label: 'Dashboard',
                 icon: <DashboardOutlined />,
                 onClick() {
-                  nav("/");
+                  nav('/');
                 },
               },
               {
-                key: "analyze",
-                label: "Analysis",
+                key: 'analyze',
+                label: 'Analysis',
                 icon: <DotChartOutlined />,
                 onClick() {
-                  nav("/analyze");
+                  nav('/analyze');
                 },
               },
             ]}
@@ -103,32 +105,30 @@ const NavBar: React.FC = () => {
           </Space>
         </div>
       </Header>
-      <Content className="site-layout" style={{ padding: "0 50px" }}>
+      <Content className="site-layout" style={{ padding: '0 50px' }}>
         <Breadcrumb
           style={{
             marginTop: 10,
           }}
           items={[
             {
-              title: "Scrum tool",
+              title: 'Scrum tool',
             },
             ...pathTokens.map((x) => ({
               title: x,
             })),
-          ]}
-        ></Breadcrumb>
+          ]}></Breadcrumb>
         <div
           style={{
-            margin: "16px 0",
+            margin: '16px 0',
             padding: 30,
             minHeight: 380,
             background: colorBgContainer,
-          }}
-        >
+          }}>
           <Outlet />
         </div>
       </Content>
-      <Footer style={{ textAlign: "center" }}>Scrum analysis tool</Footer>
+      <Footer style={{ textAlign: 'center' }}>Scrum analysis tool</Footer>
     </Layout>
   );
 };

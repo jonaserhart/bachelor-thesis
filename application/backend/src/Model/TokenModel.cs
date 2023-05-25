@@ -4,7 +4,7 @@ namespace backend.Model;
 
 [DataContract]
 public class TokenModel
-{    
+{
     [DataMember(Name = "access_token")]
     public String AccessToken { get; set; } = string.Empty;
 

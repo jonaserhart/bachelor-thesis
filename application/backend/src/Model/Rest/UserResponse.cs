@@ -8,13 +8,13 @@ public class UserResponse
     public string? DisplayName { get; set; }
     public string? EMail { get; set; }
 
-    public static UserResponse From(User user) 
+    public static UserResponse From(User user)
     {
         return new UserResponse
-            {
-                Id = user.Id,
-                DisplayName = user.DisplayName,
-                EMail = user.EMail
-            };
+        {
+            Id = user.Id,
+            DisplayName = user.DisplayName,
+            EMail = user.EMail
+        };
     }
 }

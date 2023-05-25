@@ -36,24 +36,26 @@ public class Clause
     public static Clause From(WorkItemQueryClause clause)
     {
         var c = new Clause
+        {
+            LogicalOperator = clause.LogicalOperator switch
             {
-                LogicalOperator = clause.LogicalOperator switch {
-                    WorkItemQueryClause.LogicalOperation.NONE => LogicalOperator.None,
-                    WorkItemQueryClause.LogicalOperation.AND => LogicalOperator.And,
-                    WorkItemQueryClause.LogicalOperation.OR => LogicalOperator.Or,
-                    _ => LogicalOperator.None
-                },
-                IsFieldValue = clause.IsFieldValue.GetValueOrDefault(false),
-                Operator = FieldOperation.From(clause.Operator),
-                Value = clause.Value ?? string.Empty,
-                Field = clause.Field?.ReferenceName ?? string.Empty,
-                FieldValue = clause.FieldValue?.ReferenceName ?? string.Empty,
-            };
-        c.Clauses = clause.Clauses?.Where(x => x != null).Select(y => {
-                    var newClause = Clause.From(y);
-                    newClause.ParentClause = c;
-                    return newClause;
-                }).ToList() ?? new List<Clause>();
+                WorkItemQueryClause.LogicalOperation.NONE => LogicalOperator.None,
+                WorkItemQueryClause.LogicalOperation.AND => LogicalOperator.And,
+                WorkItemQueryClause.LogicalOperation.OR => LogicalOperator.Or,
+                _ => LogicalOperator.None
+            },
+            IsFieldValue = clause.IsFieldValue.GetValueOrDefault(false),
+            Operator = FieldOperation.From(clause.Operator),
+            Value = clause.Value ?? string.Empty,
+            Field = clause.Field?.ReferenceName ?? string.Empty,
+            FieldValue = clause.FieldValue?.ReferenceName ?? string.Empty,
+        };
+        c.Clauses = clause.Clauses?.Where(x => x != null).Select(y =>
+        {
+            var newClause = Clause.From(y);
+            newClause.ParentClause = c;
+            return newClause;
+        }).ToList() ?? new List<Clause>();
         return c;
     }
 

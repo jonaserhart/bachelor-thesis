@@ -14,10 +14,10 @@ public class TokenResponse
     public static TokenResponse From(TokenModel tokenModel)
     {
         return new TokenResponse
-            {
-                Expires = tokenModel.ExpiresIn,
-                JWT = tokenModel.AccessToken,
-                RefreshToken = tokenModel.RefreshToken
-            };
+        {
+            Expires = tokenModel.ExpiresIn,
+            JWT = tokenModel.AccessToken,
+            RefreshToken = tokenModel.RefreshToken
+        };
     }
 }

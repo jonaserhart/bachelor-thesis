@@ -1,19 +1,19 @@
-import { useParams } from "react-router-dom";
-import { Spin, Typography, message, theme, Tabs, Skeleton } from "antd";
+import { useParams } from 'react-router-dom';
+import { Spin, Typography, message, theme, Tabs, Skeleton } from 'antd';
 import {
   CloudServerOutlined,
   EditOutlined,
   FileDoneOutlined,
-} from "@ant-design/icons";
-import { BackendError, useAppDispatch, useAppSelector } from "../../app/hooks";
-import Queries from "../../components/analysis/queries/Queries";
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+} from '@ant-design/icons';
+import { BackendError, useAppDispatch, useAppSelector } from '../../app/hooks';
+import Queries from '../../components/analysis/queries/Queries';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   getModelDetails,
   selectModel,
   updateModelDetails,
-} from "../../features/analysis/analysisSlice";
-import { ModelContext } from "../../context/ModelContext";
+} from '../../features/analysis/analysisSlice';
+import { ModelContext } from '../../context/ModelContext';
 
 const { Title } = Typography;
 
@@ -59,17 +59,16 @@ const ModelDetail: React.FC = () => {
             ) : (
               <EditOutlined style={{ color: colorPrimary }} />
             ),
-            tooltip: "click to edit name",
+            tooltip: 'click to edit name',
           }}
           level={4}
-          style={{ marginTop: 0 }}
-        >
+          style={{ marginTop: 0 }}>
           {model?.name}
         </Title>
         <Tabs
           items={[
             {
-              key: "1",
+              key: '1',
               label: (
                 <span>
                   <CloudServerOutlined />
@@ -79,7 +78,7 @@ const ModelDetail: React.FC = () => {
               children: <Queries />,
             },
             {
-              key: "2",
+              key: '2',
               label: (
                 <span>
                   <FileDoneOutlined />

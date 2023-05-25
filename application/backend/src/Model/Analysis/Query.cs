@@ -32,7 +32,7 @@ public class Query
         {
             q.Where = Clause.From(item.Clauses);
         }
-        
+
         return q;
     }
 

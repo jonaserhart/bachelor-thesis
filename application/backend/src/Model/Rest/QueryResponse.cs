@@ -7,7 +7,7 @@ public class QueryResponse
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public bool? HasChildren { get; set; }
-    public IEnumerable<QueryResponse> Children { get; set; } = new List<QueryResponse>(); 
+    public IEnumerable<QueryResponse> Children { get; set; } = new List<QueryResponse>();
 
     public static QueryResponse From(QueryHierarchyItem item)
     {

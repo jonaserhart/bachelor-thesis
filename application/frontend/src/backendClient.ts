@@ -1,7 +1,7 @@
-import axios, { AxiosRequestConfig } from "axios";
-import { store } from "./app/store";
-import { AuthResponse } from "./features/oauth/types";
-import handleAuthResponse from "./util/handleAuthResponse";
+import axios, { AxiosRequestConfig } from 'axios';
+import { store } from './app/store';
+import { AuthResponse } from './features/oauth/types';
+import handleAuthResponse from './util/handleAuthResponse';
 
 type TokenPromiseFunction = {
   resolve: (token: unknown) => void;
@@ -30,9 +30,9 @@ let timer: NodeJS.Timeout | undefined = undefined;
 let failedQueue: TokenPromiseFunction[] = [];
 
 const urlsWithoutAuthenticationRequirement = [
-  "oauth/refresh-token",
-  "oauth/authorize",
-  "oauth/callback",
+  'oauth/refresh-token',
+  'oauth/authorize',
+  'oauth/callback',
 ];
 
 const processQueue = (error: any, token: string | null = null) => {
@@ -91,16 +91,16 @@ instance.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         instance
-          .get<AuthResponse>("/oauth/refresh-token", {
+          .get<AuthResponse>('/oauth/refresh-token', {
             headers: {
-              "X-IS-FST": isFirstRequest,
+              'X-IS-FST': isFirstRequest,
             },
           })
           .then((response) => {
             const { token, user } = response.data;
             if (!token || !user?.id) {
               reject({
-                error: "New token could not be retrieved. Please log in again.",
+                error: 'New token could not be retrieved. Please log in again.',
               });
             }
 
@@ -123,7 +123,7 @@ instance.interceptors.response.use(
           })
           .catch((err) => {
             // eslint-disable-next-line no-restricted-globals
-            location.href = "/oauth-authorize";
+            location.href = '/oauth-authorize';
             processQueue(err, null);
             reject(error);
           })

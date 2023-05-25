@@ -14,17 +14,17 @@ export type HierachyItem<T> = HasId &
     children?: HierachyItem<T>[];
   };
 
-type BaseOperator = "sum" | "class" | "avg" | "max" | "min";
+type BaseOperator = 'sum' | 'class' | 'avg' | 'max' | 'min';
 
-export type Operator = BaseOperator | "div" | "countIf";
+export type Operator = BaseOperator | 'div' | 'countIf';
 
 export interface ConditionExpression {
-  operator: "countIf";
+  operator: 'countIf';
   condition: Condition;
 }
 
 export interface DivExpression {
-  operator: "div";
+  operator: 'div';
   operand: [Expression, Expression];
 }
 
@@ -55,9 +55,9 @@ export interface Sprint {
 }
 
 export enum LogicalOperator {
-  And = "And",
-  Or = "Or",
-  None = "None",
+  And = 'And',
+  Or = 'Or',
+  None = 'None',
 }
 
 export interface FieldOperation {
@@ -78,7 +78,7 @@ export interface Clause extends HasId {
 export interface Query extends HasId {
   name: string;
   select: FieldInfo[];
-  where: Clause[];
+  where: Clause;
 }
 
 export interface Project extends HasId {
@@ -110,10 +110,10 @@ export interface QueryModelChange extends HasId {
 }
 
 export enum QueryOperator {
-  eq = "=",
-  neq = "!=",
-  ge = ">=",
-  g = ">",
-  le = "<=",
-  l = "<",
+  eq = '=',
+  neq = '!=',
+  ge = '>=',
+  g = '>',
+  le = '<=',
+  l = '<',
 }
