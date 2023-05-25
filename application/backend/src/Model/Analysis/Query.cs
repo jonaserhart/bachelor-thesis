@@ -36,13 +36,11 @@ public class Query
         return q;
     }
 
-    public string ToQuery(string iterationPath, string? asOfDateTime = null)
+    public string ToQuery(string iterationPath, DateTime? asOfDateTime = null)
     {
-        if (Model == null)
-            throw new ArgumentException("Model cannot be 'null' when creating a query");
-        var select = string.Join(",\n", this.Select.Select(x => x.ReferenceName));
+        var select = string.Join(",", this.Select.Select(x => x.ReferenceName));
         var from = "workitems";
-        var where = $"[System.TeamProject] = {Model.ProjectId}\nAND System.IterationPath = '{iterationPath}'";
+        var where = $"System.IterationPath = '{iterationPath}'";
         if (this.Where != null)
         {
             where = $"({where}) AND ({this.Where.ToString()})";
@@ -50,16 +48,9 @@ public class Query
         var asOf = string.Empty;
         if (asOfDateTime != null)
         {
-            asOf = $"ASOF '{asOfDateTime}'";
+            asOf = $"ASOF '{asOfDateTime.ToString()}'";
         }
 
-        return $"""
-        SELECT 
-            {select}
-        FROM {from}
-        WHERE
-            {where}
-        {asOf}
-        """;
+        return $"SELECT {select} FROM {from} WHERE {where} {asOf}";
     }
 }

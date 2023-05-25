@@ -67,14 +67,10 @@ public class Clause
 
             foreach (var childClause in this.Clauses)
             {
-                childrenString.Append(childClause.ToString()).Append("\n");
+                childrenString.Append(childClause.ToString()).Append(" ");
             }
 
-            return $"""
-                {this.LogicalOperator} (
-                    {childrenString}
-                )
-                """;
+            return $"{this.LogicalOperator} ({childrenString})";
         }
         if (this.Field == null || this.Operator == null)
             return string.Empty;

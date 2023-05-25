@@ -50,7 +50,7 @@ public class QueryService : IQueryService
         return query;
     }
 
-    public async Task<Query> GetQueryWithClauses(Guid queryId)
+    public async Task<Query> GetQueryWithClausesAsync(Guid queryId)
     {
         var query = _context.Queries
             .Include(x => x.Select)

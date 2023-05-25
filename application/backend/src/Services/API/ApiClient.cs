@@ -1,5 +1,7 @@
 using System.Data;
 using backend.Model.Analysis;
+using backend.Model.Analysis.WorkItems;
+using backend.Model.Enum;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Model.Users;
@@ -11,13 +13,15 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.Profile;
 using Microsoft.VisualStudio.Services.Profile.Client;
 using Microsoft.VisualStudio.Services.WebApi;
+using FieldType = Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models.FieldType;
 
 namespace backend.Services.API;
 
-public class ApiClient : IApiClient
+public sealed class ApiClient : IApiClient
 {
     private readonly VssConnection _connection;
     private readonly ILogger<ApiClient> _logger;
+    private bool m_disposedValue;
 
     public ApiClient(VssConnection connection, ILogger<ApiClient> logger)
     {
@@ -60,7 +64,7 @@ public class ApiClient : IApiClient
         using var witClient = _connection.GetClient<WorkItemTrackingHttpClient>();
         var infos = await witClient.GetFieldsAsync(projectId);
 
-        var fieldInfos = infos.Select(Model.Analysis.FieldInfo.From);
+        var fieldInfos = infos.Select(FieldInfoFrom);
 
         _logger.LogDebug($"Got field infos: {fieldInfos.Select(x => $"\n\t{x.ToString()}")}");
 
@@ -102,7 +106,7 @@ public class ApiClient : IApiClient
         foreach (var field in query.Columns)
         {
             var info = await workItemTrackingHttpClient.GetFieldAsync(field.ReferenceName);
-            var fieldInfo = Model.Analysis.FieldInfo.From(info);
+            var fieldInfo = FieldInfoFrom(info);
             fieldInfos.Add(fieldInfo);
         }
         result.Select = fieldInfos;
@@ -110,8 +114,72 @@ public class ApiClient : IApiClient
         return result;
     }
 
-    public void Dispose()
+    private async IAsyncEnumerable<WorkItem> FetchWorkItemsAsync(WorkItemTrackingHttpClient workItemTrackingHttpClient,
+                                                                 IEnumerable<int> ids,
+                                                                 string projectId,
+                                                                 Iteration iteration,
+                                                                 Query wiql,
+                                                                 DateTime? asOf)
     {
-        _connection.Dispose();
+        foreach (var id in ids)
+        {
+            var item = await workItemTrackingHttpClient.GetWorkItemAsync(projectId, id, wiql.Select.Select(x => x.ReferenceName), asOf);
+            yield return item;
+        }
     }
+
+    public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Query wiql, DateTime? asOf)
+    {
+        using var workItemTrackingHttpClient = _connection.GetClient<WorkItemTrackingHttpClient>();
+        var itemRefs = await workItemTrackingHttpClient.QueryByWiqlAsync(new Wiql { Query = wiql.ToQuery(iteration.Path, asOf) });
+
+        var idsToFetch = itemRefs.WorkItems.Select(x => x.Id);
+
+        var workItems = new List<Workitem>();
+
+        await foreach (var item in FetchWorkItemsAsync(workItemTrackingHttpClient, idsToFetch, projectId, iteration, wiql, asOf))
+        {
+            var workItem = new Workitem();
+
+            foreach (var selectedField in wiql.Select)
+            {
+                var key = selectedField.ReferenceName;
+                if (!item.Fields.TryGetValue(key, out var fieldValue))
+                {
+                    _logger.LogError($"Could not get field from wiql (query: ${wiql.Id}, field: ${key})");
+                    continue;
+                }
+                workItem.WorkItemFields.Add(new WorkItemKeyValue { Key = key, Type = selectedField.Type, Value = fieldValue?.ToString() ?? string.Empty });
+            }
+            workItems.Add(workItem);
+        }
+        return workItems;
+    }
+
+    // Conversion
+    public static Model.Analysis.FieldInfo FieldInfoFrom(WorkItemField field)
+    {
+        return new Model.Analysis.FieldInfo
+        {
+            Name = field.Name,
+            ReferenceName = field.ReferenceName,
+            Type = field.Type switch
+            {
+                FieldType.Guid
+                or FieldType.Html
+                or FieldType.PicklistString
+                or FieldType.PlainText
+                or FieldType.TreePath
+                or FieldType.String => WorkItemValueType.String,
+                FieldType.Double
+                or FieldType.Integer
+                or FieldType.PicklistDouble
+                or FieldType.PicklistInteger => WorkItemValueType.Number,
+                FieldType.Boolean => WorkItemValueType.Boolean,
+                _ => WorkItemValueType.Unknown
+            },
+        };
+    }
+
+    public void Dispose() => _connection.Dispose();
 }

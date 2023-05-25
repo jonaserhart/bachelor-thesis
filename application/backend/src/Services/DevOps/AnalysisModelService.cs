@@ -1,4 +1,5 @@
 using backend.Model.Analysis;
+using backend.Model.Analysis.WorkItems;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Model.Users;
@@ -14,12 +15,14 @@ public class AnalysisModelService : IAnalysisModelService
     private readonly DataContext _context;
     private readonly IApiClientFactory _apiClientFactory;
     private readonly IUserService _userService;
+    private readonly IQueryService _queryService;
 
-    public AnalysisModelService(DataContext context, IUserService userService, IApiClientFactory apiClientFactory)
+    public AnalysisModelService(DataContext context, IUserService userService, IApiClientFactory apiClientFactory, IQueryService queryService)
     {
         _context = context;
         _userService = userService;
         _apiClientFactory = apiClientFactory;
+        _queryService = queryService;
     }
 
     private IQueryable<AnalysisModel> IncludeUsersProjectsQueriesTeams(IQueryable<AnalysisModel> query)
@@ -117,5 +120,13 @@ public class AnalysisModelService : IAnalysisModelService
         var fields = await client.GetFieldInfosAsync(projectId);
 
         return fields;
+    }
+
+    public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Guid queryId, DateTime? asOf = null)
+    {
+        var client = await _apiClientFactory.GetApiClientAsync();
+        var query = await _queryService.GetQueryWithClausesAsync(queryId);
+        var items = await client.GetWorkitemsAsync(projectId, iteration, query, asOf);
+        return items;
     }
 }

@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace backend.Migrations
 {
     /// <inheritdoc />
-    public partial class initialmig : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Project",
+                name: "Projects",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -22,7 +22,7 @@ namespace backend.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Project", x => x.Id);
+                    table.PrimaryKey("PK_Projects", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -64,9 +64,9 @@ namespace backend.Migrations
                 {
                     table.PrimaryKey("PK_AnalysisModels", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_AnalysisModels_Project_ProjectId",
+                        name: "FK_AnalysisModels_Projects_ProjectId",
                         column: x => x.ProjectId,
-                        principalTable: "Project",
+                        principalTable: "Projects",
                         principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_AnalysisModels_Team_TeamId",
@@ -94,19 +94,19 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Query",
+                name: "Queries",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    ModelId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Select = table.Column<string>(type: "text", nullable: false),
-                    Where = table.Column<string>(type: "text", nullable: false)
+                    ReferencedId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    ModelId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Query", x => x.Id);
+                    table.PrimaryKey("PK_Queries", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Query_AnalysisModels_ModelId",
+                        name: "FK_Queries_AnalysisModels_ModelId",
                         column: x => x.ModelId,
                         principalTable: "AnalysisModels",
                         principalColumn: "Id");
@@ -138,22 +138,52 @@ namespace backend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "FieldInfo",
+                name: "Clause",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    QueryId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ParentClauseId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Field = table.Column<string>(type: "text", nullable: false),
+                    IsFieldValue = table.Column<bool>(type: "boolean", nullable: false),
+                    FieldValue = table.Column<string>(type: "text", nullable: false),
+                    LogicalOperator = table.Column<int>(type: "integer", nullable: false),
+                    Operator_Name = table.Column<string>(type: "text", nullable: true),
+                    Operator_ReferenceName = table.Column<string>(type: "text", nullable: true),
+                    Value = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clause", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Clause_Clause_ParentClauseId",
+                        column: x => x.ParentClauseId,
+                        principalTable: "Clause",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Clause_Queries_QueryId",
+                        column: x => x.QueryId,
+                        principalTable: "Queries",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FieldInfos",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ReferenceName = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<int>(type: "integer", nullable: false),
                     QueryId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_FieldInfo", x => x.Id);
+                    table.PrimaryKey("PK_FieldInfos", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_FieldInfo_Query_QueryId",
+                        name: "FK_FieldInfos_Queries_QueryId",
                         column: x => x.QueryId,
-                        principalTable: "Query",
+                        principalTable: "Queries",
                         principalColumn: "Id");
                 });
 
@@ -168,13 +198,24 @@ namespace backend.Migrations
                 column: "TeamId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_FieldInfo_QueryId",
-                table: "FieldInfo",
+                name: "IX_Clause_ParentClauseId",
+                table: "Clause",
+                column: "ParentClauseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clause_QueryId",
+                table: "Clause",
+                column: "QueryId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FieldInfos_QueryId",
+                table: "FieldInfos",
                 column: "QueryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Query_ModelId",
-                table: "Query",
+                name: "IX_Queries_ModelId",
+                table: "Queries",
                 column: "ModelId");
 
             migrationBuilder.CreateIndex(
@@ -192,7 +233,10 @@ namespace backend.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "FieldInfo");
+                name: "Clause");
+
+            migrationBuilder.DropTable(
+                name: "FieldInfos");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
@@ -201,7 +245,7 @@ namespace backend.Migrations
                 name: "UserModels");
 
             migrationBuilder.DropTable(
-                name: "Query");
+                name: "Queries");
 
             migrationBuilder.DropTable(
                 name: "Users");
@@ -210,7 +254,7 @@ namespace backend.Migrations
                 name: "AnalysisModels");
 
             migrationBuilder.DropTable(
-                name: "Project");
+                name: "Projects");
 
             migrationBuilder.DropTable(
                 name: "Team");

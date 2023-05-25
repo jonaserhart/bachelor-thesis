@@ -1,4 +1,5 @@
 using backend.Model.Analysis;
+using backend.Model.Analysis.WorkItems;
 using backend.Model.Rest;
 using backend.Model.Users;
 
@@ -13,4 +14,5 @@ public interface IApiClient : IDisposable
     Task<IEnumerable<Model.Analysis.FieldInfo>> GetFieldInfosAsync(string projectId);
     Task<IEnumerable<QueryResponse>> GetQueriesAsync(string projectId);
     Task<Query> GetQueryByIdAsync(string projectId, string queryId);
+    Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Query wiql, DateTime? asOf);
 }

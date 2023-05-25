@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using backend.Model.Analysis;
+using backend.Model.Analysis.WorkItems;
 using backend.Model.Rest;
 using backend.Services.DevOps;
 using Microsoft.AspNetCore.Authorization;
@@ -109,7 +110,7 @@ public class DevOpsController : Controller
     [Authorize]
     public async Task<ActionResult<Query>> GetQuery(Guid queryId)
     {
-        var query = await _queryService.GetQueryWithClauses(queryId);
+        var query = await _queryService.GetQueryWithClausesAsync(queryId);
         return query;
     }
 
@@ -123,4 +124,13 @@ public class DevOpsController : Controller
         var changes = await _queryService.UpdateQueryAsync(queryChange);
         return changes;
     }
+
+    [HttpPost("workItems")]
+    [ProducesResponseType(typeof(Workitem[]), 200)]
+    [Authorize]
+    public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string project, Guid queryid, [FromBody] Iteration iteration)
+    {
+        return await _analysisModelService.GetWorkitemsAsync(project, iteration, queryid);
+    }
+
 }

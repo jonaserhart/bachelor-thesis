@@ -44,14 +44,16 @@ const ModelContextProvider = (props: React.PropsWithChildren) => {
     }
   }, [model, modelId, dispatch]);
 
+  const value = useMemo(
+    () => ({
+      model,
+      loading,
+    }),
+    [model, loading]
+  );
+
   return (
-    <ModelContext.Provider
-      value={{
-        model: model,
-        loading: loading,
-      }}>
-      {children}
-    </ModelContext.Provider>
+    <ModelContext.Provider value={value}>{children}</ModelContext.Provider>
   );
 };
 

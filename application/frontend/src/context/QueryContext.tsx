@@ -48,14 +48,16 @@ const QueryContextProvider = (props: React.PropsWithChildren) => {
     }
   }, [ids.query]);
 
+  const value = useMemo(
+    () => ({
+      loading,
+      query,
+    }),
+    [loading, query]
+  );
+
   return (
-    <QueryContext.Provider
-      value={{
-        loading: loading,
-        query: query,
-      }}>
-      {children}
-    </QueryContext.Provider>
+    <QueryContext.Provider value={value}>{children}</QueryContext.Provider>
   );
 };
 
