@@ -4,85 +4,112 @@ export type Condition = {
   value: string | number | boolean;
 };
 
+export interface HasId {
+  id: string;
+}
+
+export type HierachyItem<T> = HasId &
+  T & {
+    hasChildren: boolean;
+    children?: HierachyItem<T>[];
+  };
+
 type BaseOperator = "sum" | "class" | "avg" | "max" | "min";
 
 export type Operator = BaseOperator | "div" | "countIf";
 
-export type ConditionExpression = {
+export interface ConditionExpression {
   operator: "countIf";
   condition: Condition;
-};
+}
 
-export type DivExpression = {
+export interface DivExpression {
   operator: "div";
   operand: [Expression, Expression];
-};
+}
 
-export type BaseExpression = {
+export interface BaseExpression {
   operator: BaseOperator;
   operand: string;
-};
+}
 
 export type Expression = BaseExpression | DivExpression | ConditionExpression;
 
-export type Fields = {
+export interface Fields {
   [field: string]: string;
-};
+}
 
-export type FieldInfo = {
-  id: string;
+export interface FieldInfo extends HasId {
   name: string;
   type: string;
   referenceName: string;
-};
+}
 
-export type WorkItem = {
-  id: number;
+export interface WorkItem extends HasId {
   fields: Fields;
-};
+}
 
-export type Sprint = {
+export interface Sprint {
   name: string;
   workItems: WorkItem[];
-};
+}
 
-export type Query = {
-  id: string;
+export enum LogicalOperator {
+  And = "And",
+  Or = "Or",
+  None = "None",
+}
+
+export interface FieldOperation {
   name: string;
-  select: string[];
-  where: string[];
-  fieldInfos: FieldInfo[];
-};
+  referenceName: string;
+}
 
-export type Project = {
-  id: string;
+export interface Clause extends HasId {
+  clauses: Clause[];
+  field: string;
+  fieldValue?: string;
+  isFieldValue: boolean;
+  logicalOperator: LogicalOperator;
+  operator: FieldOperation;
+  value: string;
+}
+
+export interface Query extends HasId {
+  name: string;
+  select: FieldInfo[];
+  where: Clause[];
+}
+
+export interface Project extends HasId {
   name: string;
   description: string;
   imgeUrl: string;
-};
+}
 
-export type Team = {
-  id: string;
+export interface Team extends HasId {
   name: string;
   description: string;
-};
+}
 
-export type AnalysisModel = {
-  id: string;
+export interface AnalysisModel extends HasId {
   name: string;
   project: Project;
   team: string;
   queries: Query[];
   // data: Sprint[];
-};
+}
 
 // Request/Response
-export type AnalysisModelChange = {
-  id: string;
+export interface AnalysisModelChange extends HasId {
   name: string;
-};
+}
 
-export enum Operand {
+export interface QueryModelChange extends HasId {
+  name: string;
+}
+
+export enum QueryOperator {
   eq = "=",
   neq = "!=",
   ge = ">=",

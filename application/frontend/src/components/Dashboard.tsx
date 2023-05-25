@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import axios from "../backendClient";
 
-export default function Dashboard() {
+const Dashboard: React.FC = () => {
   useEffect(() => {
     axios
       .get<boolean>("/devops/health")
@@ -10,4 +10,6 @@ export default function Dashboard() {
   }, []);
 
   return <div>Hello</div>;
-}
+};
+
+export default Dashboard;

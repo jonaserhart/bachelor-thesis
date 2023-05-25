@@ -6,7 +6,7 @@ type EditableTableProps = Parameters<typeof Table>[0];
 
 type ColumnTypes = Exclude<EditableTableProps["columns"], undefined>;
 
-type Props<T> = {
+interface Props<T> {
   dataSource: readonly T[];
   defaultColumns: (ColumnTypes[number] & {
     editable?: boolean;
@@ -15,9 +15,9 @@ type Props<T> = {
   handleSave?: (row: T) => void | Promise<void>;
 };
 
-export default function CustomTable<T>(
+const CustomTable = <T,>(
   props: Omit<EditableTableProps, "dataSource"> & Props<T>
-) {
+) => {
   const { defaultColumns, dataSource, handleSave, ...rest } = props;
 
   const columns = defaultColumns.map((col) => {
@@ -54,3 +54,5 @@ export default function CustomTable<T>(
     />
   );
 }
+
+export default CustomTable;

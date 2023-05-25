@@ -13,20 +13,13 @@ public class DevOpsController : Controller
 {
     private readonly ILogger<DevOpsController> _logger;
     private readonly IAnalysisModelService _analysisModelService;
+    private readonly IQueryService _queryService;
 
-    public DevOpsController(ILogger<DevOpsController> logger, IAnalysisModelService analysisModelService)
+    public DevOpsController(ILogger<DevOpsController> logger, IAnalysisModelService analysisModelService, IQueryService queryService)
     {
         _logger = logger;
         _analysisModelService = analysisModelService;
-    }
-
-    [HttpGet("health")]
-    [ProducesResponseType(typeof(bool), 200)]
-    [Authorize]
-    public bool Health()
-    {
-        _logger.LogInformation($"Health requested by user id {HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value} IsAuthenticated: {HttpContext.User.Identity?.IsAuthenticated ?? false} ({string.Join(',', HttpContext.User.Claims.Select(x => x.Type))})");
-        return true;
+        _queryService = queryService;
     }
 
     [HttpGet("mymodels")]
@@ -50,7 +43,7 @@ public class DevOpsController : Controller
     [HttpGet("teams/{projectId}")]
     [ProducesResponseType(typeof(Team[]), 200)]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Project>>> GetTeams(string projectId)
+    public async Task<ActionResult<IEnumerable<Team>>> GetTeams(string projectId)
     {
         var teams = await _analysisModelService.GetTeamsAsync(projectId);
         return Ok(teams);
@@ -59,13 +52,22 @@ public class DevOpsController : Controller
     [HttpGet("fields/{projectId}")]
     [ProducesResponseType(typeof(FieldInfo[]), 200)]
     [Authorize]
-    public async Task<ActionResult<IEnumerable<Project>>> GetFields(string projectId)
+    public async Task<ActionResult<IEnumerable<FieldInfo>>> GetFields(string projectId)
     {
         var fields = await _analysisModelService.GetFieldInfosAsync(projectId);
         return Ok(fields);
     }
 
-    [HttpGet("getmodel/{id}")]
+    [HttpGet("queries/{projectId}")]
+    [ProducesResponseType(typeof(QueryResponse[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<QueryResponse>>> GetQueries(string projectId)
+    {
+        var queries = await _queryService.GetQueriesAsync(projectId);
+        return Ok(queries);
+    }
+
+    [HttpGet("model/{id}/details")]
     [ProducesResponseType(typeof(Project[]), 200)]
     [Authorize]
     public async Task<ActionResult<IEnumerable<Project>>> GetModelById(Guid id)
@@ -83,12 +85,31 @@ public class DevOpsController : Controller
         return Ok(model);
     }
 
-    [HttpPut("updatemodel/{id}")]
+    [HttpPut("model/{id}/update")]
     [ProducesResponseType(typeof(AnalysisModel), 200)]
     [Authorize]
     public async Task<ActionResult<AnalysisModel>> UpdateModel(Guid id, [FromBody]AnalysisModelUpdate request)
     {
         var model = await _analysisModelService.UpdateAsync(id, request);
         return Ok(model);
+    }
+
+    [HttpPost("createqueryfrom")]
+    [ProducesResponseType(typeof(Query), 200)]
+    [Authorize]
+    public async Task<ActionResult<Query>> CreateQueryFrom(Guid modelId, Guid queryId)
+    {
+        var query = await _queryService.CreateQueryFromDevOps(modelId, queryId);
+        return Ok(query);
+    }
+
+    [HttpGet("query/{queryId}")]
+    [ProducesResponseType(typeof(Query), 200)]
+    [ProducesResponseType(typeof(ApiError), 404)]
+    [Authorize]
+    public async Task<ActionResult<Query>> GetQuery(Guid queryId)
+    {
+        var query = await _queryService.GetQueryWithClauses(queryId);
+        return query;
     }
 }

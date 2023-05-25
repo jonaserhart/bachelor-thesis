@@ -47,18 +47,17 @@ public class DataContext : DbContext
                     .Metadata.SetValueComparer(permissionValueComparer);
         
         modelBuilder.Entity<Query>()
-            .Property(x => x.Where)
-            .HasConversion(
-                clauses => string.Join(',', clauses),
-                str => str.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-            );
-
+            .HasOne(x => x.Where)
+            .WithOne(x => x.Query);
         modelBuilder.Entity<Query>()
-            .Property(x => x.Select)
-            .HasConversion(
-                clauses => string.Join(',', clauses),
-                str => str.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList()
-            );
+            .HasMany(x => x.Select)
+            .WithOne(x => x.Query)
+            .HasForeignKey(x => x.QueryId);
+            
+        modelBuilder.Entity<Clause>()
+            .HasMany(x => x.Clauses)
+            .WithOne(x => x.ParentClause)
+            .HasForeignKey(x => x.ParentClauseId);
 
         modelBuilder.Entity<AnalysisModel>()
             .HasOne(x => x.Project)
@@ -81,5 +80,7 @@ public class DataContext : DbContext
     public DbSet<UserModel> UserModels { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AnalysisModel> AnalysisModels { get; set; }
+    public DbSet<Query> Queries { get; set; }
+    public DbSet<FieldInfo> FieldInfos { get; set; }
     public DbSet<Project> Projects { get; set; }
 }

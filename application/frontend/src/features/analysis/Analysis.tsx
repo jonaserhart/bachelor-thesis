@@ -6,15 +6,15 @@ import {
   updateModelDetails,
 } from "./analysisSlice";
 import { Button, Popover, Space, Spin, Typography, message } from "antd";
-import CustomTable from "../../components/table/EditableTable";
+import CustomTable from "../../components/table/CustomTable";
 import { AnalysisModel, Project, Query } from "./types";
-import ProjectPopover from "../../components/ProjectPopover";
+import CustomSelect from "../../components/CustomSelect";
 import { useNavigate } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 
 const { Title } = Typography;
 
-export default function Analysis() {
+const Analysis: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const [loading, setLoading] = useState(false);
@@ -65,9 +65,13 @@ export default function Analysis() {
         }}
       >
         <Popover
+          placement="left"
           content={
-            <ProjectPopover
-              onSubmit={(project) => {
+            <CustomSelect
+              request="/devops/projects"
+              title="Select a project"
+              labelSelector={(p) => p.name}
+              onSubmit={(project: Project | undefined) => {
                 if (project) {
                   dispatch(
                     createModel({
@@ -176,4 +180,6 @@ export default function Analysis() {
       />
     </div>
   );
-}
+};
+
+export default Analysis;

@@ -7,7 +7,7 @@ const keyOptions = ["azure-oauth"] as const;
 
 type KeyOption = (typeof keyOptions)[number];
 
-export default function Authorize() {
+const Authorize: React.FC = () => {
   const [activeKey, setActiveKey] = React.useState<KeyOption>("azure-oauth");
 
   const onTabChange = React.useCallback((tab: string) => {
@@ -55,4 +55,6 @@ export default function Authorize() {
       </Card>
     </div>
   );
-}
+};
+
+export default Authorize;

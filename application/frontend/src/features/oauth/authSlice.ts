@@ -7,11 +7,11 @@ const PREFIX = "auth";
 
 const prefix = (s: string) => `${PREFIX}/${s}`;
 
-type AuthState = {
+interface AuthState {
   jwt: string | null;
   expired: boolean;
   user: User | null;
-};
+}
 
 const initialState: AuthState = {
   jwt: null,

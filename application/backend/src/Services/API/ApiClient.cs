@@ -1,5 +1,7 @@
 using System.Data;
 using backend.Model.Analysis;
+using backend.Model.Exceptions;
+using backend.Model.Rest;
 using backend.Model.Users;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi.Types;
@@ -52,27 +54,6 @@ public class ApiClient : IApiClient
         return teams.Select(Team.From);
     }
 
-    public async Task<IEnumerable<Model.Analysis.FieldInfo>> GetWiqlFieldsAsync(Query wiql, string iterationPath)
-    {
-        _logger.LogDebug($"Requested 'GetWiqlFieldsAsync': for {_connection.AuthorizedIdentity.Descriptor}");
-        using var witClient = _connection.GetClient<WorkItemTrackingHttpClient>();
-        var info = await witClient.QueryByWiqlAsync(new Wiql
-        {
-            Query = wiql.ToQuery(iterationPath)
-        });
-
-        var ids = info.WorkItems.Select(x => x.Id);
-        var fields = info.Columns.Select(x => x.ReferenceName);
-
-        var fieldInfos = new List<Model.Analysis.FieldInfo>();
-        foreach(var field in fields)
-        {
-            var fieldInfo = await witClient.GetFieldAsync(field);
-            fieldInfos.Add(Model.Analysis.FieldInfo.From(fieldInfo));
-        } 
-        return fieldInfos;
-    }
-
     public async Task<IEnumerable<Model.Analysis.FieldInfo>> GetFieldInfosAsync(string projectId)
     {
         _logger.LogDebug($"Requested 'GetFieldInfo': for {_connection.AuthorizedIdentity.Descriptor}");
@@ -98,5 +79,39 @@ public class ApiClient : IApiClient
         using var workClient = _connection.GetClient<WorkHttpClient>();
         var workItems = await workClient.GetIterationWorkItemsAsync(teamContext, iterationId);
         return workItems;
+    }
+
+    public async Task<IEnumerable<QueryResponse>> GetQueriesAsync(string projectId)
+    {
+        using var workItemTrackingHttpClient = _connection.GetClient<WorkItemTrackingHttpClient>();
+        var queries = await workItemTrackingHttpClient.GetQueriesAsync(projectId, depth: 2);
+        return queries.Select(QueryResponse.From);
+    }
+    
+    public async Task<Query> GetQueryByIdAsync(string projectId, string queryId)
+    {
+        using var workItemTrackingHttpClient = _connection.GetClient<WorkItemTrackingHttpClient>();
+        var query = await workItemTrackingHttpClient.GetQueryAsync(projectId, queryId, QueryExpand.All);
+        if (query.HasChildren.HasValue && query.HasChildren.Value)
+        {
+            throw new BadRequestException($"Query with id {queryId} is a folder, not a query.");
+        }
+
+        var result = Query.From(query);
+        var fieldInfos = new List<Model.Analysis.FieldInfo>();
+        foreach (var field in query.Columns)
+        {     
+            var info = await workItemTrackingHttpClient.GetFieldAsync(field.ReferenceName);
+            var fieldInfo = Model.Analysis.FieldInfo.From(info);
+            fieldInfos.Add(fieldInfo);
+        }
+        result.Select = fieldInfos;
+        
+        return result;
+    }
+
+    public void Dispose()
+    {
+        _connection.Dispose();
     }
 }

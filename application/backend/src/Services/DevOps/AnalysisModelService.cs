@@ -12,8 +12,8 @@ namespace backend.Services.DevOps;
 public class AnalysisModelService : IAnalysisModelService
 {
     private readonly DataContext _context;
-    private readonly IUserService _userService;
     private readonly IApiClientFactory _apiClientFactory;
+    private readonly IUserService _userService;
 
     public AnalysisModelService(DataContext context, IUserService userService, IApiClientFactory apiClientFactory)
     {
@@ -28,6 +28,9 @@ public class AnalysisModelService : IAnalysisModelService
             .Include(x => x.ModelUsers)
             .Include(x => x.Project)
             .Include(x => x.Queries)
+            .ThenInclude(x => x.Select)
+            .Include(x => x.Queries)
+            .ThenInclude(x => x.Where)
             .Include(x => x.Team);
     }
 
@@ -115,5 +118,4 @@ public class AnalysisModelService : IAnalysisModelService
 
         return fields;
     }
-
 }

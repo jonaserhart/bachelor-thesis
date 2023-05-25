@@ -47,6 +47,46 @@ namespace backend.Migrations
                     b.ToTable("AnalysisModels");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("FieldValue")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsFieldValue")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LogicalOperator")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ParentClauseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("QueryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentClauseId");
+
+                    b.HasIndex("QueryId")
+                        .IsUnique();
+
+                    b.ToTable("Clause");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.FieldInfo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -72,7 +112,7 @@ namespace backend.Migrations
 
                     b.HasIndex("QueryId");
 
-                    b.ToTable("FieldInfo");
+                    b.ToTable("FieldInfos");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Project", b =>
@@ -110,19 +150,14 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Select")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Where")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid?>("ReferencedId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ModelId");
 
-                    b.ToTable("Query");
+                    b.ToTable("Queries");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Team", b =>
@@ -213,10 +248,48 @@ namespace backend.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Clause", "ParentClause")
+                        .WithMany("Clauses")
+                        .HasForeignKey("ParentClauseId");
+
+                    b.HasOne("backend.Model.Analysis.Query", "Query")
+                        .WithOne("Where")
+                        .HasForeignKey("backend.Model.Analysis.Clause", "QueryId");
+
+                    b.OwnsOne("backend.Model.Analysis.FieldOperation", "Operator", b1 =>
+                        {
+                            b1.Property<Guid>("ClauseId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Name")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<string>("ReferenceName")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.HasKey("ClauseId");
+
+                            b1.ToTable("Clause");
+
+                            b1.WithOwner()
+                                .HasForeignKey("ClauseId");
+                        });
+
+                    b.Navigation("Operator");
+
+                    b.Navigation("ParentClause");
+
+                    b.Navigation("Query");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.FieldInfo", b =>
                 {
                     b.HasOne("backend.Model.Analysis.Query", "Query")
-                        .WithMany("FieldInfos")
+                        .WithMany("Select")
                         .HasForeignKey("QueryId");
 
                     b.Navigation("Query");
@@ -268,6 +341,11 @@ namespace backend.Migrations
                     b.Navigation("Queries");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
+                {
+                    b.Navigation("Clauses");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.Project", b =>
                 {
                     b.Navigation("Models");
@@ -275,7 +353,9 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.Analysis.Query", b =>
                 {
-                    b.Navigation("FieldInfos");
+                    b.Navigation("Select");
+
+                    b.Navigation("Where");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Team", b =>

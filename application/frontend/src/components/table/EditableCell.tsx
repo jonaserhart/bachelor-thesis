@@ -11,7 +11,7 @@ interface EditableCellProps<T> {
   handleSave: (record: T) => void;
 }
 
-export default function EditableCell<T>(props: EditableCellProps<T>) {
+const EditableCell = <T,>(props: EditableCellProps<T>) => {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<InputRef>(null);
   const form = useContext(EditableContext)!;
@@ -76,4 +76,6 @@ export default function EditableCell<T>(props: EditableCellProps<T>) {
   }
 
   return <td {...restProps}>{childNode}</td>;
-}
+};
+
+export default EditableCell;

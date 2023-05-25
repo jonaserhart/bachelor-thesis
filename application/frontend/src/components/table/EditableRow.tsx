@@ -5,7 +5,7 @@ interface EditableRowProps {
   index: number;
 }
 
-export default function EditableRow({ index, ...props }: EditableRowProps) {
+const EditableRow: React.FC<EditableRowProps> = ({ index, ...props }) => {
   const [form] = Form.useForm();
   return (
     <Form form={form} component={false}>
@@ -14,4 +14,6 @@ export default function EditableRow({ index, ...props }: EditableRowProps) {
       </EditableContext.Provider>
     </Form>
   );
-}
+};
+
+export default EditableRow;

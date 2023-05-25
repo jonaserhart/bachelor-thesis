@@ -48,7 +48,7 @@ public class ExceptionHandlerMiddleware
                 break;
         }
 
-        var exceptionResult = JsonConvert.SerializeObject(new ApiError { Error = e.Message });
+        var exceptionResult = JsonConvert.SerializeObject(new ApiError { Message = e.Message });
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)status;
         await context.Response.WriteAsync(exceptionResult);

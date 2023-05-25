@@ -1,59 +1,48 @@
-import * as React from "react";
 import { useParams } from "react-router-dom";
-import { Spin, Typography, message, theme, Tabs } from "antd";
+import { Spin, Typography, message, theme, Tabs, Skeleton } from "antd";
 import {
   CloudServerOutlined,
   EditOutlined,
   FileDoneOutlined,
 } from "@ant-design/icons";
-import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { BackendError, useAppDispatch, useAppSelector } from "../../app/hooks";
+import Queries from "../../components/analysis/queries/Queries";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import {
   getModelDetails,
   selectModel,
   updateModelDetails,
 } from "../../features/analysis/analysisSlice";
-import Queries from "./queries/Queries";
+import { ModelContext } from "../../context/ModelContext";
 
 const { Title } = Typography;
 
-export default function ModelDetail() {
-  const params = useParams();
-
-  const modelId = React.useMemo(() => {
-    return params.modelId ?? "";
-  }, [params]);
-
-  const [loading, setLoading] = React.useState(false);
-
-  const model = useAppSelector(selectModel(modelId));
+const ModelDetail: React.FC = () => {
+  const { loading, model } = useContext(ModelContext);
 
   const dispatch = useAppDispatch();
+
+  const [nameLoading, setNameLoading] = useState(false);
 
   const {
     token: { colorPrimary },
   } = theme.useToken();
 
-  React.useEffect(() => {
-    if (!model && modelId) {
-      setLoading(true);
-      dispatch(getModelDetails(modelId))
-        .unwrap()
-        .catch((err) => message.error(err.error))
-        .finally(() => setLoading(false));
-    }
-  }, [model, modelId, dispatch]);
-
-  const onNameChange = React.useCallback(
+  const onNameChange = useCallback(
     (strVal: string) => {
       const newVal = strVal.trim();
       if (!model) return;
       if (model.name !== newVal) {
+        setNameLoading(true);
         dispatch(
           updateModelDetails({
             id: model.id,
             name: newVal,
           })
-        );
+        )
+          .unwrap()
+          .catch((err: BackendError) => message.error(err.message))
+          .finally(() => setNameLoading(false));
       }
     },
     [model, dispatch]
@@ -65,7 +54,11 @@ export default function ModelDetail() {
         <Title
           editable={{
             onChange: onNameChange,
-            icon: <EditOutlined style={{ color: colorPrimary }} />,
+            icon: nameLoading ? (
+              <Spin />
+            ) : (
+              <EditOutlined style={{ color: colorPrimary }} />
+            ),
             tooltip: "click to edit name",
           }}
           level={4}
@@ -99,4 +92,6 @@ export default function ModelDetail() {
       </div>
     </Spin>
   );
-}
+};
+
+export default ModelDetail;

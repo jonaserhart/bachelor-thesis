@@ -14,7 +14,7 @@ public class AnalysisModel
     public Guid? ProjectId { get; set; }
     public Team? Team { get; set; }
     public Guid? TeamId { get; set; }
-    public IEnumerable<Query> Queries { get; set; } = new List<Query>();
-    public IEnumerable<UserModel> ModelUsers { get; set; } = new List<UserModel>();
+    public List<Query> Queries { get; set; } = new List<Query>();
+    public List<UserModel> ModelUsers { get; set; } = new List<UserModel>();
 
 }

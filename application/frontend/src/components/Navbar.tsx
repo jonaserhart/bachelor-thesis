@@ -5,12 +5,12 @@ import {
 } from "@ant-design/icons";
 import { Breadcrumb, Button, Layout, Menu, Space, theme } from "antd";
 import { Content, Footer, Header } from "antd/es/layout/layout";
-import * as React from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { getMe, selectAuthenticatedUser } from "../features/oauth/authSlice";
+import { useCallback, useEffect, useMemo } from "react";
 
-export default function AppLayout() {
+const NavBar: React.FC = () => {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
@@ -22,7 +22,7 @@ export default function AppLayout() {
 
   const me = useAppSelector(selectAuthenticatedUser);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!me) {
       dispatch(getMe())
         .unwrap()
@@ -31,7 +31,7 @@ export default function AppLayout() {
     }
   }, [me, nav, dispatch]);
 
-  const selectedKey = React.useMemo(() => {
+  const selectedKey = useMemo(() => {
     switch (true) {
       case location.pathname === "/":
         return "root";
@@ -42,7 +42,7 @@ export default function AppLayout() {
     }
   }, [location]);
 
-  const getTokenName = React.useCallback((tn: string) => {
+  const getTokenName = useCallback((tn: string) => {
     switch (tn) {
       case "analyze":
         return "Analysis";
@@ -51,7 +51,7 @@ export default function AppLayout() {
     }
   }, []);
 
-  const pathTokens = React.useMemo(() => {
+  const pathTokens = useMemo(() => {
     console.log(location.pathname);
     const tokens = location.pathname.split("/");
     if (tokens.length > 1) {
@@ -131,4 +131,6 @@ export default function AppLayout() {
       <Footer style={{ textAlign: "center" }}>Scrum analysis tool</Footer>
     </Layout>
   );
-}
+};
+
+export default NavBar;

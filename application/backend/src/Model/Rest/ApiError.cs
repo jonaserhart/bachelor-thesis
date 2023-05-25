@@ -5,6 +5,6 @@ namespace backend.Model.Rest;
 [DataContract]
 public class ApiError
 {
-    [DataMember(Name = "error")]
-    public string Error { get; set; } = string.Empty;
+    [DataMember(Name = "message")]
+    public string Message { get; set; } = string.Empty;
 }

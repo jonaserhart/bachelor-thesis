@@ -5,7 +5,7 @@ import { AuthResponse } from "./types";
 import { useAppDispatch } from "../../app/hooks";
 import { setToken, setTokenExpired, setUser } from "./authSlice";
 
-export default function Callback() {
+const Callback: React.FC = () => {
   const [searchParams] = useSearchParams();
   const nav = useNavigate();
 
@@ -46,4 +46,6 @@ export default function Callback() {
       Hold on a moment while we log you in
     </div>
   );
-}
+};
+
+export default Callback;
