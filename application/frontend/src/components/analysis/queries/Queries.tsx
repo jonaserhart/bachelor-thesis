@@ -68,7 +68,7 @@ const Queries: React.FC = () => {
           placement="left"
           content={
             <CustomTreeSelect
-              request={`/devops/queries/${model?.project.id}`}
+              request={`/analysis/queries/${model?.project.id}`}
               title="Select a query"
               labelSelector={(p) => p.name}
               onSubmit={onCreateSubmit}

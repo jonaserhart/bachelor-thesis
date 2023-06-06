@@ -21,7 +21,7 @@
       },
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SCRUM_BACKEND_ConnectionStrings__PostgresDatabase": "Host=localhost;Database=postgres;Username=postgres;Password=postgres",
+        "SCRUM_BACKEND_ConnectionStrings__PostgresDatabase": "Host=localhost;Database=postgres;Username=postgres;Password=fuckmysql",
         "SCRUM_BACKEND_OAuth__AuthorizationUri": "https://app.vssps.visualstudio.com/oauth2/authorize",
         "SCRUM_BACKEND_OAuth__TokenUri": "https://app.vssps.visualstudio.com/oauth2/token",
         "SCRUM_BACKEND_OAuth__ClientId": "29AEE975-4685-42DE-9FC7-EB9DCCB1981C",

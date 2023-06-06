@@ -1,19 +1,16 @@
-import { useParams } from 'react-router-dom';
-import { Spin, Typography, message, theme, Tabs, Skeleton } from 'antd';
+import { Spin, Typography, message, theme, Tabs } from 'antd';
 import {
+  BulbOutlined,
   CloudServerOutlined,
   EditOutlined,
   FileDoneOutlined,
 } from '@ant-design/icons';
-import { BackendError, useAppDispatch, useAppSelector } from '../../app/hooks';
+import { BackendError, useAppDispatch } from '../../app/hooks';
 import Queries from '../../components/analysis/queries/Queries';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  getModelDetails,
-  selectModel,
-  updateModelDetails,
-} from '../../features/analysis/analysisSlice';
+import { updateModelDetails } from '../../features/analysis/analysisSlice';
 import { ModelContext } from '../../context/ModelContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const { Title } = Typography;
 
@@ -27,6 +24,15 @@ const ModelDetail: React.FC = () => {
   const {
     token: { colorPrimary },
   } = theme.useToken();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeKey = useMemo(() => {
+    if (['#kpis', '#queries', '#l8estreports'].includes(location.hash)) {
+      return location.hash;
+    } else return '#l8estreports';
+  }, [location]);
 
   const onNameChange = useCallback(
     (strVal: string) => {
@@ -66,9 +72,32 @@ const ModelDetail: React.FC = () => {
           {model?.name}
         </Title>
         <Tabs
+          activeKey={activeKey}
+          onChange={(activeKey) => {
+            navigate(activeKey);
+          }}
           items={[
             {
-              key: '1',
+              key: '#l8estreports',
+              label: (
+                <span>
+                  <FileDoneOutlined />
+                  Latest Reports
+                </span>
+              ),
+            },
+            {
+              key: '#kpis',
+              label: (
+                <span>
+                  <BulbOutlined />
+                  KPIs
+                </span>
+              ),
+              children: <div />,
+            },
+            {
+              key: '#queries',
               label: (
                 <span>
                   <CloudServerOutlined />
@@ -76,15 +105,6 @@ const ModelDetail: React.FC = () => {
                 </span>
               ),
               children: <Queries />,
-            },
-            {
-              key: '2',
-              label: (
-                <span>
-                  <FileDoneOutlined />
-                  Latest Reports
-                </span>
-              ),
             },
           ]}
         />

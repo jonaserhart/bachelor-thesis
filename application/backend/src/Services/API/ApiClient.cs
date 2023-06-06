@@ -21,7 +21,6 @@ public sealed class ApiClient : IApiClient
 {
     private readonly VssConnection _connection;
     private readonly ILogger<ApiClient> _logger;
-    private bool m_disposedValue;
 
     public ApiClient(VssConnection connection, ILogger<ApiClient> logger)
     {
@@ -131,7 +130,9 @@ public sealed class ApiClient : IApiClient
     public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Query wiql, DateTime? asOf)
     {
         using var workItemTrackingHttpClient = _connection.GetClient<WorkItemTrackingHttpClient>();
-        var itemRefs = await workItemTrackingHttpClient.QueryByWiqlAsync(new Wiql { Query = wiql.ToQuery(iteration.Path, asOf) });
+        var query = wiql.ToQuery(iteration.Path, asOf);
+        var devOpsQuery = new Wiql { Query = wiql.ToQuery(iteration.Path, asOf) };
+        var itemRefs = await workItemTrackingHttpClient.QueryByWiqlAsync(devOpsQuery);
 
         var idsToFetch = itemRefs.WorkItems.Select(x => x.Id);
 

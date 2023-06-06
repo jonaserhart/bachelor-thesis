@@ -122,7 +122,7 @@ public class OAuthService : IOAuthService
         var apiClient = await _apiClientFactory.GetApiClientAsync(token.AccessToken);
         var user = await apiClient.GetSelfAsync();
 
-        await _userService.CreateOrUpdateUser(user);
+        await _userService.CreateOrUpdateUserAsync(user);
         user.RefreshTokens.Add(new RefreshToken
         {
             Token = token.RefreshToken,

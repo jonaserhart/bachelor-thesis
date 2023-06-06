@@ -28,7 +28,7 @@ const initialState: AnalysisState = {
 export const getMyModels = createAppAsyncThunk(
   prefix('getMyModels'),
   async function () {
-    const response = await axios.get<AnalysisModel[]>('/devops/mymodels');
+    const response = await axios.get<AnalysisModel[]>('/analysis/mymodels');
     return response.data;
   }
 );
@@ -37,7 +37,7 @@ export const createModel = createAppAsyncThunk(
   prefix('createModel'),
   async function (model: { name: string; project: Project }) {
     const response = await axios.post<AnalysisModel>(
-      '/devops/createmodel',
+      '/analysis/createmodel',
       model
     );
     return response.data;
@@ -48,7 +48,7 @@ export const updateModelDetails = createAppAsyncThunk(
   prefix('updateModelDetails'),
   async function (changedModel: AnalysisModelChange) {
     const response = await axios.put<AnalysisModel>(
-      `/devops/model/${changedModel.id}/update`,
+      `/analysis/model/${changedModel.id}/update`,
       changedModel
     );
     return response.data;
@@ -59,7 +59,7 @@ export const getModelDetails = createAppAsyncThunk(
   prefix('getModelDetails'),
   async function (modelId: string) {
     const response = await axios.get<AnalysisModel>(
-      `/devops/model/${modelId}/details`
+      `/analysis/model/${modelId}/details`
     );
     return response.data;
   }
@@ -69,7 +69,7 @@ export const getQueryDetails = createAppAsyncThunk(
   prefix('getQueryDetails'),
   async function (args: { queryId: string; modelId: string }) {
     const { queryId } = args;
-    const response = await axios.get<Query>(`/devops/query/${queryId}`);
+    const response = await axios.get<Query>(`/analysis/query/${queryId}`);
     return response.data;
   }
 );
@@ -78,7 +78,7 @@ export const updateQueryDetails = createAppAsyncThunk(
   prefix('updateQueryDetails'),
   async function (args: { modelId: string; changeQuery: QueryModelChange }) {
     const response = await axios.put<QueryModelChange>(
-      `/devops/query`,
+      `/analysis/query`,
       args.changeQuery
     );
     return response.data;
@@ -89,7 +89,7 @@ export const createQueryFrom = createAppAsyncThunk(
   prefix('createQueryFrom'),
   async function (args: { modelId: string; queryId: string }) {
     const response = await axios.post<Query>(
-      `/devops/createqueryfrom?modelId=${args.modelId}&queryId=${args.queryId}`
+      `/analysis/createqueryfrom?modelId=${args.modelId}&queryId=${args.queryId}`
     );
     return response.data;
   }

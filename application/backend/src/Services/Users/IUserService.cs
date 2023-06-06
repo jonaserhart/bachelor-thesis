@@ -4,7 +4,7 @@ namespace backend.Services.Users;
 
 public interface IUserService
 {
-    Task<User> CreateOrUpdateUser(User user);
-    Task DeleteUser(Guid userId);
+    Task<User> CreateOrUpdateUserAsync(User user);
+    Task DeleteUserAsync(Guid userId);
     Task<User> GetSelfAsync();
 }

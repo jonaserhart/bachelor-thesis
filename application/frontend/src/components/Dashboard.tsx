@@ -7,7 +7,7 @@ const logger = getLogger('Dashboard');
 const Dashboard: React.FC = () => {
   useEffect(() => {
     axios
-      .get<boolean>('/devops/health')
+      .get<boolean>('/analysis/health')
       .then((r) => logger.logDebug(`Backend healthy: ${r.data}`))
       .catch(logger.logError);
   }, []);

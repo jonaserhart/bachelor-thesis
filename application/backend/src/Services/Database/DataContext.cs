@@ -1,4 +1,6 @@
 using backend.Model.Analysis;
+using backend.Model.Analysis.Expressions;
+using backend.Model.Exceptions;
 using backend.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -76,6 +78,16 @@ public class DataContext : DbContext
 
     }
 
+    public async Task<T> GetByIdOrThrowAsync<T>(Guid id) where T : class
+    {
+        var found = await this.FindAsync<T>(id);
+
+        if (found == null)
+            throw new DbKeyNotFoundException(id, typeof(T));
+
+        return found;
+    }
+
     public DbSet<User> Users { get; set; }
     public DbSet<UserModel> UserModels { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
@@ -83,4 +95,18 @@ public class DataContext : DbContext
     public DbSet<Query> Queries { get; set; }
     public DbSet<FieldInfo> FieldInfos { get; set; }
     public DbSet<Project> Projects { get; set; }
+
+    // KPIs
+    public DbSet<KPI> KPIs { get; set; }
+    public DbSet<Expression> Expressions { get; set; }
+    public DbSet<AvgExpression> AvgExpressions { get; set; }
+    public DbSet<CountIfExpression> CountIfExpressions { get; set; }
+    public DbSet<DivExpression> DivExpressions { get; set; }
+    public DbSet<FieldExpression> FieldExpressions { get; set; }
+    public DbSet<MaxExpression> MaxExpressions { get; set; }
+    public DbSet<MinExpression> MinExpressions { get; set; }
+    public DbSet<MultiplyExpression> MultiplyExpressions { get; set; }
+    public DbSet<SubtractExpression> SubtractExpressions { get; set; }
+    public DbSet<SumExpression> SumExpressions { get; set; }
+    public DbSet<NumericValueExpression> ValueExpressions { get; set; }
 }

@@ -67,7 +67,7 @@ const Analysis: React.FC = () => {
           placement="left"
           content={
             <CustomSelect
-              request="/devops/projects"
+              request="/analysis/projects"
               title="Select a project"
               labelSelector={(p) => p.name}
               onSubmit={(project: Project | undefined) => {

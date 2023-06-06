@@ -16,5 +16,6 @@ public class AnalysisModel
     public Guid? TeamId { get; set; }
     public List<Query> Queries { get; set; } = new List<Query>();
     public List<UserModel> ModelUsers { get; set; } = new List<UserModel>();
+    public List<KPI> KPIs { get; set; } = new List<KPI>();
 
 }

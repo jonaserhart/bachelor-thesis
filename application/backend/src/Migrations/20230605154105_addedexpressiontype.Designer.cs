@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using backend.Services.Database;
@@ -11,9 +12,11 @@ using backend.Services.Database;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20230605154105_addedexpressiontype")]
+    partial class addedexpressiontype
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -134,31 +137,6 @@ namespace backend.Migrations
                     b.HasIndex("QueryId");
 
                     b.ToTable("FieldInfos");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("AnalysisModelId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("ExpressionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AnalysisModelId");
-
-                    b.HasIndex("ExpressionId");
-
-                    b.ToTable("KPIs");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Project", b =>
@@ -502,21 +480,6 @@ namespace backend.Migrations
                     b.Navigation("Query");
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
-                        .WithMany("KPIs")
-                        .HasForeignKey("AnalysisModelId");
-
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Expression")
-                        .WithMany()
-                        .HasForeignKey("ExpressionId");
-
-                    b.Navigation("AnalysisModel");
-
-                    b.Navigation("Expression");
-                });
-
             modelBuilder.Entity("backend.Model.Analysis.Query", b =>
                 {
                     b.HasOne("backend.Model.Analysis.AnalysisModel", "Model")
@@ -639,8 +602,6 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.Analysis.AnalysisModel", b =>
                 {
-                    b.Navigation("KPIs");
-
                     b.Navigation("ModelUsers");
 
                     b.Navigation("Queries");

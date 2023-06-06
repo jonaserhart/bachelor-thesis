@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using backend.Model.Analysis;
+using backend.Model.Analysis.Expressions;
 using backend.Model.Analysis.WorkItems;
 using backend.Model.Rest;
 using backend.Services.DevOps;
+using backend.Services.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,17 +12,22 @@ namespace backend.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class DevOpsController : Controller
+public class AnalysisController : Controller
 {
-    private readonly ILogger<DevOpsController> _logger;
+    private readonly ILogger<AnalysisController> _logger;
     private readonly IAnalysisModelService _analysisModelService;
     private readonly IQueryService _queryService;
+    private readonly IKPIService _kpiService;
 
-    public DevOpsController(ILogger<DevOpsController> logger, IAnalysisModelService analysisModelService, IQueryService queryService)
+    public AnalysisController(ILogger<AnalysisController> logger,
+                            IAnalysisModelService analysisModelService,
+                            IQueryService queryService,
+                            IKPIService kpiService)
     {
         _logger = logger;
         _analysisModelService = analysisModelService;
         _queryService = queryService;
+        _kpiService = kpiService;
     }
 
     [HttpGet("mymodels")]
@@ -131,6 +138,44 @@ public class DevOpsController : Controller
     public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string project, Guid queryid, [FromBody] Iteration iteration)
     {
         return await _analysisModelService.GetWorkitemsAsync(project, iteration, queryid);
+    }
+
+    [HttpPost("kpi")]
+    [ProducesResponseType(typeof(KPI), 200)]
+    // [Authorize]
+    public async Task<KPI> CreateKPI(Guid modelId)
+    {
+        var kpi = await _kpiService.CreateNewKPIAsync(modelId);
+        return kpi;
+    }
+
+    [HttpPut("kpi")]
+    [ProducesResponseType(typeof(KPI), 200)]
+    [Authorize]
+    public async Task<KPI> UpdateKPI([FromBody] KPIUpdate update)
+    {
+        var kpi = await _kpiService.UpdateKPIAsync(update);
+        return kpi;
+    }
+
+    [HttpDelete("kpi")]
+    [ProducesResponseType(typeof(void), 200)]
+    [Authorize]
+    public async Task UpdateKPI(Guid id)
+    {
+        await _kpiService.DeleteKPIAsync(id);
+    }
+
+    [HttpPost("kpi/expression")]
+    [ProducesResponseType(typeof(Expression), 200)]
+    // [Authorize]
+    public async Task<Expression> AddExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
+    {
+        if (expression.Expression == null)
+        {
+            throw new ArgumentException();
+        }
+        return await _kpiService.SaveExpressionAsync(kpiId, expression.Expression);
     }
 
 }
