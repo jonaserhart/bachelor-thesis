@@ -7,5 +7,5 @@ public abstract class Expression
 {
     public Guid Id { get; set; }
     public ExpressionType Type { get; set; }
-    public abstract object? Evaluate(List<Workitem> workItemFieldValues);
+    public abstract object? Evaluate(List<Workitem> workItems);
 }

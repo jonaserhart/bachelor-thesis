@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using backend.Model.Users;
+using Newtonsoft.Json;
 
 namespace backend.Model.Analysis;
 
@@ -16,6 +17,7 @@ public class AnalysisModel
     public Guid? TeamId { get; set; }
     public List<Query> Queries { get; set; } = new List<Query>();
     public List<UserModel> ModelUsers { get; set; } = new List<UserModel>();
+    [JsonProperty("kpis")]
     public List<KPI> KPIs { get; set; } = new List<KPI>();
 
 }

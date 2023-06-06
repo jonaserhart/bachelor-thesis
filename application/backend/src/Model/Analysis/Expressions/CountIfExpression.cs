@@ -11,7 +11,7 @@ public class CountIfExpression : Expression
 
     public override object? Evaluate(List<Workitem> workItems)
     {
-        var count = 0;
+        var result = 0;
 
         foreach (var workItem in workItems)
         {
@@ -23,26 +23,26 @@ public class CountIfExpression : Expression
                     case WorkItemValueType.Number:
                         if (CompareNumericValues(double.Parse(item.Value), double.Parse(Value), Operator))
                         {
-                            count++;
+                            result++;
                         }
                         break;
                     case WorkItemValueType.Boolean:
                         if (CompareBooleanValues(bool.Parse(item.Value), bool.Parse(Value), Operator))
                         {
-                            count++;
+                            result++;
                         }
                         break;
                     default:
                         if (CompareStringValues(item.Value, Value, Operator))
                         {
-                            count++;
+                            result++;
                         }
                         break;
                 }
             }
         }
 
-        return count;
+        return result;
     }
 
     private static bool CompareNumericValues(double value1, double value2, string op)
@@ -78,4 +78,5 @@ public class CountIfExpression : Expression
             _ => throw new ArgumentException($"Invalid operator: {op}"),
         };
     }
+
 }

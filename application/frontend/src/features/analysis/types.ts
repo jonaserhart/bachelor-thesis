@@ -1,9 +1,3 @@
-export type Condition = {
-  field: string;
-  operator: string;
-  value: string | number | boolean;
-};
-
 export interface HasId {
   id: string;
 }
@@ -13,28 +7,6 @@ export type HierachyItem<T> = HasId &
     hasChildren: boolean;
     children?: HierachyItem<T>[];
   };
-
-type BaseOperator = 'sum' | 'class' | 'avg' | 'max' | 'min';
-
-export type Operator = BaseOperator | 'div' | 'countIf';
-
-export interface ConditionExpression {
-  operator: 'countIf';
-  condition: Condition;
-}
-
-export interface DivExpression {
-  operator: 'div';
-  operand: [Expression, Expression];
-}
-
-export interface BaseExpression {
-  operator: BaseOperator;
-  operand: string;
-}
-
-export type Expression = BaseExpression | DivExpression | ConditionExpression;
-
 export interface Fields {
   [field: string]: string;
 }
@@ -92,11 +64,59 @@ export interface Team extends HasId {
   description: string;
 }
 
+export enum ExpressionType {
+  Add = 'Add',
+  Avg = 'Avg',
+  CountIf = 'CountIf',
+  Div = 'Div',
+  Min = 'Min',
+  Max = 'Max',
+  Multiply = 'Multiply',
+  Subtract = 'Subtract',
+  Sum = 'Sum',
+  Field = 'Field',
+  Value = 'Value',
+}
+
+export interface Expression extends HasId {
+  type: ExpressionType;
+}
+
+export interface FieldExpression extends Expression {
+  field: string;
+}
+
+export interface ValueExpression extends Expression {
+  value?: number;
+}
+
+export interface AggregateExpression extends Expression {
+  fieldExpression: FieldExpression;
+}
+
+export interface CountIfExpression extends Expression {
+  field: string;
+  operator: string;
+  value: string;
+}
+
+export interface MathOperationExpression<T extends Expression>
+  extends Expression {
+  left: T;
+  right: T;
+}
+
+export interface KPI extends HasId {
+  name: string;
+  expression: Expression;
+}
+
 export interface AnalysisModel extends HasId {
   name: string;
   project: Project;
   team: string;
   queries: Query[];
+  kpis: KPI[];
   // data: Sprint[];
 }
 

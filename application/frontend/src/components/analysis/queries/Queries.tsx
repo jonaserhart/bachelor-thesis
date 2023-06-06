@@ -1,6 +1,6 @@
 import { Button, Popover, Space, Tag, message, theme } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import { BackendError, useAppDispatch } from '../../../app/hooks';
+import { useAppDispatch } from '../../../app/hooks';
 import { createQueryFrom } from '../../../features/analysis/analysisSlice';
 import CustomTable from '../../table/CustomTable';
 import {

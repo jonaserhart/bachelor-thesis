@@ -5,7 +5,7 @@ import {
   getQueryDetails,
   selectQuery,
 } from '../features/analysis/analysisSlice';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { BackendError, useAppDispatch, useAppSelector } from '../app/hooks';
 import { message } from 'antd';
 
 interface QueryContextType {
@@ -43,7 +43,7 @@ const QueryContextProvider = (props: React.PropsWithChildren) => {
       setLoading(true);
       dispatch(getQueryDetails({ queryId: ids.query, modelId: ids.model }))
         .unwrap()
-        .catch((err) => message.error(err.error))
+        .catch((err: BackendError) => message.error(err.message))
         .finally(() => setLoading(false));
     }
   }, [ids.query]);

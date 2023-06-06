@@ -8,6 +8,8 @@ import ModelDetail from './components/analysis/ModelDetail';
 import QueryDetail from './components/analysis/queries/QueryDetail';
 import ModelContextProvider from './context/ModelContext';
 import QueryContextProvider from './context/QueryContext';
+import KPIContextProvider from './context/KPIContext';
+import KPIDetail from './components/analysis/kpis/KPIDetail';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -33,6 +35,20 @@ const App = () => {
             {
               index: true,
               element: <ModelDetail />,
+            },
+            {
+              path: 'kpi/:kpiId',
+              element: (
+                <KPIContextProvider>
+                  <Outlet />
+                </KPIContextProvider>
+              ),
+              children: [
+                {
+                  index: true,
+                  element: <KPIDetail />,
+                },
+              ],
             },
             {
               path: 'query/:queryId',

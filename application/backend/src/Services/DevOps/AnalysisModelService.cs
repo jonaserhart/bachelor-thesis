@@ -34,7 +34,9 @@ public class AnalysisModelService : IAnalysisModelService
             .ThenInclude(x => x.Select)
             .Include(x => x.Queries)
             .ThenInclude(x => x.Where)
-            .Include(x => x.Team);
+            .Include(x => x.Team)
+            .Include(x => x.KPIs)
+            .ThenInclude(x => x.Expression);
     }
 
     public async Task<AnalysisModel?> GetByIdAsync(Guid id)

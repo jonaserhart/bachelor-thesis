@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using Newtonsoft.Json;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using backend.Model.Enum;
 
 namespace backend.Model.Analysis;
 
@@ -20,6 +21,8 @@ public class Query
     public AnalysisModel? Model { get; set; }
     public List<FieldInfo> Select { get; set; } = new List<FieldInfo>();
     public Clause? Where { get; set; }
+    public QueryExecuteTime QueryExecuteTime { get; set; } = QueryExecuteTime.SprintEnd;
+
 
     public static Query From(QueryHierarchyItem item)
     {

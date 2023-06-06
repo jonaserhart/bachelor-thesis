@@ -7,7 +7,7 @@ import {
 } from './analysisSlice';
 import { Button, Popover, Space, Spin, Typography, message } from 'antd';
 import CustomTable from '../../components/table/CustomTable';
-import { AnalysisModel, Project, Query } from './types';
+import { AnalysisModel, KPI, Project, Query } from './types';
 import CustomSelect from '../../components/CustomSelect';
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
@@ -85,7 +85,7 @@ const Analysis: React.FC = () => {
                     .catch(handleError)
                     .finally(() => setCreatePopoverOpen(false));
                 } else {
-                  message.error('No project selected!');
+                  void message.error('No project selected!');
                 }
               }}
             />
@@ -122,18 +122,30 @@ const Analysis: React.FC = () => {
             },
           },
           {
+            key: 'noKPIs',
+            title: '# KPIs',
+            dataIndex: 'kpis',
+            render(value) {
+              const kpi = value as KPI[];
+              if (kpi.length <= 0) {
+                return <div style={{ color: 'gray' }}>No kpis yet</div>;
+              }
+              return kpi.length;
+            },
+            sorter: {
+              compare: (a, b) =>
+                (a as AnalysisModel).kpis.length -
+                (b as AnalysisModel).kpis.length,
+            },
+          },
+          {
             key: 'noQueries',
             title: '# Queries',
             dataIndex: 'queries',
             render(value) {
               const queries = value as Query[];
               if (queries.length <= 0) {
-                return (
-                  <div style={{ color: 'gray' }}>
-                    No queries yet
-                    <Button type="link">Create one 🚀</Button>
-                  </div>
-                );
+                return <div style={{ color: 'gray' }}>No queries yet</div>;
               }
               return queries.length;
             },

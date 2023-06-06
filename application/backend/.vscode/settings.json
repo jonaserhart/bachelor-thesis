@@ -10,8 +10,6 @@
     "dotnet-test-explorer.autoExpandTree": true,
     "dotnet-test-explorer.testArguments": "--collect:'XPlat Code Coverage'",
     "coverage-gutters.coverageBaseDir": "./test/backend.Test/TestResults/**",
-    "coverage-gutters.coverageFileNames": [
-        "coverage.cobertura.xml"
-    ],
-    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.coverageFileNames": ["coverage.cobertura.xml"],
+    "coverage-gutters.showLineCoverage": true
 }

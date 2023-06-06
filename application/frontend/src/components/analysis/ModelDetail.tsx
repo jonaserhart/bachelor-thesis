@@ -11,6 +11,7 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { updateModelDetails } from '../../features/analysis/analysisSlice';
 import { ModelContext } from '../../context/ModelContext';
 import { useLocation, useNavigate } from 'react-router-dom';
+import KPIs from './kpis/KPIs';
 
 const { Title } = Typography;
 
@@ -94,7 +95,7 @@ const ModelDetail: React.FC = () => {
                   KPIs
                 </span>
               ),
-              children: <div />,
+              children: <KPIs />,
             },
             {
               key: '#queries',

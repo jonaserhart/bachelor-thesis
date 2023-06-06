@@ -142,10 +142,19 @@ public class AnalysisController : Controller
 
     [HttpPost("kpi")]
     [ProducesResponseType(typeof(KPI), 200)]
-    // [Authorize]
+    [Authorize]
     public async Task<KPI> CreateKPI(Guid modelId)
     {
         var kpi = await _kpiService.CreateNewKPIAsync(modelId);
+        return kpi;
+    }
+
+    [HttpGet("kpi")]
+    [ProducesResponseType(typeof(KPI), 200)]
+    [Authorize]
+    public async Task<KPI> GetKPI(Guid id)
+    {
+        var kpi = await _kpiService.GetByIdAsync(id);
         return kpi;
     }
 
@@ -168,12 +177,12 @@ public class AnalysisController : Controller
 
     [HttpPost("kpi/expression")]
     [ProducesResponseType(typeof(Expression), 200)]
-    // [Authorize]
+    [Authorize]
     public async Task<Expression> AddExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
     {
         if (expression.Expression == null)
         {
-            throw new ArgumentException();
+            throw new ArgumentException("property 'expression' has to be provided!");
         }
         return await _kpiService.SaveExpressionAsync(kpiId, expression.Expression);
     }

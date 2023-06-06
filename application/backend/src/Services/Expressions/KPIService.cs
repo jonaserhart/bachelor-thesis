@@ -24,6 +24,13 @@ public class KPIService : IKPIService
         return newKPI;
     }
 
+    public async Task<KPI> GetByIdAsync(Guid kpiId)
+    {
+        var found = await _context.GetByIdOrThrowAsync<KPI>(kpiId);
+        await _context.Entry(found).Reference(x => x.Expression).LoadAsync();
+        return found;
+    }
+
     public async Task<KPI> UpdateKPIAsync(KPIUpdate updated)
     {
         var found = await _context.GetByIdOrThrowAsync<KPI>(updated.Id);

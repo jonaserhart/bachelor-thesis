@@ -34,4 +34,5 @@ public abstract class MathOperationExpression : Expression
         else
             throw new ExpressionEvaluationException($"Could not deduce double values from left ({evalLeft}) or right expression ({evalRight}) of MathExpression");
     }
+
 }
