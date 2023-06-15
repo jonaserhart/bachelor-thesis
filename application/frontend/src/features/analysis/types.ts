@@ -83,6 +83,7 @@ export interface Expression extends HasId {
 }
 
 export interface FieldExpression extends Expression {
+  queryId: string;
   field: string;
 }
 

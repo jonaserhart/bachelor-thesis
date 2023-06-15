@@ -1,10 +1,13 @@
 import { useCallback, useContext, useState } from 'react';
 import { KPIContext } from '../../../context/KPIContext';
 import { EditOutlined } from '@ant-design/icons';
-import { Spin, Typography, message, theme } from 'antd';
+import { Divider, Spin, Typography, message, theme } from 'antd';
 import { BackendError, useAppDispatch } from '../../../app/hooks';
 import { ModelContext } from '../../../context/ModelContext';
 import { updateKPIDetails } from '../../../features/analysis/analysisSlice';
+import { ExpressionBuilder } from './ExpressionBuilder';
+import { ExpressionType } from '../../../features/analysis/types';
+import FlowExpressionBuilder from './FlowExpressionBuilder';
 
 const { Title } = Typography;
 
@@ -58,7 +61,12 @@ const KPIDetail: React.FC = () => {
           style={{ marginTop: 0 }}>
           {kpi?.name}
         </Title>
-        <div>Main</div>
+        <div>
+          <Divider orientationMargin={0} orientation="left">
+            Expression
+          </Divider>
+          <FlowExpressionBuilder expression={kpi?.expression} />
+        </div>
       </div>
     </Spin>
   );

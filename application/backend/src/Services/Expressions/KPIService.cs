@@ -18,7 +18,15 @@ public class KPIService : IKPIService
     public async Task<KPI> CreateNewKPIAsync(Guid modelId)
     {
         var model = await _context.GetByIdOrThrowAsync<AnalysisModel>(modelId);
-        var newKPI = new KPI { Name = "New KPI" };
+        var newKPI = new KPI
+        {
+            Name = "New KPI",
+            Expression = new NumericValueExpression
+            {
+                Value = 12,
+                Type = Model.Enum.ExpressionType.Value
+            }
+        };
         model.KPIs.Add(newKPI);
         await _context.SaveChangesAsync();
         return newKPI;

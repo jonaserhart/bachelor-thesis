@@ -7,6 +7,9 @@ import reportWebVitals from './reportWebVitals';
 import { ConfigProvider, theme } from 'antd';
 import './styles/globals.css';
 import { getLogger } from './util/logger';
+import { ReactFlowProvider } from 'reactflow';
+
+import 'reactflow/dist/style.css';
 
 const container = document.getElementById('root')!;
 const root = createRoot(container);
@@ -24,9 +27,11 @@ root.render(
           colorPrimary: '#348843',
         },
       }}>
-      <Provider store={store}>
-        <App />
-      </Provider>
+      <ReactFlowProvider>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </ReactFlowProvider>
     </ConfigProvider>
   </React.StrictMode>
 );

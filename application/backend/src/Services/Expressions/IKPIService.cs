@@ -1,7 +1,6 @@
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
 using backend.Model.Rest;
-using backend.Services.Database;
 
 namespace backend.Services.Expressions;
 
