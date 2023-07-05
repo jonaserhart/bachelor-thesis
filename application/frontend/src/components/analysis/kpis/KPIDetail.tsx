@@ -65,7 +65,7 @@ const KPIDetail: React.FC = () => {
           <Divider orientationMargin={0} orientation="left">
             Expression
           </Divider>
-          <FlowExpressionBuilder expression={kpi?.expression} />
+          <ExpressionBuilder />
         </div>
       </div>
     </Spin>

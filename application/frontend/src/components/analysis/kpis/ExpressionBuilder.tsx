@@ -1,38 +1,30 @@
-import { useForm, useWatch } from 'antd/es/form/Form';
 import {
+  AggregateExpression,
   Expression,
   ExpressionType,
   MathOperationExpression,
+  Query,
 } from '../../../features/analysis/types';
-import { Button, Form, Input, Select, Space, Tooltip, Typography } from 'antd';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Button,
+  Card,
+  Form,
+  Input,
+  Select,
+  Space,
+  Tooltip,
+  Typography,
+} from 'antd';
+import { useContext, useMemo, useState } from 'react';
+import { ModelContext } from '../../../context/ModelContext';
 
 interface Props {
   onExpressionSubmit: (e: Expression) => Promise<void>;
 }
 
-interface FormExpressionType {
-  type: ExpressionType;
-  // aggregate expression
-  fieldExpression?: {
-    field: string;
-    query: string;
-  };
-  // conditional
-  condition?: {
-    field: string;
-    operation: string;
-    value: string;
-  };
-  // value
-  value?: number;
-}
-
-interface FormType extends FormExpressionType {
-  // Math expression
-  left?: FormExpressionType;
-  right?: FormExpressionType;
-}
+const formInputStyles = {
+  maxWidth: 200,
+};
 
 const descriptions = {
   [ExpressionType.Add]: {
@@ -192,7 +184,7 @@ const descriptions = {
         description: 'Field to get data from',
       },
       {
-        name: 'Query',
+        name: 'Query Id',
         description:
           'Which query the field is from (there might be the same field names across queries.',
       },
@@ -226,7 +218,7 @@ export const ExpressionBuilder: React.FC = () => {
 
   const handleSubmit = () => {
     // Handle form submission with the final expression
-    console.log(expression);
+    console.log('Submit: ', expression);
   };
 
   return (
@@ -245,6 +237,44 @@ interface ExpressionFormProps {
   onChange: (expression: Expression) => void;
 }
 
+const QueryFieldForm: React.FC<{ queries: Query[] }> = (props) => {
+  const { queries } = props;
+
+  const [selectedQueryId, setSelectedQueryId] = useState('');
+
+  const availableFields = useMemo(() => {
+    const idx = queries.findIndex((x) => x.id === selectedQueryId);
+    if (idx < 0) {
+      return [];
+    }
+    return queries[idx].select;
+  }, [queries, selectedQueryId]);
+
+  return (
+    <>
+      <Form.Item name={['queryId']} label="Query" rules={[{ required: true }]}>
+        <Select
+          onChange={(v) => setSelectedQueryId(v)}
+          style={formInputStyles}
+          options={queries.map((q) => ({
+            label: q.name,
+            value: q.id,
+          }))}
+        />
+      </Form.Item>
+      <Form.Item name={['field']} label="Field" rules={[{ required: true }]}>
+        <Select
+          style={formInputStyles}
+          options={availableFields.map((f) => ({
+            label: `${f.name} (${f.type})`,
+            value: f.referenceName,
+          }))}
+        />
+      </Form.Item>
+    </>
+  );
+};
+
 export const ExpressionForm: React.FC<ExpressionFormProps> = ({
   expression,
   onChange,
@@ -258,6 +288,12 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
     const updatedExpression: Expression = { ...expression, ...changedValues };
     onChange(updatedExpression);
   };
+
+  const modelContext = useContext(ModelContext);
+
+  const queries = useMemo(() => {
+    return modelContext.model?.queries ?? [];
+  }, [modelContext.model]);
 
   const toolTipContent = useMemo(() => {
     if (!expression?.type) {
@@ -275,6 +311,8 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
 
   const renderFormFields = () => {
     switch (expression?.type) {
+      case ExpressionType.Field:
+        return <QueryFieldForm queries={queries} />;
       case ExpressionType.Value:
         return (
           <Form.Item
@@ -282,7 +320,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
             label="Value"
             rules={[{ required: true }]}
             getValueFromEvent={(event) => parseFloat(event.target.value)}>
-            <Input type="number" />
+            <Input type="number" style={formInputStyles} />
           </Form.Item>
         );
       case ExpressionType.Add:
@@ -319,43 +357,43 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
       case ExpressionType.Avg:
       case ExpressionType.Min:
       case ExpressionType.Max:
+        const defaultFieldExpression = {
+          field: '',
+          type: ExpressionType.Field,
+          queryId: '',
+        };
         return (
-          <>
-            <Form.Item
-              name={['fieldExpression', 'queryId']}
-              label="Query ID"
-              rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name={['fieldExpression', 'field']}
-              label="Field"
-              rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
-          </>
+          <Form.Item
+            name={['fieldExpression']}
+            label="Field Expression"
+            rules={[{ required: true }]}>
+            <ExpressionForm
+              expression={
+                (expression as AggregateExpression)?.fieldExpression ??
+                defaultFieldExpression
+              }
+              onChange={(value) =>
+                handleNestedExpressionChange({ fieldExpression: value })
+              }
+            />
+          </Form.Item>
         );
       case ExpressionType.CountIf:
         return (
           <>
-            <Form.Item
-              name={['field']}
-              label="Field"
-              rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
+            <QueryFieldForm queries={queries} />
             <Form.Item
               name={['operator']}
               label="Operator"
               rules={[{ required: true }]}>
-              <Input />
+              <Input style={formInputStyles} />
             </Form.Item>
             <Form.Item
               name={['value']}
               label="Value"
               rules={[{ required: true }]}
               getValueFromEvent={(event) => event.target.value}>
-              <Input />
+              <Input style={formInputStyles} />
             </Form.Item>
           </>
         );
@@ -365,404 +403,130 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
   };
 
   return (
-    <Form
-      initialValues={expression}
-      wrapperCol={{ span: 24 }}
-      onValuesChange={handleNestedExpressionChange}>
-      <Form.Item label="Expression Type">
-        <Space>
-          <Form.Item noStyle name={['type']} rules={[{ required: true }]}>
-            <Select
-              style={{ minWidth: 200 }}
-              onChange={handleExpressionChange}
-              options={[
-                {
-                  label: 'Atomic',
-                  options: [
-                    {
-                      label: 'Simple value',
-                      value: ExpressionType.Value,
-                    },
-                  ],
-                },
-                {
-                  label: 'Mathematical',
-                  options: [
-                    {
-                      label: 'Add',
-                      value: ExpressionType.Add,
-                    },
-                    {
-                      label: 'Subtract',
-                      value: ExpressionType.Subtract,
-                    },
-                    {
-                      label: 'Divide',
-                      value: ExpressionType.Div,
-                    },
-                    {
-                      label: 'Multiply',
-                      value: ExpressionType.Multiply,
-                    },
-                  ],
-                },
-                {
-                  label: 'Aggregation',
-                  options: [
-                    {
-                      label: 'Sum',
-                      value: ExpressionType.Sum,
-                    },
-                    {
-                      label: 'Average',
-                      value: ExpressionType.Avg,
-                    },
-                    {
-                      label: 'Minimum',
-                      value: ExpressionType.Min,
-                    },
-                    {
-                      label: 'Maximum',
-                      value: ExpressionType.Max,
-                    },
-                  ],
-                },
-                {
-                  label: 'Conditional',
-                  options: [
-                    {
-                      label: 'Count if',
-                      value: ExpressionType.CountIf,
-                    },
-                  ],
-                },
-              ]}
-            />
-          </Form.Item>
-          <Tooltip
-            placement="right"
-            title={
-              <>
-                <Typography.Title
-                  style={{
-                    fontSize: 'x-large',
-                  }}
-                  level={1}>
-                  {toolTipContent.title} ({toolTipContent.kind})
-                </Typography.Title>
-                <Typography.Text>{toolTipContent.description}</Typography.Text>
-                <Typography.Title
-                  style={{
-                    fontSize: 'large',
-                  }}
-                  level={2}>
-                  Arguments
-                </Typography.Title>
-                {toolTipContent.arguments.map((arg) => (
-                  <>
-                    <Typography.Title level={3} style={{ fontSize: 'medium' }}>
-                      {arg.name}
-                    </Typography.Title>
-                    <Typography.Text>{arg.description}</Typography.Text>
-                  </>
-                ))}
-              </>
-            }>
-            <Typography.Link>Need help?</Typography.Link>
-          </Tooltip>
-        </Space>
-      </Form.Item>
-      {renderFormFields()}
-    </Form>
+    <Card>
+      <Form
+        initialValues={expression}
+        labelCol={{ span: 2 }}
+        wrapperCol={{ span: 22 }}
+        style={{
+          textAlign: 'left',
+        }}
+        onValuesChange={handleNestedExpressionChange}>
+        <Form.Item label="Expression Type">
+          <Space>
+            <Form.Item noStyle name={['type']} rules={[{ required: true }]}>
+              <Select
+                disabled={expression?.type === ExpressionType.Field}
+                style={{ minWidth: 200 }}
+                onChange={handleExpressionChange}
+                options={[
+                  {
+                    label: 'Atomic',
+                    options: [
+                      {
+                        label: 'Simple value',
+                        value: ExpressionType.Value,
+                      },
+                      {
+                        label: 'Field',
+                        value: ExpressionType.Field,
+                        disabled: true,
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Mathematical',
+                    options: [
+                      {
+                        label: 'Add',
+                        value: ExpressionType.Add,
+                      },
+                      {
+                        label: 'Subtract',
+                        value: ExpressionType.Subtract,
+                      },
+                      {
+                        label: 'Divide',
+                        value: ExpressionType.Div,
+                      },
+                      {
+                        label: 'Multiply',
+                        value: ExpressionType.Multiply,
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Aggregation',
+                    options: [
+                      {
+                        label: 'Sum',
+                        value: ExpressionType.Sum,
+                      },
+                      {
+                        label: 'Average',
+                        value: ExpressionType.Avg,
+                      },
+                      {
+                        label: 'Minimum',
+                        value: ExpressionType.Min,
+                      },
+                      {
+                        label: 'Maximum',
+                        value: ExpressionType.Max,
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Conditional',
+                    options: [
+                      {
+                        label: 'Count if',
+                        value: ExpressionType.CountIf,
+                      },
+                    ],
+                  },
+                ]}
+              />
+            </Form.Item>
+            <Tooltip
+              placement="right"
+              title={
+                <>
+                  <Typography.Title
+                    style={{
+                      fontSize: 'x-large',
+                    }}
+                    level={1}>
+                    {toolTipContent.title} ({toolTipContent.kind})
+                  </Typography.Title>
+                  <Typography.Text>
+                    {toolTipContent.description}
+                  </Typography.Text>
+                  <Typography.Title
+                    style={{
+                      fontSize: 'large',
+                    }}
+                    level={2}>
+                    Arguments
+                  </Typography.Title>
+                  {toolTipContent.arguments.map((arg) => (
+                    <>
+                      <Typography.Title
+                        level={3}
+                        style={{ fontSize: 'medium' }}>
+                        {arg.name}
+                      </Typography.Title>
+                      <Typography.Text>{arg.description}</Typography.Text>
+                    </>
+                  ))}
+                </>
+              }>
+              <Typography.Link>Need help?</Typography.Link>
+            </Tooltip>
+          </Space>
+        </Form.Item>
+        {renderFormFields()}
+      </Form>
+    </Card>
   );
 };
-
-// const ExpressionBuilder: React.FC<Props> = (props) => {
-//   const { onExpressionSubmit } = props;
-
-//   const [form] = useForm<FormType>();
-
-//   const expressionType = useWatch('type', form);
-
-//   const fields = form.getFieldsValue();
-//   console.log(fields);
-
-//   const expressionForm = (prefix: string[]) => (
-//     <>
-//       <Form.Item label="Expression type">
-//         <Space>
-//           <Form.Item
-//             name={[...prefix, 'type']}
-//             noStyle
-//             rules={[{ required: true, message: 'Please select a type' }]}>
-//             <Select
-//               style={{
-//                 minWidth: 200,
-//               }}
-//               options={[
-//                 {
-//                   label: 'Atomic',
-//                   options: [
-//                     {
-//                       label: 'Simple value',
-//                       value: ExpressionType.Value,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Mathematical',
-//                   options: [
-//                     {
-//                       label: 'Add',
-//                       value: ExpressionType.Add,
-//                     },
-//                     {
-//                       label: 'Subtract',
-//                       value: ExpressionType.Subtract,
-//                     },
-//                     {
-//                       label: 'Divide',
-//                       value: ExpressionType.Div,
-//                     },
-//                     {
-//                       label: 'Multiply',
-//                       value: ExpressionType.Multiply,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Aggregation',
-//                   options: [
-//                     {
-//                       label: 'Sum',
-//                       value: ExpressionType.Sum,
-//                     },
-//                     {
-//                       label: 'Average',
-//                       value: ExpressionType.Avg,
-//                     },
-//                     {
-//                       label: 'Minimum',
-//                       value: ExpressionType.Min,
-//                     },
-//                     {
-//                       label: 'Maximum',
-//                       value: ExpressionType.Max,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Conditional',
-//                   options: [
-//                     {
-//                       label: 'Count if',
-//                       value: ExpressionType.CountIf,
-//                     },
-//                   ],
-//                 },
-//               ]}
-//             />
-//           </Form.Item>
-//           <Tooltip
-//             placement="right"
-//             title={
-//               <>
-//                 <Typography.Title
-//                   style={{
-//                     fontSize: 'x-large',
-//                   }}
-//                   level={1}>
-//                   {toolTipContent.title} ({toolTipContent.kind})
-//                 </Typography.Title>
-//                 <Typography.Text>{toolTipContent.description}</Typography.Text>
-//                 <Typography.Title
-//                   style={{
-//                     fontSize: 'large',
-//                   }}
-//                   level={2}>
-//                   Arguments
-//                 </Typography.Title>
-//                 {toolTipContent.arguments.map((arg) => (
-//                   <>
-//                     <Typography.Title level={3} style={{ fontSize: 'medium' }}>
-//                       {arg.name}
-//                     </Typography.Title>
-//                     <Typography.Text>{arg.description}</Typography.Text>
-//                   </>
-//                 ))}
-//               </>
-//             }>
-//             <Typography.Link>Need help?</Typography.Link>
-//           </Tooltip>
-//         </Space>
-//       </Form.Item>
-//       {restForm(form.getFieldValue([...prefix, 'type']), [...prefix])}
-//     </>
-//   );
-
-//   const restForm = useCallback(
-//     (tpe: ExpressionType, prefix?: string[]) => {
-//       const namePath = [];
-//       if (prefix && prefix.length > 0) {
-//         namePath.push(...prefix);
-//       }
-//       switch (tpe) {
-//         case ExpressionType.Avg:
-//         case ExpressionType.Sum:
-//         case ExpressionType.Min:
-//         case ExpressionType.Max:
-//           return (
-//             <>
-//               <Form.Item
-//                 label="Field"
-//                 name={[...namePath, 'fieldExpression', 'field']}>
-//                 <Input />
-//               </Form.Item>
-//               <Form.Item
-//                 label="Query"
-//                 name={[...namePath, 'fieldExpression', 'query']}>
-//                 <Input />
-//               </Form.Item>
-//             </>
-//           );
-
-//         case ExpressionType.Add:
-//         case ExpressionType.Div:
-//         case ExpressionType.Multiply:
-//         case ExpressionType.Subtract:
-//           return (
-//             <>
-//               <Form.Item label="Left" name={[...namePath, 'left']}>
-//                 {expressionForm([...namePath, 'left'])}
-//               </Form.Item>
-//               <Form.Item label="Right" name={[...namePath, 'right']}>
-//                 {expressionForm([...namePath, 'right'])}
-//               </Form.Item>
-//             </>
-//           );
-//         case ExpressionType.Value:
-//           return (
-//             <Form.Item label="Value" name="value">
-//               <Input type="number" />
-//             </Form.Item>
-//           );
-//       }
-//     },
-//     [expressionForm]
-//   );
-
-//   return (
-//     <Form form={form} wrapperCol={{ span: 12 }}>
-//       <Form.Item label="Expression type">
-//         <Space>
-//           <Form.Item
-//             name="type"
-//             noStyle
-//             rules={[{ required: true, message: 'Please select a type' }]}>
-//             <Select
-//               style={{
-//                 minWidth: 200,
-//               }}
-//               options={[
-//                 {
-//                   label: 'Atomic',
-//                   options: [
-//                     {
-//                       label: 'Simple value',
-//                       value: ExpressionType.Value,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Mathematical',
-//                   options: [
-//                     {
-//                       label: 'Add',
-//                       value: ExpressionType.Add,
-//                     },
-//                     {
-//                       label: 'Subtract',
-//                       value: ExpressionType.Subtract,
-//                     },
-//                     {
-//                       label: 'Divide',
-//                       value: ExpressionType.Div,
-//                     },
-//                     {
-//                       label: 'Multiply',
-//                       value: ExpressionType.Multiply,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Aggregation',
-//                   options: [
-//                     {
-//                       label: 'Sum',
-//                       value: ExpressionType.Sum,
-//                     },
-//                     {
-//                       label: 'Average',
-//                       value: ExpressionType.Avg,
-//                     },
-//                     {
-//                       label: 'Minimum',
-//                       value: ExpressionType.Min,
-//                     },
-//                     {
-//                       label: 'Maximum',
-//                       value: ExpressionType.Max,
-//                     },
-//                   ],
-//                 },
-//                 {
-//                   label: 'Conditional',
-//                   options: [
-//                     {
-//                       label: 'Count if',
-//                       value: ExpressionType.CountIf,
-//                     },
-//                   ],
-//                 },
-//               ]}
-//             />
-//           </Form.Item>
-//           <Tooltip
-//             placement="right"
-//             title={
-//               <>
-//                 <Typography.Title
-//                   style={{
-//                     fontSize: 'x-large',
-//                   }}
-//                   level={1}>
-//                   {toolTipContent.title} ({toolTipContent.kind})
-//                 </Typography.Title>
-//                 <Typography.Text>{toolTipContent.description}</Typography.Text>
-//                 <Typography.Title
-//                   style={{
-//                     fontSize: 'large',
-//                   }}
-//                   level={2}>
-//                   Arguments
-//                 </Typography.Title>
-//                 {toolTipContent.arguments.map((arg) => (
-//                   <>
-//                     <Typography.Title level={3} style={{ fontSize: 'medium' }}>
-//                       {arg.name}
-//                     </Typography.Title>
-//                     <Typography.Text>{arg.description}</Typography.Text>
-//                   </>
-//                 ))}
-//               </>
-//             }>
-//             <Typography.Link>Need help?</Typography.Link>
-//           </Tooltip>
-//         </Space>
-//       </Form.Item>
-//       {restForm(expressionType)}
-//     </Form>
-//   );
-// };
-
-// export default ExpressionBuilder;

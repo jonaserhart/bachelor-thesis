@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
 using backend.Model.Analysis.WorkItems;

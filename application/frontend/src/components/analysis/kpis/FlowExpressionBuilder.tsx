@@ -7,6 +7,7 @@ import {
   Node,
   Position,
   ReactFlow,
+  XYPosition,
   useEdgesState,
   useNodesState,
 } from 'reactflow';
@@ -27,7 +28,7 @@ const CustomNode = memo(
   ({ data, id }: { data: CustomNodeData; id: string }) => {
     const { onTypeChange, expression: e } = data;
 
-    const handles = useMemo(() => {
+    const srcHandles = useMemo(() => {
       switch (e.type) {
         case ExpressionType.Avg:
         case ExpressionType.Sum:
@@ -35,7 +36,7 @@ const CustomNode = memo(
         case ExpressionType.Max:
           return (
             <>
-              <Handle type="source" position={Position.Bottom} />
+              <Handle id={id} type="source" position={Position.Bottom} />
             </>
           );
         case ExpressionType.Add:
@@ -44,8 +45,16 @@ const CustomNode = memo(
         case ExpressionType.Subtract:
           return (
             <>
-              <Handle type="source" position={Position.Bottom} />
-              <Handle type="source" position={Position.Bottom} />
+              <Handle
+                id={`${id}-left`}
+                type="source"
+                position={Position.Bottom}
+              />
+              <Handle
+                id={`${id}-right`}
+                type="source"
+                position={Position.Bottom}
+              />
             </>
           );
         default:
@@ -125,7 +134,8 @@ const CustomNode = memo(
             ]}
           />
         </Card>
-        {handles}
+        {srcHandles}
+        <Handle id={id} type="target" position={Position.Top} />
       </>
     );
   }
@@ -138,6 +148,13 @@ interface Props<T extends Expression> {
 const nodeTypes = {
   expressionNode: CustomNode,
 };
+
+const mathExpressionTypes = [
+  ExpressionType.Add,
+  ExpressionType.Subtract,
+  ExpressionType.Div,
+  ExpressionType.Multiply,
+];
 
 const FlowExpressionBuilder = <T extends Expression>(props: Props<T>) => {
   const { expression: e } = props;
@@ -155,123 +172,97 @@ const FlowExpressionBuilder = <T extends Expression>(props: Props<T>) => {
 
   const onTypeChange = useCallback(
     (id: string, type: ExpressionType) => {
-      const isMathExpression = type === ExpressionType.Add;
-
-      setNodes((nds) => {
-        const updated = nds.map((node) => {
-          if (node.id === id) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                type,
-              },
+      setExpression((e) => {
+        e.type = type;
+        if (mathExpressionTypes.includes(type)) {
+          const mathExpr = e as unknown as MathOperationExpression<Expression>;
+          if (!mathExpr.left) {
+            mathExpr.left = {
+              id: 'child-left',
+              type: ExpressionType.Value,
             };
-          } else {
-            return node;
           }
-        });
-        if (isMathExpression) {
-          const newNodes: Node[] = [
-            {
-              id: 'left',
-              type: 'expressionNode',
-              data: {
-                expression,
-                onTypeChange: onTypeChange,
-              },
-              position: {
-                x: 200,
-                y: 300,
-              },
-            },
-            {
-              id: 'right',
-              type: 'expressionNode',
-              data: {
-                expression,
-                onTypeChange: onTypeChange,
-              },
-              position: {
-                x: -200,
-                y: 300,
-              },
-            },
-          ];
-          return [...updated, ...newNodes];
+          if (!mathExpr.right) {
+            mathExpr.right = {
+              id: 'child-right',
+              type: ExpressionType.Value,
+            };
+          }
+          e = mathExpr as unknown as T;
         }
-        return updated;
+        // maybe other modifications for other expr types?
+        return { ...e };
       });
     },
-    [setNodes, setEdges]
+    [setExpression]
   );
 
-  useEffect(() => {
-    const initialNodes: Node[] = [
-      {
+  const addExpression = useCallback(
+    (n: Node[], e: Edge[], expression: Expression, position: XYPosition) => {
+      n.push({
         id: expression.id,
         type: 'expressionNode',
         data: {
           onTypeChange: onTypeChange,
           expression,
         },
-        position: { x: 0, y: 50 },
-      },
-    ];
-
-    if ((expression as any).left && (expression as any).right) {
-      initialNodes.push({
-        id: (expression as any).left.id,
-        type: 'expressionNode',
-        data: {
-          onTypeChange,
-          expression,
-          childOf: expression.id,
-        },
-        position: { x: -200, y: 300 },
+        position,
       });
-      initialNodes.push({
-        id: (expression as any).right.id,
-        type: 'expressionNode',
-        data: {
-          onTypeChange,
-          expression,
-          childOf: expression.id,
-        },
-        position: { x: 200, y: 300 },
-      });
-    }
+      if (
+        [
+          ExpressionType.Add,
+          ExpressionType.Subtract,
+          ExpressionType.Div,
+          ExpressionType.Multiply,
+        ].includes(expression.type)
+      ) {
+        const mathExpr = expression as MathOperationExpression<Expression>;
+        const left = addExpression(n, e, mathExpr.left, {
+          x: position.x - 200,
+          y: position.y + 200,
+        });
+        const right = addExpression(n, e, mathExpr.right, {
+          x: position.x + 200,
+          y: position.y + 200,
+        });
+        e.push({
+          id: `${mathExpr.id}-${left.id}`,
+          source: `${mathExpr.id}-left`,
+          target: left.id,
+        });
+        e.push({
+          id: `${mathExpr.id}-${right.id}`,
+          source: `${mathExpr.id}-right`,
+          target: right.id,
+        });
+      }
+      return expression;
+    },
+    [onTypeChange]
+  );
 
-    setNodes(initialNodes);
-  }, []);
+  const mapExpressionToNodesAndEdges = useCallback(
+    (expression: Expression) => {
+      const n: Node[] = [];
+      const e: Edge[] = [];
+
+      addExpression(n, e, expression, { x: 0, y: 50 });
+
+      return { nodes: n, edges: e };
+    },
+    [addExpression]
+  );
+
+  useEffect(() => {
+    const mapped = mapExpressionToNodesAndEdges(expression);
+
+    setNodes(mapped.nodes);
+    setEdges(mapped.edges);
+  }, [expression, expression.type]);
 
   return (
     <div style={{ width: '100%', height: '50vh' }}>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodesChange={(changes) => {
-          changes.forEach((change) => {
-            console.log('Change: ', change);
-            if (change.type === 'add') {
-              const data = change.item.data;
-              if (data.childOf) {
-                // add new edge if a node has been added
-                setEdges((e) => {
-                  return [
-                    ...e,
-                    {
-                      id: `${data.childOf}-${change.item.id}`,
-                      source: `${data.childOf}`,
-                      target: `${data.childOf}`,
-                    },
-                  ];
-                });
-              }
-            }
-          });
-        }}>
+      <ReactFlow nodes={nodes} edges={edges} nodeTypes={nodeTypes}>
         <MiniMap />
         <Controls />
         <Background color="#aaa" gap={16} />
