@@ -1,5 +1,6 @@
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
+using backend.Model.Analysis.Queries;
 using backend.Model.Analysis.WorkItems;
 using backend.Model.Rest;
 using backend.Services.DevOps;
@@ -101,20 +102,65 @@ public class AnalysisController : Controller
         return Ok(model);
     }
 
-    [HttpPost("createqueryfrom")]
-    [ProducesResponseType(typeof(Query), 200)]
+    [HttpGet("queryschemas")]
+    [ProducesResponseType(typeof(BaseQuerySchema[]), 200)]
     [Authorize]
-    public async Task<ActionResult<Query>> CreateQueryFrom(Guid modelId, Guid queryId)
+    public ActionResult<IEnumerable<BaseQuerySchema>> GetQuerySchemas()
+    {
+        var schemas = _queryService.GetBaseQuerySchemas();
+        return Ok(schemas);
+    }
+
+    [HttpGet("createparams")]
+    [ProducesResponseType(typeof(QueryParameter[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<QueryParameter>>> GetQueryCreateParameters([FromQuery] Guid schemaId)
+    {
+        var parameters = await _queryService.GetQueryCreateParametersAsync(schemaId);
+        return Ok(parameters);
+    }
+
+    [HttpPost("createquery")]
+    [ProducesResponseType(typeof(Model.Analysis.Queries.Query), 200)]
+    [Authorize]
+    public async Task<ActionResult<Model.Analysis.Queries.Query>> CreateQuery([FromQuery] Guid schemaId, [FromBody] List<QueryParameterValue> createValues)
+    {
+        var query = await _queryService.CreateQueryAsync(schemaId, createValues);
+        return Ok(query);
+    }
+
+    [HttpGet("runtimeparams")]
+    [ProducesResponseType(typeof(Model.Analysis.Queries.QueryParameter[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Model.Analysis.Queries.QueryParameter>>> GetQueryRuntimeParams([FromQuery] Guid schemaId, [FromQuery] Guid queryId)
+    {
+        var parameters = await _queryService.GetQueryRuntimeParametersAsync(schemaId, queryId);
+        return Ok(parameters);
+    }
+
+    [HttpPost("executequery")]
+    [ProducesResponseType(typeof(QueryExecutionResult), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<Model.Analysis.Queries.QueryParameter>>> GetQueryRuntimeParams([FromQuery] Guid schemaId, [FromQuery] Guid queryId, [FromBody] List<QueryParameterValue> runtimeParams)
+    {
+        var parameters = await _queryService.ExecuteQueryAsync(schemaId, queryId, runtimeParams);
+        return Ok(parameters);
+    }
+
+    [HttpPost("createqueryfrom")]
+    [ProducesResponseType(typeof(Model.Analysis.Query), 200)]
+    [Authorize]
+    public async Task<ActionResult<Model.Analysis.Query>> CreateQueryFrom(Guid modelId, Guid queryId)
     {
         var query = await _queryService.CreateQueryFromDevOps(modelId, queryId);
         return Ok(query);
     }
 
     [HttpGet("query/{queryId}")]
-    [ProducesResponseType(typeof(Query), 200)]
+    [ProducesResponseType(typeof(Model.Analysis.Query), 200)]
     [ProducesResponseType(typeof(ApiError), 404)]
     [Authorize]
-    public async Task<ActionResult<Query>> GetQuery(Guid queryId)
+    public async Task<ActionResult<Model.Analysis.Query>> GetQuery(Guid queryId)
     {
         var query = await _queryService.GetQueryWithClausesAsync(queryId);
         return query;

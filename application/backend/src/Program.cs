@@ -12,6 +12,8 @@ using System.Text;
 using backend.Services.DevOps;
 using Newtonsoft.Json.Converters;
 using backend.Services.Expressions;
+using backend.Services.DynamicQuery;
+using backend.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -49,6 +51,9 @@ builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
 builder.Services.AddScoped<IAnalysisModelService, AnalysisModelService>();
 builder.Services.AddScoped<IQueryService, QueryService>();
 builder.Services.AddScoped<IKPIService, KPIService>();
+
+builder.UseQuerySchemas();
+
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
 
 builder.Services.AddAuthentication((x) =>
