@@ -8,6 +8,7 @@ public class CountIfExpression : Expression
     public string Field { get; set; } = string.Empty;
     public string Operator { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+    public Guid QueryId { get; set; }
 
     public override object? Evaluate(List<Workitem> workItems)
     {

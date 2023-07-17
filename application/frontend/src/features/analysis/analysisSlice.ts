@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import {
   AnalysisModel,
   AnalysisModelChange,
+  Expression,
   KPI,
   Project,
   Query,
@@ -126,6 +127,23 @@ export const updateKPIDetails = createAppAsyncThunk(
       id: arg.id,
       name: arg.name,
     });
+    return response.data;
+  }
+);
+
+export const updateExpression = createAppAsyncThunk(
+  prefix('updateExpression'),
+  async function (arg: {
+    kpiId: string;
+    modelId: string;
+    expression: Expression;
+  }) {
+    const response = await axios.put<Expression>(
+      `/analysis/kpi/expression?kpiId=${arg.kpiId}`,
+      {
+        expression: arg.expression,
+      }
+    );
     return response.data;
   }
 );
@@ -268,6 +286,31 @@ const analysisSlice = createSlice({
       }
 
       state.models[modelIndex].kpis[kpiIndex] = action.payload;
+    });
+
+    builder.addCase(updateExpression.fulfilled, (state, action) => {
+      const modelId = action.meta.arg.modelId;
+      const kpiId = action.meta.arg.kpiId;
+      const modelIndex = state.models.findIndex((x) => x.id === modelId);
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      const kpiIndex = state.models[modelIndex].kpis.findIndex(
+        (x) => x.id === kpiId
+      );
+      if (kpiIndex < 0) {
+        logger.logError(
+          `Could not find query ${kpiId} within model ${modelId}`
+        );
+        return;
+      }
+
+      state.models[modelIndex].kpis[kpiIndex].expression = {
+        ...state.models[modelIndex].kpis[kpiIndex].expression,
+        ...action.payload,
+      };
     });
   },
 });

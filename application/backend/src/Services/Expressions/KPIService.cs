@@ -64,9 +64,18 @@ public class KPIService : IKPIService
         return expression;
     }
 
-    public async Task<T> UpdateExpressionAsync<T>(T expression) where T : Expression
+    public async Task<T> UpdateExpressionAsync<T>(Guid kpiId, T expression) where T : Expression
     {
-        var entry = _context.FindAsync<T>(expression.Id);
+        var entry = await _context.FindAsync<T>(expression.Id);
+        if (entry == null)
+        {
+            await SaveExpressionAsync(kpiId, expression);
+        }
+        return await UpdateExpressionAsync(expression);
+    }
+
+    private async Task<T> UpdateExpressionAsync<T>(T expression) where T : Expression
+    {
 
         switch (expression)
         {
@@ -105,6 +114,7 @@ public class KPIService : IKPIService
                 {
                     var fieldExpression = await _context.GetByIdOrThrowAsync<FieldExpression>(fieldExpr.Id);
                     fieldExpression.Field = fieldExpr.Field;
+                    fieldExpression.QueryId = fieldExpr.QueryId;
 
                     await _context.SaveChangesAsync();
                     return (fieldExpression as T)!;
@@ -124,6 +134,7 @@ public class KPIService : IKPIService
                     countIfExpression.Field = countIfExpr.Field;
                     countIfExpression.Operator = countIfExpr.Operator;
                     countIfExpression.Value = countIfExpr.Value;
+                    countIfExpression.QueryId = countIfExpr.QueryId;
 
                     await _context.SaveChangesAsync();
                     return (countIfExpression as T)!;
@@ -137,5 +148,4 @@ public class KPIService : IKPIService
         _context.Remove<T>(expression);
         await _context.SaveChangesAsync();
     }
-
 }

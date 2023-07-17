@@ -98,7 +98,7 @@ const Queries: React.FC = () => {
           {
             key: 'select',
             dataIndex: 'select',
-            title: 'Fields',
+            title: 'Returns',
             render(value: FieldInfo[], _, index) {
               const spliceAt = 5;
               const values = [value.slice(0, spliceAt), value.slice(spliceAt)];

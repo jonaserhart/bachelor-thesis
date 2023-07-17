@@ -186,4 +186,16 @@ public class AnalysisController : Controller
         return await _kpiService.SaveExpressionAsync(kpiId, expression.Expression);
     }
 
+    [HttpPut("kpi/expression")]
+    [ProducesResponseType(typeof(Expression), 200)]
+    [Authorize]
+    public async Task<Expression> UpdateExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
+    {
+        if (expression.Expression == null)
+        {
+            throw new ArgumentException("property 'expression' has to be provided!");
+        }
+        return await _kpiService.UpdateExpressionAsync(kpiId, expression.Expression);
+    }
+
 }

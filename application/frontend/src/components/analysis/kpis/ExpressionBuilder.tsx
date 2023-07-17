@@ -14,9 +14,14 @@ import {
   Space,
   Tooltip,
   Typography,
+  message,
 } from 'antd';
-import { useContext, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
+import { BackendError, useAppDispatch } from '../../../app/hooks';
+import { updateExpression } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
+import { KPIContext } from '../../../context/KPIContext';
+import { useForm } from 'antd/es/form/Form';
 
 interface Props {
   onExpressionSubmit: (e: Expression) => Promise<void>;
@@ -206,25 +211,47 @@ const descriptions = {
 };
 
 export const ExpressionBuilder: React.FC = () => {
-  const [expression, setExpression] = useState<Expression>({
-    id: 'abc',
+  const [expression, setExpression] = useState({
     type: ExpressionType.Value,
   });
 
   const handleExpressionChange = (updatedExpression: Expression) => {
     setExpression(updatedExpression);
-    console.log(updatedExpression);
+    console.log('Updated: ', updatedExpression);
   };
+
+  const dispatch = useAppDispatch();
+
+  const { model } = useContext(ModelContext);
+  const { kpi } = useContext(KPIContext);
+
+  useEffect(() => {
+    if (kpi) handleExpressionChange(kpi.expression);
+  }, [kpi]);
+
+  const modelId = useMemo(() => model?.id ?? '', [model]);
+  const kpiId = useMemo(() => kpi?.id ?? '', [kpi]);
 
   const handleSubmit = () => {
     // Handle form submission with the final expression
     console.log('Submit: ', expression);
+    console.log(expression);
+    dispatch(
+      updateExpression({
+        kpiId,
+        modelId,
+        expression: expression as Expression,
+      })
+    )
+      .unwrap()
+      .then(() => message.success(`Updated expression of kpi ${kpi?.name}`))
+      .catch((err: BackendError) => message.error(err.message));
   };
 
   return (
     <div>
       <ExpressionForm
-        expression={expression}
+        expression={expression as Expression}
         onChange={handleExpressionChange}
       />
       <Button onClick={handleSubmit}>Submit</Button>
@@ -237,10 +264,18 @@ interface ExpressionFormProps {
   onChange: (expression: Expression) => void;
 }
 
-const QueryFieldForm: React.FC<{ queries: Query[] }> = (props) => {
-  const { queries } = props;
+const QueryFieldForm: React.FC<{ queries: Query[]; expression: Expression }> = (
+  props
+) => {
+  const { queries, expression } = props;
 
   const [selectedQueryId, setSelectedQueryId] = useState('');
+
+  useEffect(() => {
+    if (expression && (expression as any).queryId) {
+      setSelectedQueryId((expression as any).queryId);
+    }
+  }, [expression, queries]);
 
   const availableFields = useMemo(() => {
     const idx = queries.findIndex((x) => x.id === selectedQueryId);
@@ -255,6 +290,7 @@ const QueryFieldForm: React.FC<{ queries: Query[] }> = (props) => {
       <Form.Item name={['queryId']} label="Query" rules={[{ required: true }]}>
         <Select
           onChange={(v) => setSelectedQueryId(v)}
+          value={selectedQueryId}
           style={formInputStyles}
           options={queries.map((q) => ({
             label: q.name,
@@ -279,6 +315,12 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
   expression,
   onChange,
 }) => {
+  const [form] = useForm();
+
+  useEffect(() => {
+    form.setFieldsValue(expression);
+  }, [expression]);
+
   const handleExpressionChange = (value: ExpressionType) => {
     const updatedExpression = { type: value };
     onChange(updatedExpression as Expression);
@@ -312,7 +354,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
   const renderFormFields = () => {
     switch (expression?.type) {
       case ExpressionType.Field:
-        return <QueryFieldForm queries={queries} />;
+        return <QueryFieldForm expression={expression} queries={queries} />;
       case ExpressionType.Value:
         return (
           <Form.Item
@@ -381,7 +423,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
       case ExpressionType.CountIf:
         return (
           <>
-            <QueryFieldForm queries={queries} />
+            <QueryFieldForm expression={expression} queries={queries} />
             <Form.Item
               name={['operator']}
               label="Operator"
@@ -411,6 +453,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
         style={{
           textAlign: 'left',
         }}
+        form={form}
         onValuesChange={handleNestedExpressionChange}>
         <Form.Item label="Expression Type">
           <Space>
