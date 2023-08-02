@@ -1,3 +1,4 @@
+using backend.Extensions;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
 using backend.Model.Exceptions;
@@ -48,33 +49,46 @@ public class DataContext : DbContext
                     str => str.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => Enum.Parse<ModelPermission>(x)) ?? new List<ModelPermission>())
                     .Metadata.SetValueComparer(permissionValueComparer);
 
-        modelBuilder.Entity<Query>()
-            .HasOne(x => x.Where)
-            .WithOne(x => x.Query);
-        modelBuilder.Entity<Query>()
-            .HasMany(x => x.Select)
-            .WithOne(x => x.Query)
-            .HasForeignKey(x => x.QueryId);
-
-        modelBuilder.Entity<Clause>()
-            .HasMany(x => x.Clauses)
-            .WithOne(x => x.ParentClause)
-            .HasForeignKey(x => x.ParentClauseId);
-
-        modelBuilder.Entity<AnalysisModel>()
-            .HasOne(x => x.Project)
-            .WithMany(x => x.Models)
-            .HasForeignKey(x => x.ProjectId)
+        modelBuilder.Entity<MathOperationExpression>()
+            .HasOne(x => x.Left)
+            .WithOne()
             .OnDelete(DeleteBehavior.ClientSetNull);
-        modelBuilder.Entity<AnalysisModel>()
-            .HasOne(x => x.Team)
-            .WithMany(x => x.Models)
-            .HasForeignKey(x => x.TeamId)
+
+        modelBuilder.Entity<MathOperationExpression>()
+            .HasOne(x => x.Right)
+            .WithOne()
             .OnDelete(DeleteBehavior.ClientSetNull);
-        modelBuilder.Entity<AnalysisModel>()
-            .HasMany(x => x.Queries)
-            .WithOne(x => x.Model)
-            .OnDelete(DeleteBehavior.ClientCascade);
+
+        modelBuilder.Entity<Expression>()
+            .HasDiscriminator(x => x.Type)
+            .HasValue<AddExpression>(backend.Model.Enum.ExpressionType.Add)
+            .HasValue<AvgExpression>(backend.Model.Enum.ExpressionType.Avg)
+            .HasValue<DivExpression>(backend.Model.Enum.ExpressionType.Div)
+            .HasValue<MaxExpression>(backend.Model.Enum.ExpressionType.Max)
+            .HasValue<MinExpression>(backend.Model.Enum.ExpressionType.Min)
+            .HasValue<MultiplyExpression>(backend.Model.Enum.ExpressionType.Multiply)
+            .HasValue<SubtractExpression>(backend.Model.Enum.ExpressionType.Subtract)
+            .HasValue<SumExpression>(backend.Model.Enum.ExpressionType.Sum)
+            .HasValue<NumericValueExpression>(backend.Model.Enum.ExpressionType.Value)
+            .HasValue<CountIfExpression>(backend.Model.Enum.ExpressionType.CountIf)
+            .HasValue<PlainQueryExpression>(backend.Model.Enum.ExpressionType.Plain)
+            .HasValue<CountExpression>(backend.Model.Enum.ExpressionType.Count);
+
+        modelBuilder.Entity<Report>()
+            .Property(x => x.KPIsAndValues)
+            .HasJsonConversion();
+
+        modelBuilder.Entity<Report>()
+            .Property(x => x.QueryResults)
+            .HasJsonConversion();
+
+        modelBuilder.Entity<Report>()
+            .Property(x => x.Created)
+            .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+
+        modelBuilder.Entity<KPI>()
+            .Property(x => x.AcceptableValues)
+            .HasDefaultValue("any");
 
     }
 
@@ -92,21 +106,21 @@ public class DataContext : DbContext
     public DbSet<UserModel> UserModels { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AnalysisModel> AnalysisModels { get; set; }
-    public DbSet<Query> Queries { get; set; }
-    public DbSet<FieldInfo> FieldInfos { get; set; }
-    public DbSet<Project> Projects { get; set; }
 
     // KPIs
     public DbSet<KPI> KPIs { get; set; }
     public DbSet<Expression> Expressions { get; set; }
-    public DbSet<AvgExpression> AvgExpressions { get; set; }
-    public DbSet<CountIfExpression> CountIfExpressions { get; set; }
-    public DbSet<DivExpression> DivExpressions { get; set; }
-    public DbSet<FieldExpression> FieldExpressions { get; set; }
-    public DbSet<MaxExpression> MaxExpressions { get; set; }
-    public DbSet<MinExpression> MinExpressions { get; set; }
-    public DbSet<MultiplyExpression> MultiplyExpressions { get; set; }
-    public DbSet<SubtractExpression> SubtractExpressions { get; set; }
-    public DbSet<SumExpression> SumExpressions { get; set; }
-    public DbSet<NumericValueExpression> ValueExpressions { get; set; }
+    public DbSet<AddExpression> AddExpression { get; set; }
+    public DbSet<AvgExpression> AvgExpression { get; set; }
+    public DbSet<DivExpression> DivExpression { get; set; }
+    public DbSet<MaxExpression> MaxExpression { get; set; }
+    public DbSet<MinExpression> MinExpression { get; set; }
+    public DbSet<MultiplyExpression> MultiplyExpression { get; set; }
+    public DbSet<SubtractExpression> SubtractExpression { get; set; }
+    public DbSet<SumExpression> SumExpression { get; set; }
+    public DbSet<NumericValueExpression> NumericValueExpression { get; set; }
+    public DbSet<PlainQueryExpression> PlainQueryExpressions { get; set; }
+
+    // Reports
+    public DbSet<Report> Reports { get; set; }
 }

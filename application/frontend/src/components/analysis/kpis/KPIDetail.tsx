@@ -1,13 +1,13 @@
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { KPIContext } from '../../../context/KPIContext';
-import { EditOutlined } from '@ant-design/icons';
-import { Divider, Spin, Typography, message, theme } from 'antd';
+import { CodeOutlined, EditOutlined, SettingOutlined } from '@ant-design/icons';
+import { Divider, Spin, Tabs, Typography, message, theme } from 'antd';
 import { BackendError, useAppDispatch } from '../../../app/hooks';
 import { ModelContext } from '../../../context/ModelContext';
 import { updateKPIDetails } from '../../../features/analysis/analysisSlice';
 import { ExpressionBuilder } from './ExpressionBuilder';
-import { ExpressionType } from '../../../features/analysis/types';
-import FlowExpressionBuilder from './FlowExpressionBuilder';
+import { useLocation, useNavigate } from 'react-router-dom';
+import KPIConfigForm from './KPIConfigForm';
 
 const { Title } = Typography;
 
@@ -22,6 +22,15 @@ const KPIDetail: React.FC = () => {
   const [nameLoading, setNameLoading] = useState(false);
 
   const dispatch = useAppDispatch();
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeKey = useMemo(() => {
+    if (['#expr', '#config'].includes(location.hash)) {
+      return location.hash;
+    } else return '#expr';
+  }, [location]);
 
   const onNameChange = useCallback(
     (strVal: string) => {
@@ -61,12 +70,34 @@ const KPIDetail: React.FC = () => {
           style={{ marginTop: 0 }}>
           {kpi?.name}
         </Title>
-        <div>
-          <Divider orientationMargin={0} orientation="left">
-            Expression
-          </Divider>
-          <ExpressionBuilder />
-        </div>
+        <Tabs
+          activeKey={activeKey}
+          onChange={(activeKey) => {
+            navigate(activeKey);
+          }}
+          items={[
+            {
+              key: '#expr',
+              label: (
+                <span>
+                  <CodeOutlined />
+                  Expression
+                </span>
+              ),
+              children: <ExpressionBuilder />,
+            },
+            {
+              key: '#config',
+              label: (
+                <span>
+                  <SettingOutlined />
+                  Configuration
+                </span>
+              ),
+              children: <KPIConfigForm />,
+            },
+          ]}
+        />
       </div>
     </Spin>
   );

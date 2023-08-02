@@ -1,12 +1,13 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
 import { AnalysisModel } from '../features/analysis/types';
 import { useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { BackendError, useAppDispatch, useAppSelector } from '../app/hooks';
 import {
   getModelDetails,
   selectModel,
 } from '../features/analysis/analysisSlice';
 import { message } from 'antd';
+import { getQueries } from '../features/queries/querySclice';
 
 interface ModelContextType {
   model: AnalysisModel | undefined;
@@ -35,14 +36,27 @@ const ModelContextProvider = (props: React.PropsWithChildren) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (!model && modelId) {
+    dispatch(getQueries())
+      .unwrap()
+      .then((q) => {
+        if (q.length > 0) {
+          console.log(`${q.length} custom-queries found`);
+        } else {
+          console.log('No custom queries found');
+        }
+      })
+      .catch((err: BackendError) => console.error(err.message));
+  }, []);
+
+  useEffect(() => {
+    if (modelId) {
       setLoading(true);
       dispatch(getModelDetails(modelId))
         .unwrap()
         .catch((err) => message.error(err.error))
         .finally(() => setLoading(false));
     }
-  }, [model, modelId, dispatch]);
+  }, [modelId]);
 
   const value = useMemo(
     () => ({

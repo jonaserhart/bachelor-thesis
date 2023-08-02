@@ -11,13 +11,9 @@ public class AnalysisModel
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public Project? Project { get; set; }
-    public Guid? ProjectId { get; set; }
-    public Team? Team { get; set; }
-    public Guid? TeamId { get; set; }
-    public List<Query> Queries { get; set; } = new List<Query>();
     public List<UserModel> ModelUsers { get; set; } = new List<UserModel>();
     [JsonProperty("kpis")]
     public List<KPI> KPIs { get; set; } = new List<KPI>();
+    public List<Report> Reports { get; set; } = new List<Report>();
 
 }

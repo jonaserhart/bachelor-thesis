@@ -1,13 +1,12 @@
 import {
-  AggregateExpression,
   Expression,
   ExpressionType,
-  MathOperationExpression,
-  Query,
+  KPI,
+  SomeExpression,
+  countIfOperatorsWithLabels,
 } from '../../../features/analysis/types';
 import {
   Button,
-  Card,
   Form,
   Input,
   Select,
@@ -16,16 +15,18 @@ import {
   Typography,
   message,
 } from 'antd';
-import { useContext, useEffect, useMemo, useState } from 'react';
-import { BackendError, useAppDispatch } from '../../../app/hooks';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import {
+  BackendError,
+  useAppDispatch,
+  useAppSelector,
+} from '../../../app/hooks';
 import { updateExpression } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
 import { KPIContext } from '../../../context/KPIContext';
-import { useForm } from 'antd/es/form/Form';
-
-interface Props {
-  onExpressionSubmit: (e: Expression) => Promise<void>;
-}
+import { useForm, useWatch } from 'antd/es/form/Form';
+import { selectQueries } from '../../../features/queries/querySclice';
+import { QueryReturnType } from '../../../features/queries/types';
 
 const formInputStyles = {
   maxWidth: 200,
@@ -35,15 +36,15 @@ const descriptions = {
   [ExpressionType.Add]: {
     title: 'Add',
     kind: 'Mathematical',
-    description: 'Adds the result of two expressions together (Left + Right).',
+    description: 'Adds the result of two other KPIs together (Left + Right).',
     arguments: [
       {
         name: 'Left',
-        description: 'Left expression',
+        description: 'Left kpi',
       },
       {
         name: 'Right',
-        description: 'Right expression',
+        description: 'Right kpi',
       },
     ],
   },
@@ -51,34 +52,18 @@ const descriptions = {
     title: 'Average',
     kind: 'Aggregation',
     description: `
-    Iterates over all work items extracting the given field.
+    Iterates over all list items extracting the given field.
     When all the values are extracted, the mathematical average is calculated 
     `,
     arguments: [
       {
-        name: 'FieldExpression',
-        description: 'Field to get data from',
+        name: 'Query',
+        description: 'Query to get data from',
       },
-    ],
-  },
-  [ExpressionType.CountIf]: {
-    title: 'Count if',
-    kind: 'Conditional',
-    description: `
-    Counts every work item that fulfills a certain condition
-    `,
-    arguments: [
       {
         name: 'Field',
-        description: 'Field to compare to value',
-      },
-      {
-        name: 'Operand',
-        description: 'How the field and the value are compared',
-      },
-      {
-        name: 'Value',
-        description: 'Value to compare the field value to',
+        description:
+          'Field to get data from (or none if its just a number list)',
       },
     ],
   },
@@ -86,17 +71,17 @@ const descriptions = {
     title: 'Divide',
     kind: 'Mathematical',
     description: `
-    Divides the result of two child expressions (Left / Right). 
+    Divides the result of two other KPIs (Left / Right). 
     Useful for calculating ratios.
     `,
     arguments: [
       {
         name: 'Left',
-        description: 'Left expression',
+        description: 'Left kpi',
       },
       {
         name: 'Right',
-        description: 'Right expression',
+        description: 'Right kpi',
       },
     ],
   },
@@ -104,17 +89,17 @@ const descriptions = {
     title: 'Multiply',
     kind: 'Mathematical',
     description: `
-    Multiplies the result of two child expressions (Left / Right). 
+    Multiplies the result of two other KPIs (Left / Right). 
     Useful to scale a value by a certain factor.
     `,
     arguments: [
       {
         name: 'Left',
-        description: 'Left expression',
+        description: 'Left kpi',
       },
       {
         name: 'Right',
-        description: 'Right expression',
+        description: 'Right kpi',
       },
     ],
   },
@@ -122,16 +107,16 @@ const descriptions = {
     title: 'Subtract',
     kind: 'Mathematical',
     description: `
-    Subtracts the result of two child expressions (Left - Right). 
+    Subtracts the result of two other KPIs (Left - Right). 
     `,
     arguments: [
       {
         name: 'Left',
-        description: 'Left expression',
+        description: 'Left kpi',
       },
       {
         name: 'Right',
-        description: 'Right expression',
+        description: 'Right kpi',
       },
     ],
   },
@@ -139,13 +124,18 @@ const descriptions = {
     title: 'Minimal',
     kind: 'Aggregation',
     description: `
-    Iterates over all work items extracting the given field.
+    Iterates over all list items extracting the given field.
     When all the values are extracted, the mathematical minimum is calculated 
     `,
     arguments: [
       {
-        name: 'FieldExpression',
-        description: 'Field to get data from',
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Field',
+        description:
+          'Field to get data from (or none if its just a number list)',
       },
     ],
   },
@@ -158,8 +148,13 @@ const descriptions = {
     `,
     arguments: [
       {
-        name: 'FieldExpression',
-        description: 'Field to get data from',
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Field',
+        description:
+          'Field to get data from (or none if its just a number list)',
       },
     ],
   },
@@ -172,26 +167,13 @@ const descriptions = {
     `,
     arguments: [
       {
-        name: 'FieldExpression',
-        description: 'Field to get data from',
+        name: 'Query',
+        description: 'Query to get data from',
       },
-    ],
-  },
-  [ExpressionType.Field]: {
-    title: 'Field Value',
-    kind: 'Atomic',
-    description: `
-      Expression to tell the evaluation logic which field to extract from a work item.
-    `,
-    arguments: [
       {
         name: 'Field',
-        description: 'Field to get data from',
-      },
-      {
-        name: 'Query Id',
         description:
-          'Which query the field is from (there might be the same field names across queries.',
+          'Field to get data from (or none if its just a number list)',
       },
     ],
   },
@@ -208,6 +190,62 @@ const descriptions = {
       },
     ],
   },
+  [ExpressionType.CountIf]: {
+    title: 'Count if',
+    kind: 'Conditional',
+    description: `
+      Count values in a list if they meet a certain condition.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Operator',
+        description: 'Operator whis is used to compare the values',
+      },
+      {
+        name: 'Compare value',
+        description: 'Value to compare each item in the list to',
+      },
+      {
+        name: 'Field',
+        description:
+          'If the query yields an object list you can specify a field which to extract first',
+      },
+    ],
+  },
+  [ExpressionType.Count]: {
+    title: 'Count',
+    kind: 'Aggregation',
+    description: `
+      Count values in a list.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+    ],
+  },
+  [ExpressionType.Plain]: {
+    title: 'Plain query value',
+    kind: 'Atomic',
+    description: `
+      Just return the plain result of a query.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Value',
+        description: 'The value',
+      },
+    ],
+  },
 };
 
 export const ExpressionBuilder: React.FC = () => {
@@ -215,146 +253,95 @@ export const ExpressionBuilder: React.FC = () => {
     type: ExpressionType.Value,
   });
 
-  const handleExpressionChange = (updatedExpression: Expression) => {
-    setExpression(updatedExpression);
-    console.log('Updated: ', updatedExpression);
-  };
+  const { kpi } = useContext(KPIContext);
+
+  useEffect(() => {
+    if (kpi) {
+      setExpression(kpi.expression);
+    }
+  }, [kpi]);
+
+  return <ExpressionForm expression={expression as Expression} />;
+};
+
+interface ExpressionFormProps {
+  expression: Expression;
+}
+
+export const ExpressionForm: React.FC<ExpressionFormProps> = ({
+  expression,
+}) => {
+  const [form] = useForm<SomeExpression>();
+
+  const queries = useAppSelector(selectQueries);
 
   const dispatch = useAppDispatch();
 
   const { model } = useContext(ModelContext);
   const { kpi } = useContext(KPIContext);
 
-  useEffect(() => {
-    if (kpi) handleExpressionChange(kpi.expression);
-  }, [kpi]);
-
   const modelId = useMemo(() => model?.id ?? '', [model]);
   const kpiId = useMemo(() => kpi?.id ?? '', [kpi]);
-
-  const handleSubmit = () => {
-    // Handle form submission with the final expression
-    console.log('Submit: ', expression);
-    console.log(expression);
-    dispatch(
-      updateExpression({
-        kpiId,
-        modelId,
-        expression: expression as Expression,
-      })
-    )
-      .unwrap()
-      .then(() => message.success(`Updated expression of kpi ${kpi?.name}`))
-      .catch((err: BackendError) => message.error(err.message));
-  };
-
-  return (
-    <div>
-      <ExpressionForm
-        expression={expression as Expression}
-        onChange={handleExpressionChange}
-      />
-      <Button onClick={handleSubmit}>Submit</Button>
-    </div>
-  );
-};
-
-interface ExpressionFormProps {
-  expression: Expression;
-  onChange: (expression: Expression) => void;
-}
-
-const QueryFieldForm: React.FC<{ queries: Query[]; expression: Expression }> = (
-  props
-) => {
-  const { queries, expression } = props;
-
-  const [selectedQueryId, setSelectedQueryId] = useState('');
-
-  useEffect(() => {
-    if (expression && (expression as any).queryId) {
-      setSelectedQueryId((expression as any).queryId);
-    }
-  }, [expression, queries]);
-
-  const availableFields = useMemo(() => {
-    const idx = queries.findIndex((x) => x.id === selectedQueryId);
-    if (idx < 0) {
-      return [];
-    }
-    return queries[idx].select;
-  }, [queries, selectedQueryId]);
-
-  return (
-    <>
-      <Form.Item name={['queryId']} label="Query" rules={[{ required: true }]}>
-        <Select
-          onChange={(v) => setSelectedQueryId(v)}
-          value={selectedQueryId}
-          style={formInputStyles}
-          options={queries.map((q) => ({
-            label: q.name,
-            value: q.id,
-          }))}
-        />
-      </Form.Item>
-      <Form.Item name={['field']} label="Field" rules={[{ required: true }]}>
-        <Select
-          style={formInputStyles}
-          options={availableFields.map((f) => ({
-            label: `${f.name} (${f.type})`,
-            value: f.referenceName,
-          }))}
-        />
-      </Form.Item>
-    </>
-  );
-};
-
-export const ExpressionForm: React.FC<ExpressionFormProps> = ({
-  expression,
-  onChange,
-}) => {
-  const [form] = useForm();
 
   useEffect(() => {
     form.setFieldsValue(expression);
   }, [expression]);
 
-  const handleExpressionChange = (value: ExpressionType) => {
-    const updatedExpression = { type: value };
-    onChange(updatedExpression as Expression);
-  };
+  const kpis = useMemo(() => {
+    return model?.kpis ?? [];
+  }, [model]);
 
-  const handleNestedExpressionChange = (changedValues: any) => {
-    const updatedExpression: Expression = { ...expression, ...changedValues };
-    onChange(updatedExpression);
-  };
-
-  const modelContext = useContext(ModelContext);
-
-  const queries = useMemo(() => {
-    return modelContext.model?.queries ?? [];
-  }, [modelContext.model]);
+  const type = useWatch('type', form);
+  const selectedQueryId = useWatch('queryId', form);
 
   const toolTipContent = useMemo(() => {
-    if (!expression?.type) {
+    if (!type) {
       return {
         title: 'Expression types',
         kind: '',
         description: `
-      Get detailed information about an expression type by selecting it
-    `,
+        Get detailed information about an expression type by selecting it
+        `,
         arguments: [],
       };
     }
-    return descriptions[expression.type];
-  }, [expression]);
+    return descriptions[type];
+  }, [type]);
 
-  const renderFormFields = () => {
-    switch (expression?.type) {
-      case ExpressionType.Field:
-        return <QueryFieldForm expression={expression} queries={queries} />;
+  const allowedQueryTypes = useMemo(() => {
+    switch (type) {
+      case ExpressionType.Value:
+        return Object.values(QueryReturnType);
+      case ExpressionType.Add:
+      case ExpressionType.Subtract:
+      case ExpressionType.Multiply:
+      case ExpressionType.Div:
+        return [QueryReturnType.Number];
+      case ExpressionType.Sum:
+      case ExpressionType.Avg:
+      case ExpressionType.Min:
+      case ExpressionType.Max:
+      case ExpressionType.CountIf:
+      case ExpressionType.Count:
+        return [
+          QueryReturnType.NumberList,
+          QueryReturnType.ObjectList,
+          QueryReturnType.StringList,
+        ];
+      default:
+        return [];
+    }
+  }, [type]);
+
+  const selectedQuery = useMemo(
+    () => queries.find((x) => x.id === selectedQueryId),
+    [queries, selectedQueryId]
+  );
+
+  useEffect(() => console.log(selectedQuery), [selectedQuery]);
+
+  const formFields = useMemo(() => {
+    switch (type) {
       case ExpressionType.Value:
         return (
           <Form.Item
@@ -372,69 +359,135 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
         return (
           <>
             <Form.Item
-              name={['left']}
-              label="Left Expression"
+              name={['leftId']}
+              label="Left (KPI)"
               rules={[{ required: true }]}>
-              <ExpressionForm
-                expression={(expression as MathOperationExpression<any>)?.left}
-                onChange={(value) =>
-                  handleNestedExpressionChange({ left: value })
-                }
+              <Select
+                options={kpis.map((q) => ({
+                  label: q.name,
+                  value: q.id,
+                }))}
               />
             </Form.Item>
             <Form.Item
-              name={['right']}
-              label="Right Expression"
+              name={['rightId']}
+              label="Left (KPI)"
               rules={[{ required: true }]}>
-              <ExpressionForm
-                expression={(expression as MathOperationExpression<any>)?.right}
-                onChange={(value) =>
-                  handleNestedExpressionChange({ right: value })
-                }
+              <Select
+                options={kpis.map((q) => ({
+                  label: q.name,
+                  value: q.id,
+                }))}
               />
             </Form.Item>
           </>
         );
+
       case ExpressionType.Sum:
       case ExpressionType.Avg:
       case ExpressionType.Min:
       case ExpressionType.Max:
-        const defaultFieldExpression = {
-          field: '',
-          type: ExpressionType.Field,
-          queryId: '',
-        };
+        return (
+          <>
+            <Form.Item
+              name={['queryId']}
+              label="Query"
+              rules={[{ required: true }]}>
+              <Select
+                options={queries
+                  .filter((x) => allowedQueryTypes.includes(x.type))
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
+              />
+            </Form.Item>
+            <Form.Item
+              name={['field']}
+              label="Field"
+              rules={[
+                {
+                  required: selectedQuery?.type === QueryReturnType.ObjectList,
+                },
+              ]}>
+              <Input style={formInputStyles} />
+            </Form.Item>
+          </>
+        );
+      case ExpressionType.Count:
         return (
           <Form.Item
-            name={['fieldExpression']}
-            label="Field Expression"
+            name={['queryId']}
+            label="Query"
             rules={[{ required: true }]}>
-            <ExpressionForm
-              expression={
-                (expression as AggregateExpression)?.fieldExpression ??
-                defaultFieldExpression
-              }
-              onChange={(value) =>
-                handleNestedExpressionChange({ fieldExpression: value })
-              }
+            <Select
+              options={queries
+                .filter((x) => allowedQueryTypes.includes(x.type))
+                .map((q) => ({
+                  label: q.name,
+                  value: q.id,
+                }))}
+            />
+          </Form.Item>
+        );
+      case ExpressionType.Plain:
+        return (
+          <Form.Item
+            name={['queryId']}
+            label="Query"
+            rules={[{ required: true }]}>
+            <Select
+              options={queries.map((q) => ({
+                label: q.name,
+                value: q.id,
+              }))}
             />
           </Form.Item>
         );
       case ExpressionType.CountIf:
         return (
           <>
-            <QueryFieldForm expression={expression} queries={queries} />
             <Form.Item
-              name={['operator']}
-              label="Operator"
+              name={['queryId']}
+              label="Query"
               rules={[{ required: true }]}>
-              <Input style={formInputStyles} />
+              <Select
+                options={queries
+                  .filter((x) => allowedQueryTypes.includes(x.type))
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
+              />
             </Form.Item>
             <Form.Item
-              name={['value']}
-              label="Value"
-              rules={[{ required: true }]}
-              getValueFromEvent={(event) => event.target.value}>
+              name={['field']}
+              label="Field"
+              rules={[
+                {
+                  required: selectedQuery?.type === QueryReturnType.ObjectList,
+                },
+              ]}>
+              <Input
+                disabled={selectedQuery?.type !== QueryReturnType.ObjectList}
+                style={formInputStyles}
+              />
+            </Form.Item>
+            <Form.Item name={['operator']} label="Operator">
+              <Select
+                options={countIfOperatorsWithLabels
+                  .filter((o) =>
+                    selectedQuery
+                      ? o.allowed.includes(selectedQuery.type)
+                      : false
+                  )
+                  .map((o) => ({
+                    label: o.label,
+                    value: o.value,
+                  }))}
+              />
+            </Form.Item>
+            <Form.Item name={['compareValue']} label="Comparevalue">
               <Input style={formInputStyles} />
             </Form.Item>
           </>
@@ -442,26 +495,36 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
       default:
         return null;
     }
-  };
+  }, [type, allowedQueryTypes, selectedQuery]);
 
   return (
-    <Card>
+    <>
       <Form
         initialValues={expression}
-        labelCol={{ span: 2 }}
-        wrapperCol={{ span: 22 }}
+        labelCol={{ span: 3 }}
+        wrapperCol={{ span: 12 }}
         style={{
           textAlign: 'left',
         }}
-        form={form}
-        onValuesChange={handleNestedExpressionChange}>
+        onFinish={(values) => {
+          console.log('Finish: ', { ...values, id: expression.id });
+          dispatch(
+            updateExpression({
+              kpiId,
+              modelId,
+              expression: { ...values, id: expression.id } as Expression,
+            })
+          )
+            .unwrap()
+            .then(() => message.success(`Updated expression`))
+            .catch((err: BackendError) => message.error(err.message));
+        }}
+        form={form}>
         <Form.Item label="Expression Type">
           <Space>
             <Form.Item noStyle name={['type']} rules={[{ required: true }]}>
               <Select
-                disabled={expression?.type === ExpressionType.Field}
                 style={{ minWidth: 200 }}
-                onChange={handleExpressionChange}
                 options={[
                   {
                     label: 'Atomic',
@@ -471,9 +534,8 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                         value: ExpressionType.Value,
                       },
                       {
-                        label: 'Field',
-                        value: ExpressionType.Field,
-                        disabled: true,
+                        label: 'Plain query',
+                        value: ExpressionType.Plain,
                       },
                     ],
                   },
@@ -516,6 +578,10 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                       {
                         label: 'Maximum',
                         value: ExpressionType.Max,
+                      },
+                      {
+                        label: 'Count',
+                        value: ExpressionType.Count,
                       },
                     ],
                   },
@@ -568,8 +634,9 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
             </Tooltip>
           </Space>
         </Form.Item>
-        {renderFormFields()}
+        {formFields}
+        <Button onClick={() => form.submit()}>Submit</Button>
       </Form>
-    </Card>
+    </>
   );
 };

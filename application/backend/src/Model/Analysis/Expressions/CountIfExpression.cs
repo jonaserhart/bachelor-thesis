@@ -1,83 +1,91 @@
-using backend.Model.Analysis.WorkItems;
+using System.Text.RegularExpressions;
+
 using backend.Model.Enum;
+using backend.Model.Exceptions;
 
 namespace backend.Model.Analysis.Expressions;
 
 public class CountIfExpression : Expression
 {
+    public CountIfOperator Operator { get; set; }
+    public string CompareValue { get; set; } = string.Empty;
     public string Field { get; set; } = string.Empty;
-    public string Operator { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
-    public Guid QueryId { get; set; }
+    public override List<QueryReturnType> ALLOWED_QUERY_TYPES => new List<QueryReturnType> { QueryReturnType.NumberList, QueryReturnType.StringList, QueryReturnType.ObjectList };
 
-    public override object? Evaluate(List<Workitem> workItems)
+    private bool CountIfString(object item)
     {
-        var result = 0;
-
-        foreach (var workItem in workItems)
+        var value = item.ToString() ?? string.Empty;
+        var cv = CompareValue.ToString() ?? string.Empty;
+        return Operator switch
         {
-            var item = workItem.WorkItemFields.FirstOrDefault(d => d.Key == Field);
-            if (item != null)
+            CountIfOperator.IsEqual => cv == value,
+            CountIfOperator.IsNotEqual => cv != value,
+            CountIfOperator.Matches => Regex.IsMatch(value, cv),
+            _ => false
+        };
+    }
+
+    private bool CountIfNumber(object item)
+    {
+        var value = System.Convert.ToDouble(item);
+        var cv = System.Convert.ToDouble(CompareValue);
+
+        return Operator switch
+        {
+            CountIfOperator.IsEqual => cv == value,
+            CountIfOperator.IsNotEqual => cv != value,
+            CountIfOperator.IsLess => cv > value,
+            CountIfOperator.IsLessOrEqual => cv >= value,
+            CountIfOperator.IsMore => cv < value,
+            CountIfOperator.IsMoreOrEqual => cv <= value,
+            _ => false
+        };
+    }
+
+    public override object? Evaluate(Dictionary<string, QueryResult> data)
+    {
+        var queryResult = GetQueryResultByIdOrThrow(data);
+
+        List<object>? list = new List<object>();
+
+        if (queryResult.Type == QueryReturnType.NumberList || queryResult.Type == QueryReturnType.StringList)
+        {
+            list = (queryResult.Value as IEnumerable<object>)?.ToList();
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(Field))
+                throw new ExpressionEvaluationException($"Could not evaluate object list without a 'Field'.");
+
+            var resultDict = queryResult.Value as IEnumerable<Dictionary<string, object>>;
+            if (resultDict == null)
+                throw new ExpressionEvaluationException($"Could not evaluate object list: queryresult was not an object list.");
+
+            foreach (var item in resultDict)
             {
-                switch (item.Type)
+                if (item.TryGetValue(Field, out var val))
                 {
-                    case WorkItemValueType.Number:
-                        if (CompareNumericValues(double.Parse(item.Value), double.Parse(Value), Operator))
-                        {
-                            result++;
-                        }
-                        break;
-                    case WorkItemValueType.Boolean:
-                        if (CompareBooleanValues(bool.Parse(item.Value), bool.Parse(Value), Operator))
-                        {
-                            result++;
-                        }
-                        break;
-                    default:
-                        if (CompareStringValues(item.Value, Value, Operator))
-                        {
-                            result++;
-                        }
-                        break;
+                    list.Add(val);
                 }
             }
         }
 
-        return result;
-    }
+        if (list == null)
+            throw new ExpressionEvaluationException($"Object was not enumerable: {queryResult.Value}");
 
-    private static bool CompareNumericValues(double value1, double value2, string op)
-    {
-        return op switch
+        Func<object, bool> countIfFunc = queryResult.Type switch
         {
-            "==" => value1 == value2,
-            "!=" => value1 != value2,
-            "<" => value1 < value2,
-            "<=" => value1 <= value2,
-            ">" => value1 > value2,
-            ">=" => value1 >= value2,
-            _ => throw new ArgumentException($"Invalid operator: {op}"),
+            QueryReturnType.NumberList => CountIfNumber,
+            QueryReturnType.StringList => CountIfString,
+            QueryReturnType.ObjectList => CountIfString,
+            _ => throw new ExpressionEvaluationException("Query type not allowed")
         };
-    }
 
-    private static bool CompareBooleanValues(bool value1, bool value2, string op)
-    {
-        return op switch
-        {
-            "==" => value1 == value2,
-            "!=" => value1 != value2,
-            _ => throw new ArgumentException($"Invalid operator: {op}"),
-        };
-    }
+        var count = (from item in list
+                     let doesCount = countIfFunc(item)
+                     where doesCount
+                     select item).Count();
 
-    private static bool CompareStringValues(string value1, string value2, string op)
-    {
-        return op switch
-        {
-            "==" => value1 == value2,
-            "!=" => value1 != value2,
-            _ => throw new ArgumentException($"Invalid operator: {op}"),
-        };
+        return count;
     }
-
 }

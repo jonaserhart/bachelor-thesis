@@ -55,6 +55,7 @@ const KPIs: React.FC = () => {
             key: 'name',
             dataIndex: 'name',
             title: 'Name',
+            searchable: true,
           },
           {
             key: 'expression',

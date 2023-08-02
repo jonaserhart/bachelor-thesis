@@ -1,90 +1,81 @@
-export interface HasId {
-  id: string;
-}
-
-export type HierachyItem<T> = HasId &
-  T & {
-    hasChildren: boolean;
-    children?: HierachyItem<T>[];
-  };
-export interface Fields {
-  [field: string]: string;
-}
-
-export interface FieldInfo extends HasId {
-  name: string;
-  type: string;
-  referenceName: string;
-}
-
-export interface WorkItem extends HasId {
-  fields: Fields;
-}
-
-export interface Sprint {
-  name: string;
-  workItems: WorkItem[];
-}
-
-export enum LogicalOperator {
-  And = 'And',
-  Or = 'Or',
-  None = 'None',
-}
-
-export interface FieldOperation {
-  name: string;
-  referenceName: string;
-}
-
-export interface Clause extends HasId {
-  clauses: Clause[];
-  field: string;
-  fieldValue?: string;
-  isFieldValue: boolean;
-  logicalOperator: LogicalOperator;
-  operator: FieldOperation;
-  value: string;
-}
-
-export interface Query extends HasId {
-  name: string;
-  select: FieldInfo[];
-  where: Clause;
-}
-
-export interface Project extends HasId {
-  name: string;
-  description: string;
-  imgeUrl: string;
-}
-
-export interface Team extends HasId {
-  name: string;
-  description: string;
-}
+import { HasId } from '../../app/types';
+import { QueryResult, QueryReturnType } from '../queries/types';
 
 export enum ExpressionType {
   Add = 'Add',
   Avg = 'Avg',
-  CountIf = 'CountIf',
   Div = 'Div',
   Min = 'Min',
   Max = 'Max',
   Multiply = 'Multiply',
   Subtract = 'Subtract',
   Sum = 'Sum',
-  Field = 'Field',
   Value = 'Value',
+  CountIf = 'CountIf',
+  Count = 'Count',
+  Plain = 'Plain',
 }
+
+export enum CountIfOperator {
+  IsEqual = 'IsEqual',
+  IsNotEqual = 'IsNotEqual',
+  IsLess = 'IsLess',
+  IsMore = 'IsMore',
+  IsLessOrEqual = 'IsLessOrEqual',
+  IsMoreOrEqual = 'IsMoreOrEqual',
+  Matches = 'Matches',
+}
+
+export const countIfOperatorsWithLabels = [
+  {
+    label: 'Is equal to',
+    value: CountIfOperator.IsEqual,
+    allowed: [
+      QueryReturnType.ObjectList,
+      QueryReturnType.NumberList,
+      QueryReturnType.StringList,
+    ],
+  },
+  {
+    label: 'Is not equal to',
+    value: CountIfOperator.IsNotEqual,
+    allowed: [
+      QueryReturnType.ObjectList,
+      QueryReturnType.NumberList,
+      QueryReturnType.StringList,
+    ],
+  },
+  {
+    label: 'Is less than',
+    value: CountIfOperator.IsLess,
+    allowed: [QueryReturnType.NumberList],
+  },
+  {
+    label: 'Is less than or equal to',
+    value: CountIfOperator.IsLessOrEqual,
+    allowed: [QueryReturnType.NumberList],
+  },
+  {
+    label: 'Is more than',
+    value: CountIfOperator.IsMore,
+    allowed: [QueryReturnType.NumberList],
+  },
+  {
+    label: 'Is more than or equal to',
+    value: CountIfOperator.IsMoreOrEqual,
+    allowed: [QueryReturnType.NumberList],
+  },
+  {
+    label: 'Matches (regex)',
+    value: CountIfOperator.Matches,
+    allowed: [QueryReturnType.StringList, QueryReturnType.ObjectList],
+  },
+];
 
 export interface Expression extends HasId {
   type: ExpressionType;
-}
-
-export interface FieldExpression extends Expression {
   queryId: string;
-  field: string;
+  allowedQueryTypes: QueryReturnType[];
 }
 
 export interface ValueExpression extends Expression {
@@ -92,49 +83,48 @@ export interface ValueExpression extends Expression {
 }
 
 export interface AggregateExpression extends Expression {
-  fieldExpression: FieldExpression;
+  field?: string;
 }
 
-export interface CountIfExpression extends Expression {
-  field: string;
-  operator: string;
-  value: string;
+export interface MathOperationExpression extends Expression {
+  left?: KPI;
+  right?: KPI;
 }
 
-export interface MathOperationExpression<T extends Expression>
-  extends Expression {
-  left: T;
-  right: T;
+export type SomeExpression = ValueExpression &
+  AggregateExpression &
+  MathOperationExpression;
+
+export interface KPIConfig {
+  showInReport: boolean;
+  acceptableValues: string;
+  unit: string;
 }
 
-export interface KPI extends HasId {
+export interface KPI extends HasId, KPIConfig {
   name: string;
   expression: Expression;
 }
 
+export interface Report extends HasId {
+  title: string;
+  notes: string;
+  created: number;
+  queryResults: {
+    [key: string]: QueryResult;
+  };
+  kpisAndValues: {
+    [key: string]: any;
+  };
+}
+
 export interface AnalysisModel extends HasId {
   name: string;
-  project: Project;
-  team: string;
-  queries: Query[];
   kpis: KPI[];
-  // data: Sprint[];
+  reports: Report[];
 }
 
 // Request/Response
 export interface AnalysisModelChange extends HasId {
   name: string;
-}
-
-export interface QueryModelChange extends HasId {
-  name: string;
-}
-
-export enum QueryOperator {
-  eq = '=',
-  neq = '!=',
-  ge = '>=',
-  g = '>',
-  le = '<=',
-  l = '<',
 }

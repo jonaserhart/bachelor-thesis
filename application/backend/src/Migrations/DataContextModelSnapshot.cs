@@ -32,59 +32,9 @@ namespace backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("ProjectId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("TeamId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ProjectId");
-
-                    b.HasIndex("TeamId");
 
                     b.ToTable("AnalysisModels");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Field")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("FieldValue")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsFieldValue")
-                        .HasColumnType("boolean");
-
-                    b.Property<int>("LogicalOperator")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("ParentClauseId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("QueryId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentClauseId");
-
-                    b.HasIndex("QueryId")
-                        .IsUnique();
-
-                    b.ToTable("Clause");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.Expression", b =>
@@ -93,8 +43,7 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
+                    b.Property<string>("QueryId")
                         .HasColumnType("text");
 
                     b.Property<int>("Type")
@@ -104,36 +53,9 @@ namespace backend.Migrations
 
                     b.ToTable("Expressions");
 
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Expression");
+                    b.HasDiscriminator<int>("Type");
 
                     b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.FieldInfo", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("QueryId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("ReferenceName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("QueryId");
-
-                    b.ToTable("FieldInfos");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
@@ -142,6 +64,11 @@ namespace backend.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AcceptableValues")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("any");
+
                     b.Property<Guid?>("AnalysisModelId")
                         .HasColumnType("uuid");
 
@@ -149,6 +76,13 @@ namespace backend.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ShowInReport")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Unit")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -161,70 +95,41 @@ namespace backend.Migrations
                     b.ToTable("KPIs");
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.Project", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Projects");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Query", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Report", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ModelId")
+                    b.Property<Guid?>("AnalysisModelId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
+                    b.Property<long>("Created")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+
+                    b.Property<string>("KPIsAndValues")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("QueryExecuteTime")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid?>("ReferencedId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ModelId");
-
-                    b.ToTable("Queries");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Team", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
+                    b.Property<string>("QueryResults")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("jsonb");
 
-                    b.Property<string>("Name")
+                    b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Team");
+                    b.HasIndex("AnalysisModelId");
+
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>
@@ -286,122 +191,93 @@ namespace backend.Migrations
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.Property<Guid?>("FieldExpressionId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("FieldExpressionId");
+                    b.ToTable("Expressions", t =>
+                        {
+                            t.Property("Field")
+                                .HasColumnName("AvgExpression_Field");
+                        });
 
-                    b.HasDiscriminator().HasValue("AvgExpression");
+                    b.HasDiscriminator().HasValue(1);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.CountExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
+
+                    b.HasDiscriminator().HasValue(10);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.CountIfExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
+                    b.Property<string>("CompareValue")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Field")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Operator")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Operator")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid>("QueryId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasDiscriminator().HasValue("CountIfExpression");
+                    b.HasDiscriminator().HasValue(9);
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.DivExpression", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
                     b.Property<Guid?>("LeftId")
-                        .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("RightId")
-                        .ValueGeneratedOnUpdateSometimes()
                         .HasColumnType("uuid");
 
-                    b.HasIndex("LeftId");
+                    b.HasIndex("LeftId")
+                        .IsUnique();
 
-                    b.HasIndex("RightId");
-
-                    b.HasDiscriminator().HasValue("DivExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.FieldExpression", b =>
-                {
-                    b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
-
-                    b.Property<string>("Field")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("QueryId")
-                        .HasColumnType("uuid");
-
-                    b.ToTable("Expressions", t =>
-                        {
-                            t.Property("Field")
-                                .HasColumnName("FieldExpression_Field");
-
-                            t.Property("QueryId")
-                                .HasColumnName("FieldExpression_QueryId");
-                        });
-
-                    b.HasDiscriminator().HasValue("FieldExpression");
+                    b.HasIndex("RightId")
+                        .IsUnique();
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MaxExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.Property<Guid?>("FieldExpressionId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("FieldExpressionId");
+                    b.ToTable("Expressions", t =>
+                        {
+                            t.Property("Field")
+                                .HasColumnName("MaxExpression_Field");
+                        });
 
-                    b.HasDiscriminator().HasValue("MaxExpression");
+                    b.HasDiscriminator().HasValue(4);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MinExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.Property<Guid?>("FieldExpressionId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("FieldExpressionId");
+                    b.ToTable("Expressions", t =>
+                        {
+                            t.Property("Field")
+                                .HasColumnName("MinExpression_Field");
+                        });
 
-                    b.HasDiscriminator().HasValue("MinExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.MultiplyExpression", b =>
-                {
-                    b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
-
-                    b.Property<Guid?>("LeftId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("RightId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("LeftId");
-
-                    b.HasIndex("RightId");
-
-                    b.HasDiscriminator().HasValue("MultiplyExpression");
+                    b.HasDiscriminator().HasValue(3);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.NumericValueExpression", b =>
@@ -411,107 +287,59 @@ namespace backend.Migrations
                     b.Property<double?>("Value")
                         .HasColumnType("double precision");
 
-                    b.ToTable("Expressions", t =>
-                        {
-                            t.Property("Value")
-                                .HasColumnName("NumericValueExpression_Value");
-                        });
-
-                    b.HasDiscriminator().HasValue("NumericValueExpression");
+                    b.HasDiscriminator().HasValue(8);
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.SubtractExpression", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.PlainQueryExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.Property<Guid?>("LeftId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("RightId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
-
-                    b.HasIndex("LeftId");
-
-                    b.HasIndex("RightId");
-
-                    b.HasDiscriminator().HasValue("SubtractExpression");
+                    b.HasDiscriminator().HasValue(11);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.SumExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.Property<Guid?>("FieldExpressionId")
-                        .ValueGeneratedOnUpdateSometimes()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.HasIndex("FieldExpressionId");
-
-                    b.HasDiscriminator().HasValue("SumExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.AnalysisModel", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Project", "Project")
-                        .WithMany("Models")
-                        .HasForeignKey("ProjectId");
-
-                    b.HasOne("backend.Model.Analysis.Team", "Team")
-                        .WithMany("Models")
-                        .HasForeignKey("TeamId");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Team");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Clause", "ParentClause")
-                        .WithMany("Clauses")
-                        .HasForeignKey("ParentClauseId");
-
-                    b.HasOne("backend.Model.Analysis.Query", "Query")
-                        .WithOne("Where")
-                        .HasForeignKey("backend.Model.Analysis.Clause", "QueryId");
-
-                    b.OwnsOne("backend.Model.Analysis.FieldOperation", "Operator", b1 =>
+                    b.ToTable("Expressions", t =>
                         {
-                            b1.Property<Guid>("ClauseId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<string>("Name")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.Property<string>("ReferenceName")
-                                .IsRequired()
-                                .HasColumnType("text");
-
-                            b1.HasKey("ClauseId");
-
-                            b1.ToTable("Clause");
-
-                            b1.WithOwner()
-                                .HasForeignKey("ClauseId");
+                            t.Property("Field")
+                                .HasColumnName("SumExpression_Field");
                         });
 
-                    b.Navigation("Operator");
-
-                    b.Navigation("ParentClause");
-
-                    b.Navigation("Query");
+                    b.HasDiscriminator().HasValue(7);
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.FieldInfo", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.AddExpression", b =>
                 {
-                    b.HasOne("backend.Model.Analysis.Query", "Query")
-                        .WithMany("Select")
-                        .HasForeignKey("QueryId");
+                    b.HasBaseType("backend.Model.Analysis.Expressions.MathOperationExpression");
 
-                    b.Navigation("Query");
+                    b.HasDiscriminator().HasValue(0);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.DivExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.MathOperationExpression");
+
+                    b.HasDiscriminator().HasValue(2);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.MultiplyExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.MathOperationExpression");
+
+                    b.HasDiscriminator().HasValue(5);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.SubtractExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.MathOperationExpression");
+
+                    b.HasDiscriminator().HasValue(6);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
@@ -529,14 +357,13 @@ namespace backend.Migrations
                     b.Navigation("Expression");
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.Query", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Report", b =>
                 {
-                    b.HasOne("backend.Model.Analysis.AnalysisModel", "Model")
-                        .WithMany("Queries")
-                        .HasForeignKey("ModelId")
-                        .OnDelete(DeleteBehavior.ClientCascade);
+                    b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
+                        .WithMany("Reports")
+                        .HasForeignKey("AnalysisModelId");
 
-                    b.Navigation("Model");
+                    b.Navigation("AnalysisModel");
                 });
 
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>
@@ -568,85 +395,19 @@ namespace backend.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.AvgExpression", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
                 {
-                    b.HasOne("backend.Model.Analysis.Expressions.FieldExpression", "FieldExpression")
-                        .WithMany()
-                        .HasForeignKey("FieldExpressionId");
+                    b.HasOne("backend.Model.Analysis.KPI", "Left")
+                        .WithOne()
+                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "LeftId");
 
-                    b.Navigation("FieldExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.DivExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Left")
-                        .WithMany()
-                        .HasForeignKey("LeftId");
-
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Right")
-                        .WithMany()
-                        .HasForeignKey("RightId");
+                    b.HasOne("backend.Model.Analysis.KPI", "Right")
+                        .WithOne()
+                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "RightId");
 
                     b.Navigation("Left");
 
                     b.Navigation("Right");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.MaxExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.FieldExpression", "FieldExpression")
-                        .WithMany()
-                        .HasForeignKey("FieldExpressionId");
-
-                    b.Navigation("FieldExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.MinExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.FieldExpression", "FieldExpression")
-                        .WithMany()
-                        .HasForeignKey("FieldExpressionId");
-
-                    b.Navigation("FieldExpression");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.MultiplyExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Left")
-                        .WithMany()
-                        .HasForeignKey("LeftId");
-
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Right")
-                        .WithMany()
-                        .HasForeignKey("RightId");
-
-                    b.Navigation("Left");
-
-                    b.Navigation("Right");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.SubtractExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Left")
-                        .WithMany()
-                        .HasForeignKey("LeftId");
-
-                    b.HasOne("backend.Model.Analysis.Expressions.Expression", "Right")
-                        .WithMany()
-                        .HasForeignKey("RightId");
-
-                    b.Navigation("Left");
-
-                    b.Navigation("Right");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Expressions.SumExpression", b =>
-                {
-                    b.HasOne("backend.Model.Analysis.Expressions.FieldExpression", "FieldExpression")
-                        .WithMany()
-                        .HasForeignKey("FieldExpressionId");
-
-                    b.Navigation("FieldExpression");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.AnalysisModel", b =>
@@ -655,29 +416,7 @@ namespace backend.Migrations
 
                     b.Navigation("ModelUsers");
 
-                    b.Navigation("Queries");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Clause", b =>
-                {
-                    b.Navigation("Clauses");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Project", b =>
-                {
-                    b.Navigation("Models");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Query", b =>
-                {
-                    b.Navigation("Select");
-
-                    b.Navigation("Where");
-                });
-
-            modelBuilder.Entity("backend.Model.Analysis.Team", b =>
-                {
-                    b.Navigation("Models");
+                    b.Navigation("Reports");
                 });
 
             modelBuilder.Entity("backend.Model.Users.User", b =>

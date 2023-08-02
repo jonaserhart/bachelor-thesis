@@ -4,9 +4,8 @@ import {
   AnalysisModelChange,
   Expression,
   KPI,
-  Project,
-  Query,
-  QueryModelChange,
+  KPIConfig,
+  Report,
 } from './types';
 import axios from '../../backendClient';
 import { RootState } from '../../app/store';
@@ -37,7 +36,7 @@ export const getMyModels = createAppAsyncThunk(
 
 export const createModel = createAppAsyncThunk(
   prefix('createModel'),
-  async function (model: { name: string; project: Project }) {
+  async function (model: { name: string }) {
     const response = await axios.post<AnalysisModel>(
       '/analysis/createmodel',
       model
@@ -62,36 +61,6 @@ export const getModelDetails = createAppAsyncThunk(
   async function (modelId: string) {
     const response = await axios.get<AnalysisModel>(
       `/analysis/model/${modelId}/details`
-    );
-    return response.data;
-  }
-);
-
-export const getQueryDetails = createAppAsyncThunk(
-  prefix('getQueryDetails'),
-  async function (args: { queryId: string; modelId: string }) {
-    const { queryId } = args;
-    const response = await axios.get<Query>(`/analysis/query/${queryId}`);
-    return response.data;
-  }
-);
-
-export const updateQueryDetails = createAppAsyncThunk(
-  prefix('updateQueryDetails'),
-  async function (args: { modelId: string; changeQuery: QueryModelChange }) {
-    const response = await axios.put<QueryModelChange>(
-      `/analysis/query`,
-      args.changeQuery
-    );
-    return response.data;
-  }
-);
-
-export const createQueryFrom = createAppAsyncThunk(
-  prefix('createQueryFrom'),
-  async function (args: { modelId: string; queryId: string }) {
-    const response = await axios.post<Query>(
-      `/analysis/createqueryfrom?modelId=${args.modelId}&queryId=${args.queryId}`
     );
     return response.data;
   }
@@ -123,9 +92,19 @@ export const getKPIDetails = createAppAsyncThunk(
 export const updateKPIDetails = createAppAsyncThunk(
   prefix('updateKPIDetails'),
   async function (arg: { id: string; name: string; modelId: string }) {
-    const response = await axios.put<KPI>(`/analysis/kpi`, {
+    const response = await axios.put<KPIConfig>(`/analysis/kpi`, {
       id: arg.id,
       name: arg.name,
+    });
+    return response.data;
+  }
+);
+
+export const updateKPIConfig = createAppAsyncThunk(
+  prefix('updateKPIConfig'),
+  async function (arg: { id: string; config: KPIConfig; modelId: string }) {
+    const response = await axios.put<KPI>(`/analysis/kpi/config?id=${arg.id}`, {
+      ...arg.config,
     });
     return response.data;
   }
@@ -145,6 +124,28 @@ export const updateExpression = createAppAsyncThunk(
       }
     );
     return response.data;
+  }
+);
+
+export const createReport = createAppAsyncThunk(
+  prefix('createReport'),
+  async function (arg: {
+    modelId: string;
+    queryParameterValues: { [key: string]: any };
+    title: string;
+    notes: string;
+  }) {
+    const response = await axios.post<Report>(`/analysis/model/createreport`, {
+      ...arg,
+    });
+    return response.data;
+  }
+);
+
+export const deleteReport = createAppAsyncThunk(
+  prefix('deleteReport'),
+  async function (arg: { reportId: string; modelId: string }) {
+    await axios.delete(`/analysis/model/deleteReport?reportId=${arg.reportId}`);
   }
 );
 
@@ -172,52 +173,6 @@ const analysisSlice = createSlice({
       } else {
         state.models.push(action.payload);
       }
-    });
-    builder.addCase(getQueryDetails.fulfilled, (state, action) => {
-      const queryId = action.meta.arg.queryId;
-      const modelId = action.meta.arg.modelId;
-      const modelIndex = state.models.findIndex((x) => x.id === modelId);
-      if (modelIndex < 0) {
-        logger.logError(`Could not find model containing query ${queryId}`);
-        return;
-      }
-
-      const queryIndex = state.models[modelIndex].queries.findIndex(
-        (x) => x.id === queryId
-      );
-      if (queryIndex < 0) {
-        logger.logError(
-          `Could not find query ${queryId} within modelIndex ${modelIndex}`
-        );
-        return;
-      }
-
-      state.models[modelIndex].queries[queryIndex] = action.payload;
-    });
-
-    builder.addCase(createQueryFrom.fulfilled, (state, action) => {
-      const modelId = action.meta.arg.modelId;
-      const modelIndex = state.models.findIndex((x) => x.id === modelId);
-      if (modelIndex < 0) {
-        logger.logError(`Could not find model with id ${modelId}`);
-        return;
-      }
-      state.models[modelIndex].queries.push(action.payload);
-    });
-
-    builder.addCase(updateQueryDetails.fulfilled, (state, action) => {
-      const modelId = action.meta.arg.modelId;
-      const queryId = action.meta.arg.changeQuery.id;
-      const modelIndex = state.models.findIndex((x) => x.id === modelId);
-      if (modelIndex < 0) {
-        logger.logError(`Could not find model with id ${modelId}`);
-        return;
-      }
-
-      const queryIndex = state.models[modelIndex].queries.findIndex(
-        (x) => x.id === queryId
-      );
-      state.models[modelIndex].queries[queryIndex].name = action.payload.name;
     });
 
     builder.addCase(createNewKPI.fulfilled, (state, action) => {
@@ -257,9 +212,7 @@ const analysisSlice = createSlice({
         (x) => x.id === kpiId
       );
       if (kpiIndex < 0) {
-        logger.logError(
-          `Could not find query ${kpiId} within model ${modelId}`
-        );
+        logger.logError(`Could not find kpi ${kpiId} within model ${modelId}`);
         return;
       }
 
@@ -279,13 +232,37 @@ const analysisSlice = createSlice({
         (x) => x.id === kpiId
       );
       if (kpiIndex < 0) {
-        logger.logError(
-          `Could not find query ${kpiId} within model ${modelId}`
-        );
+        logger.logError(`Could not find kpi ${kpiId} within model ${modelId}`);
         return;
       }
 
-      state.models[modelIndex].kpis[kpiIndex] = action.payload;
+      state.models[modelIndex].kpis[kpiIndex] = {
+        ...state.models[modelIndex].kpis[kpiIndex],
+        ...action.payload,
+      };
+    });
+
+    builder.addCase(updateKPIConfig.fulfilled, (state, action) => {
+      const modelId = action.meta.arg.modelId;
+      const kpiId = action.meta.arg.id;
+      const modelIndex = state.models.findIndex((x) => x.id === modelId);
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      const kpiIndex = state.models[modelIndex].kpis.findIndex(
+        (x) => x.id === kpiId
+      );
+      if (kpiIndex < 0) {
+        logger.logError(`Could not find kpi ${kpiId} within model ${modelId}`);
+        return;
+      }
+
+      state.models[modelIndex].kpis[kpiIndex] = {
+        ...state.models[modelIndex].kpis[kpiIndex],
+        ...action.payload,
+      };
     });
 
     builder.addCase(updateExpression.fulfilled, (state, action) => {
@@ -301,9 +278,7 @@ const analysisSlice = createSlice({
         (x) => x.id === kpiId
       );
       if (kpiIndex < 0) {
-        logger.logError(
-          `Could not find query ${kpiId} within model ${modelId}`
-        );
+        logger.logError(`Could not find kpi ${kpiId} within model ${modelId}`);
         return;
       }
 
@@ -312,18 +287,37 @@ const analysisSlice = createSlice({
         ...action.payload,
       };
     });
+
+    builder.addCase(createReport.fulfilled, (state, action) => {
+      const modelId = action.meta.arg.modelId;
+      const modelIndex = state.models.findIndex((x) => x.id === modelId);
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      state.models[modelIndex].reports.push(action.payload);
+    });
+
+    builder.addCase(deleteReport.fulfilled, (state, action) => {
+      const modelId = action.meta.arg.modelId;
+      const modelIndex = state.models.findIndex((x) => x.id === modelId);
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      const reportId = action.meta.arg.reportId;
+      state.models[modelIndex].reports = state.models[
+        modelIndex
+      ].reports.filter((x) => x.id !== reportId);
+    });
   },
 });
 
 export const selectModels = (state: RootState) => state.analysis.models;
 export const selectModel = (id: string) => (state: RootState) =>
   state.analysis.models.find((x) => x.id === id);
-export const selectQuery =
-  (modelId: string, queryId: string) => (state: RootState) =>
-    state.analysis.models
-      .find((x) => x.id === modelId)
-      ?.queries.find((x) => x.id === queryId);
-
 export const selectKPI =
   (modelId: string, kpiId: string) => (state: RootState) =>
     state.analysis.models

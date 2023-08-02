@@ -1,12 +1,9 @@
 import { createContext, useEffect, useMemo, useState } from 'react';
-import { Query } from '../features/analysis/types';
 import { useParams } from 'react-router-dom';
-import {
-  getQueryDetails,
-  selectQuery,
-} from '../features/analysis/analysisSlice';
+import { getQuery, selectQuery } from '../features/queries/querySclice';
 import { BackendError, useAppDispatch, useAppSelector } from '../app/hooks';
 import { message } from 'antd';
+import { Query } from '../features/queries/types';
 
 interface QueryContextType {
   query: Query | undefined;
@@ -28,20 +25,19 @@ const QueryContextProvider = (props: React.PropsWithChildren) => {
   const ids = useMemo(() => {
     return {
       query: params.queryId ?? '',
-      model: params.modelId ?? '',
     };
   }, [params]);
 
   const [loading, setLoading] = useState(false);
 
-  const query = useAppSelector(selectQuery(ids.model, ids.query));
+  const query = useAppSelector(selectQuery(ids.query));
 
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (ids.query.length) {
       setLoading(true);
-      dispatch(getQueryDetails({ queryId: ids.query, modelId: ids.model }))
+      dispatch(getQuery(ids.query))
         .unwrap()
         .catch((err: BackendError) => message.error(err.message))
         .finally(() => setLoading(false));

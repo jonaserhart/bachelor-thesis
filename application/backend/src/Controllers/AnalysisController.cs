@@ -1,6 +1,6 @@
+using System.Runtime.Serialization;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
-using backend.Model.Analysis.WorkItems;
 using backend.Model.Rest;
 using backend.Services.DevOps;
 using backend.Services.Expressions;
@@ -15,18 +15,19 @@ public class AnalysisController : Controller
 {
     private readonly ILogger<AnalysisController> _logger;
     private readonly IAnalysisModelService _analysisModelService;
-    private readonly IQueryService _queryService;
     private readonly IKPIService _kpiService;
+    private readonly IDevOpsProviderService _devOpsProviderService;
 
     public AnalysisController(ILogger<AnalysisController> logger,
                             IAnalysisModelService analysisModelService,
-                            IQueryService queryService,
-                            IKPIService kpiService)
+                            IKPIService kpiService,
+                            IDevOpsProviderService devOpsProviderService)
     {
         _logger = logger;
         _analysisModelService = analysisModelService;
-        _queryService = queryService;
         _kpiService = kpiService;
+        _devOpsProviderService = devOpsProviderService;
+
     }
 
     [HttpGet("mymodels")]
@@ -38,57 +39,12 @@ public class AnalysisController : Controller
         return Ok(models);
     }
 
-    [HttpGet("projects")]
-    [ProducesResponseType(typeof(Project[]), 200)]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<Project>>> GetMyProjects()
-    {
-        var projects = await _analysisModelService.GetProjectsAsync();
-        return Ok(projects);
-    }
-
-    [HttpGet("teams/{projectId}")]
-    [ProducesResponseType(typeof(Team[]), 200)]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<Team>>> GetTeams(string projectId)
-    {
-        var teams = await _analysisModelService.GetTeamsAsync(projectId);
-        return Ok(teams);
-    }
-
-    [HttpGet("fields/{projectId}")]
-    [ProducesResponseType(typeof(FieldInfo[]), 200)]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<FieldInfo>>> GetFields(string projectId)
-    {
-        var fields = await _analysisModelService.GetFieldInfosAsync(projectId);
-        return Ok(fields);
-    }
-
-    [HttpGet("queries/{projectId}")]
-    [ProducesResponseType(typeof(QueryResponse[]), 200)]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<QueryResponse>>> GetQueries(string projectId)
-    {
-        var queries = await _queryService.GetQueriesAsync(projectId);
-        return Ok(queries);
-    }
-
     [HttpGet("model/{id}/details")]
-    [ProducesResponseType(typeof(Project[]), 200)]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<Project>>> GetModelById(Guid id)
-    {
-        var model = await _analysisModelService.GetByIdAsync(id);
-        return Ok(model);
-    }
-
-    [HttpPost("createmodel")]
     [ProducesResponseType(typeof(AnalysisModel), 200)]
     [Authorize]
-    public async Task<ActionResult<AnalysisModel>> CreateModel(AnalysisModelRequest request)
+    public async Task<ActionResult<AnalysisModel>> GetModelById(Guid id)
     {
-        var model = await _analysisModelService.CreateAsync(request);
+        var model = await _analysisModelService.GetByIdAsync(id);
         return Ok(model);
     }
 
@@ -101,69 +57,103 @@ public class AnalysisController : Controller
         return Ok(model);
     }
 
-    [HttpPost("createqueryfrom")]
+    [HttpPost("model/createreport")]
+    [ProducesResponseType(typeof(Report), 200)]
+    [Authorize]
+    public async Task<ActionResult<Report>> CreateReport([FromBody] CreateReportSubmission submission)
+    {
+        var report = await _analysisModelService.CreateReportAsync(submission);
+        return Ok(report);
+    }
+
+    [HttpDelete("model/deletereport")]
+    [ProducesResponseType(typeof(void), 200)]
+    [Authorize]
+    public async Task<ActionResult> DeleteReport([FromQuery] Guid reportId)
+    {
+        await _analysisModelService.DeleteReportAsync(reportId);
+        return Ok();
+    }
+
+    [HttpPost("createmodel")]
+    [ProducesResponseType(typeof(AnalysisModel), 200)]
+    [Authorize]
+    public async Task<ActionResult<AnalysisModel>> CreateModel(AnalysisModelRequest request)
+    {
+        var model = await _analysisModelService.CreateAsync(request);
+        return Ok(model);
+    }
+
+    [HttpGet("customqueries")]
+    [ProducesResponseType(typeof(Query[]), 200)]
+    [Authorize]
+    public ActionResult<IEnumerable<Query>> GetCustomQueries()
+    {
+        var queries = _devOpsProviderService.GetQueries();
+        return Ok(queries);
+    }
+
+    [HttpGet("requiredQueries")]
+    [ProducesResponseType(typeof(string[]), 200)]
+    [Authorize]
+    public async Task<ActionResult<IEnumerable<string>>> GetRequiredQueries([FromQuery] Guid modelId)
+    {
+        var queries = await _analysisModelService.GetRequiredQueriesAsync(modelId);
+        return Ok(queries);
+    }
+
+    [HttpGet("customquery")]
     [ProducesResponseType(typeof(Query), 200)]
     [Authorize]
-    public async Task<ActionResult<Query>> CreateQueryFrom(Guid modelId, Guid queryId)
+    public ActionResult<IEnumerable<Query>> GetCustomQueries([FromQuery] string queryId)
     {
-        var query = await _queryService.CreateQueryFromDevOps(modelId, queryId);
+        var query = _devOpsProviderService.GetQueryById(queryId);
         return Ok(query);
     }
 
-    [HttpGet("query/{queryId}")]
-    [ProducesResponseType(typeof(Query), 200)]
-    [ProducesResponseType(typeof(ApiError), 404)]
+    [HttpGet("queryparameters")]
+    [ProducesResponseType(typeof(QueryParameter[]), 200)]
     [Authorize]
-    public async Task<ActionResult<Query>> GetQuery(Guid queryId)
+    public async Task<ActionResult<IEnumerable<Query>>> GetCustomQueryParameters([FromQuery] string queryId)
     {
-        var query = await _queryService.GetQueryWithClausesAsync(queryId);
-        return query;
-    }
-
-    [HttpPut("query")]
-    [ProducesResponseType(typeof(QueryChange), 200)]
-    [ProducesResponseType(typeof(ApiError), 404)]
-    [ProducesResponseType(typeof(ApiError), 400)]
-    [Authorize]
-    public async Task<ActionResult<QueryChange>> UpdateQuery([FromBody] QueryChange queryChange)
-    {
-        var changes = await _queryService.UpdateQueryAsync(queryChange);
-        return changes;
-    }
-
-    [HttpPost("workItems")]
-    [ProducesResponseType(typeof(Workitem[]), 200)]
-    [Authorize]
-    public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string project, Guid queryid, [FromBody] Iteration iteration)
-    {
-        return await _analysisModelService.GetWorkitemsAsync(project, iteration, queryid);
+        var parameters = await _devOpsProviderService.GetQueryParametersAsync(queryId);
+        return Ok(parameters);
     }
 
     [HttpPost("kpi")]
     [ProducesResponseType(typeof(KPI), 200)]
     [Authorize]
-    public async Task<KPI> CreateKPI(Guid modelId)
+    public async Task<ActionResult<KPI>> CreateKPI(Guid modelId)
     {
         var kpi = await _kpiService.CreateNewKPIAsync(modelId);
-        return kpi;
+        return Ok(kpi);
     }
 
     [HttpGet("kpi")]
     [ProducesResponseType(typeof(KPI), 200)]
     [Authorize]
-    public async Task<KPI> GetKPI(Guid id)
+    public async Task<ActionResult<KPI>> GetKPI(Guid id)
     {
         var kpi = await _kpiService.GetByIdAsync(id);
-        return kpi;
+        return Ok(kpi);
     }
 
     [HttpPut("kpi")]
     [ProducesResponseType(typeof(KPI), 200)]
     [Authorize]
-    public async Task<KPI> UpdateKPI([FromBody] KPIUpdate update)
+    public async Task<ActionResult<KPI>> UpdateKPI([FromBody] KPIUpdate update)
     {
         var kpi = await _kpiService.UpdateKPIAsync(update);
-        return kpi;
+        return Ok(kpi);
+    }
+
+    [HttpPut("kpi/config")]
+    [ProducesResponseType(typeof(KPI), 200)]
+    [Authorize]
+    public async Task<ActionResult<KPIConfigUpdate>> UpdateKPIConfig([FromQuery] Guid id, [FromBody] KPIConfigUpdate update)
+    {
+        var kpi = await _kpiService.UpdateKPIConfigAsync(id, update);
+        return Ok(kpi);
     }
 
     [HttpDelete("kpi")]
@@ -177,25 +167,27 @@ public class AnalysisController : Controller
     [HttpPost("kpi/expression")]
     [ProducesResponseType(typeof(Expression), 200)]
     [Authorize]
-    public async Task<Expression> AddExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
+    public async Task<ActionResult<Expression>> AddExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
     {
         if (expression.Expression == null)
         {
             throw new ArgumentException("property 'expression' has to be provided!");
         }
-        return await _kpiService.SaveExpressionAsync(kpiId, expression.Expression);
+        var saved = await _kpiService.SaveExpressionAsync(kpiId, expression.Expression);
+        return Ok(saved);
     }
 
     [HttpPut("kpi/expression")]
     [ProducesResponseType(typeof(Expression), 200)]
     [Authorize]
-    public async Task<Expression> UpdateExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
+    public async Task<ActionResult<Expression>> UpdateExpression([FromQuery] Guid kpiId, [FromBody] ExpressionSubmission expression)
     {
         if (expression.Expression == null)
         {
             throw new ArgumentException("property 'expression' has to be provided!");
         }
-        return await _kpiService.UpdateExpressionAsync(kpiId, expression.Expression);
+        var updated = await _kpiService.UpdateExpressionAsync(kpiId, expression.Expression);
+        return Ok(updated);
     }
 
 }

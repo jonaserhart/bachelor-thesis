@@ -12,6 +12,7 @@ using System.Text;
 using backend.Services.DevOps;
 using Newtonsoft.Json.Converters;
 using backend.Services.Expressions;
+using backend.Services.DevOps.Custom;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,8 +48,10 @@ builder.Services.AddScoped<IOAuthService, OAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
 builder.Services.AddScoped<IAnalysisModelService, AnalysisModelService>();
-builder.Services.AddScoped<IQueryService, QueryService>();
 builder.Services.AddScoped<IKPIService, KPIService>();
+
+builder.Services.AddScoped<IDevOpsProviderService, AzureDevOpsProviderService>();
+
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
 
 builder.Services.AddAuthentication((x) =>
@@ -72,8 +75,6 @@ builder.Services.AddAuthentication((x) =>
         SignatureValidator = delegate (string token, TokenValidationParameters parameters)
         {
             var jwt = new JwtSecurityToken(token);
-            Console.WriteLine($"TOKEN: {string.Join(',', jwt.Audiences)} - {jwt.Issuer} - {jwt.Id} \n\t - {string.Join(',', jwt.Claims.Select(x => $"(CLAIM: {x.Subject},{x.Type},{x.Value})\n"))}");
-
             return jwt;
         },
     };

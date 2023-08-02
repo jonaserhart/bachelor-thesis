@@ -5,11 +5,11 @@ import Callback from './features/oauth/Callback';
 import NavBar from './components/Navbar';
 import Authorize from './features/oauth/Authorize';
 import ModelDetail from './components/analysis/ModelDetail';
-import QueryDetail from './components/analysis/queries/QueryDetail';
 import ModelContextProvider from './context/ModelContext';
 import QueryContextProvider from './context/QueryContext';
 import KPIContextProvider from './context/KPIContext';
 import KPIDetail from './components/analysis/kpis/KPIDetail';
+import CreateReport from './components/analysis/reports/CreateReport';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -37,6 +37,10 @@ const App = () => {
               element: <ModelDetail />,
             },
             {
+              path: 'report/create',
+              element: <CreateReport />,
+            },
+            {
               path: 'kpi/:kpiId',
               element: (
                 <KPIContextProvider>
@@ -47,20 +51,6 @@ const App = () => {
                 {
                   index: true,
                   element: <KPIDetail />,
-                },
-              ],
-            },
-            {
-              path: 'query/:queryId',
-              element: (
-                <QueryContextProvider>
-                  <Outlet />
-                </QueryContextProvider>
-              ),
-              children: [
-                {
-                  index: true,
-                  element: <QueryDetail />,
                 },
               ],
             },

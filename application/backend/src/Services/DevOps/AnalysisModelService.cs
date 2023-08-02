@@ -1,10 +1,10 @@
 using backend.Model.Analysis;
-using backend.Model.Analysis.WorkItems;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Model.Users;
 using backend.Services.API;
 using backend.Services.Database;
+using backend.Services.Expressions;
 using backend.Services.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,63 +15,48 @@ public class AnalysisModelService : IAnalysisModelService
     private readonly DataContext _context;
     private readonly IApiClientFactory _apiClientFactory;
     private readonly IUserService _userService;
-    private readonly IQueryService _queryService;
+    private readonly IKPIService _kpiService;
+    private readonly ILogger<AnalysisModelService> _logger;
 
-    public AnalysisModelService(DataContext context, IUserService userService, IApiClientFactory apiClientFactory, IQueryService queryService)
+    public AnalysisModelService(
+        DataContext context, IUserService userService, IApiClientFactory apiClientFactory, IKPIService kpiService, ILogger<AnalysisModelService> logger)
     {
         _context = context;
         _userService = userService;
         _apiClientFactory = apiClientFactory;
-        _queryService = queryService;
-    }
-
-    private IQueryable<AnalysisModel> IncludeUsersProjectsQueriesTeams(IQueryable<AnalysisModel> query)
-    {
-        return query
-            .Include(x => x.ModelUsers)
-            .Include(x => x.Project)
-            .Include(x => x.Queries)
-            .ThenInclude(x => x.Select)
-            .Include(x => x.Queries)
-            .ThenInclude(x => x.Where)
-            .Include(x => x.Team)
-            .Include(x => x.KPIs)
-            .ThenInclude(x => x.Expression);
+        _kpiService = kpiService;
+        _logger = logger;
     }
 
     public async Task<AnalysisModel?> GetByIdAsync(Guid id)
     {
-        return await IncludeUsersProjectsQueriesTeams(_context.AnalysisModels)
-            .FirstOrDefaultAsync(x => x.Id == id);
-    }
+        var model = await _context.GetByIdOrThrowAsync<AnalysisModel>(id);
 
-    public async Task<IEnumerable<Project>> GetProjectsAsync()
-    {
-        var client = await _apiClientFactory.GetApiClientAsync();
-        return await client.GetProjectsAsync();
+        await _context.Entry(model).Collection(x => x.KPIs)
+            .Query()
+            .Include(x => x.Expression)
+            .LoadAsync();
+        await _context.Entry(model).Collection(x => x.ModelUsers).LoadAsync();
+        await _context.Entry(model).Collection(x => x.Reports).LoadAsync();
+        return model;
     }
 
     public async Task<List<AnalysisModel>> GetMyModelsAsync()
     {
         var user = await _userService.GetSelfAsync();
         var models = user.UserModels.Select(x => x.ModelId);
-        return await IncludeUsersProjectsQueriesTeams(_context.AnalysisModels)
+        return await _context.AnalysisModels
+                .Include(x => x.KPIs)
+                .Include(x => x.ModelUsers)
+                .Include(x => x.Reports)
             .Where(x => models.Contains(x.Id)).ToListAsync();
     }
 
     public async Task<AnalysisModel> CreateAsync(AnalysisModelRequest request)
     {
-        if (request.Project == null)
-            throw new BadRequestException("'Project' cannot be empty when creating a model.");
-
-        var project = await _context.Projects.FindAsync(request.Project.Id);
-        if (project == null)
-            project = Project.From(request.Project);
-
         var model = new AnalysisModel
         {
             Name = request.Name,
-            Project = project
         };
 
         await _context.AnalysisModels.AddAsync(model);
@@ -93,7 +78,7 @@ public class AnalysisModelService : IAnalysisModelService
 
     public async Task<AnalysisModel> UpdateAsync(Guid id, AnalysisModelUpdate request)
     {
-        var model = await IncludeUsersProjectsQueriesTeams(_context.AnalysisModels).FirstOrDefaultAsync(x => x.Id == id);
+        var model = await _context.AnalysisModels.FindAsync(id);
         if (model == null)
             throw new DbKeyNotFoundException(id, typeof(AnalysisModel));
 
@@ -103,32 +88,50 @@ public class AnalysisModelService : IAnalysisModelService
         return model;
     }
 
-    public async Task<IEnumerable<Team>> GetTeamsAsync(string projectId)
+    public async Task<Report> CreateReportAsync(CreateReportSubmission submission)
     {
-        var client = await _apiClientFactory.GetApiClientAsync();
-        return await client.GetTeamsAsync(projectId);
+        var modelId = submission.ModelId;
+        var model = await GetByIdAsync(modelId);
+
+        if (model == null)
+            throw new DbKeyNotFoundException(modelId, typeof(AnalysisModel));
+
+        _logger.LogDebug($"Creating report for model {modelId}: {model.Name}");
+
+        var (result, queriesAndResults) = await _kpiService.EvaluateKPIs(model.KPIs, submission.QueryParameterValues);
+
+        var report = new Report
+        {
+            Title = submission.Title,
+            Notes = submission.Notes,
+            KPIsAndValues = result,
+            QueryResults = queriesAndResults,
+            AnalysisModel = model
+        };
+
+        await _context.Reports.AddAsync(report);
+        await _context.SaveChangesAsync();
+
+        return report;
     }
 
-    public async Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId)
+    public async Task DeleteReportAsync(Guid reportId)
     {
-        var client = await _apiClientFactory.GetApiClientAsync();
-        var iterations = await client.GetIterationsAsync(projectId, teamId);
-        return iterations;
+        var report = await _context.GetByIdOrThrowAsync<Report>(reportId);
+        _context.Reports.Remove(report);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<FieldInfo>> GetFieldInfosAsync(string projectId)
+    public async Task<IEnumerable<string>> GetRequiredQueriesAsync(Guid modelId)
     {
-        var client = await _apiClientFactory.GetApiClientAsync();
-        var fields = await client.GetFieldInfosAsync(projectId);
+        var model = await GetByIdAsync(modelId);
+        if (model == null)
+            throw new DbKeyNotFoundException(modelId, typeof(AnalysisModel));
 
-        return fields;
-    }
-
-    public async Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Guid queryId, DateTime? asOf = null)
-    {
-        var client = await _apiClientFactory.GetApiClientAsync();
-        var query = await _queryService.GetQueryWithClausesAsync(queryId);
-        var items = await client.GetWorkitemsAsync(projectId, iteration, query, asOf);
-        return items;
+        var queries = model.KPIs
+            .Where(x => x != null && x.Expression != null)
+            .SelectMany(x => x.Expression!.GetRequiredQueries())
+            .Distinct();
+        return queries;
     }
 }

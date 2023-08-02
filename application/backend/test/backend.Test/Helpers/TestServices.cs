@@ -1,6 +1,4 @@
 using System.Security.Claims;
-using backend.Model.Analysis.WorkItems;
-using backend.Model.Enum;
 using backend.Services.API;
 using backend.Services.Database;
 using backend.Test.Helpers.Exceptions;
@@ -94,37 +92,6 @@ public static class TestServices
     {
         var mock = new Mock<IApiClientFactory>();
         return mock.Object;
-    }
-
-    public static List<Workitem> GenerateWorkItemsWithField(string field, WorkItemValueType type, params string[] values)
-    {
-        var wi = new List<Workitem>();
-
-        foreach (var value in values)
-        {
-            wi.Add(new Workitem
-            {
-                WorkItemFields = new List<WorkItemKeyValue> { new WorkItemKeyValue { Key = field, Type = type, Value = value } }
-            });
-        }
-
-        return wi;
-    }
-
-    public static List<Workitem> AddFieldToWorkItems(this List<Workitem> wi, string field, WorkItemValueType type, params string[] values)
-    {
-        if (values.Length != wi.Count)
-            throw new TestSetupException("Values and workitems need to be same length");
-
-        var i = 0;
-        foreach (var item in wi)
-        {
-            var value = values[i];
-            item.WorkItemFields.Add(new WorkItemKeyValue { Key = field, Type = type, Value = value });
-            i++;
-        }
-
-        return wi;
     }
 
 }

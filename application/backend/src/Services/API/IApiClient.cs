@@ -1,18 +1,15 @@
 using backend.Model.Analysis;
-using backend.Model.Analysis.WorkItems;
-using backend.Model.Rest;
+using backend.Model.Custom;
 using backend.Model.Users;
+using Microsoft.TeamFoundation.Core.WebApi.Types;
 
 namespace backend.Services.API;
 
 public interface IApiClient : IDisposable
 {
     Task<User> GetSelfAsync();
-    Task<IEnumerable<Project>> GetProjectsAsync(int skip = 0);
-    Task<IEnumerable<Team>> GetTeamsAsync(string projectId);
-    Task<IEnumerable<Iteration>> GetIterationsAsync(string projectId, string teamId);
-    Task<IEnumerable<Model.Analysis.FieldInfo>> GetFieldInfosAsync(string projectId);
-    Task<IEnumerable<QueryResponse>> GetQueriesAsync(string projectId);
-    Task<Query> GetQueryByIdAsync(string projectId, string queryId);
-    Task<IEnumerable<Workitem>> GetWorkitemsAsync(string projectId, Iteration iteration, Query wiql, DateTime? asOf);
+    Task<IEnumerable<AzureDevopsIteration>> GetIterationsAsync(string projectId, string teamId);
+    Task<List<Dictionary<string, object>>> GetIterationTicketsAsync(TeamContext teamContext, Guid iterationId);
+    Task<List<Dictionary<string, object>>> GetIterationTasksAsync(TeamContext teamContext, Guid iterationId);
+    Task<double> GetIterationCapacities(string project, Guid iteration);
 }

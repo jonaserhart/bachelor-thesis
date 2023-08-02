@@ -3,16 +3,23 @@ using backend.Model.Analysis.Expressions;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Services.Database;
+using backend.Services.DevOps;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace backend.Services.Expressions;
 
 public class KPIService : IKPIService
 {
     private readonly DataContext _context;
+    private readonly IDevOpsProviderService _devopsProviderService;
+    private readonly ILogger<KPIService> _logger;
 
-    public KPIService(DataContext context)
+    public KPIService(DataContext context, IDevOpsProviderService devOpsProviderService, ILogger<KPIService> logger)
     {
         _context = context;
+        _devopsProviderService = devOpsProviderService;
+        _logger = logger;
     }
 
     public async Task<KPI> CreateNewKPIAsync(Guid modelId)
@@ -74,78 +81,160 @@ public class KPIService : IKPIService
         return await UpdateExpressionAsync(expression);
     }
 
+    private object ConvertExpression(Type tExisting, Type tNew, object existingExpression)
+    {
+        var newExpression = Activator.CreateInstance(tNew);
+        if (newExpression == null)
+            throw new ExpressionSaveException($"Could not dynamically create expression of type {tNew}");
+
+        var commonProperties = typeof(Expression).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                                 .Where(p => p.CanRead && p.CanWrite)
+                                                 .ToDictionary(p => p.Name, p => p.GetValue(existingExpression));
+
+        foreach (var prop in commonProperties)
+        {
+            if (prop.Value != null && prop.Key != "Type")
+            {
+                tNew.GetProperty(prop.Key)?.SetValue(newExpression, prop.Value);
+            }
+        }
+
+        return newExpression;
+    }
+
     private async Task<T> UpdateExpressionAsync<T>(T expression) where T : Expression
     {
+        Expression existing;
+        Expression? newExpression;
 
+        existing = await _context.GetByIdOrThrowAsync<T>(expression.Id);
+
+        // convert expression if needed
+        newExpression = ConvertExpression(existing.GetType(), expression.GetType(), existing) as T;
+
+
+        if (newExpression == null)
+            throw new ExpressionSaveException($"Could not update expression {existing.Id}");
+
+        newExpression.Type = expression.Type;
+
+        // copy rest of properties specific to the expression type
         switch (expression)
         {
             case MathOperationExpression mathExpr:
                 {
-                    if (mathExpr.Left != null && mathExpr.Right != null)
-                    {
-                        var left = await UpdateExpressionAsync(mathExpr.Left);
-                        var right = await UpdateExpressionAsync(mathExpr.Right);
 
-                        var mathExpression = (await _context.GetByIdOrThrowAsync<T>(mathExpr.Id)) as MathOperationExpression;
+                    if (mathExpr.LeftId == null || mathExpr.RightId == null)
+                        throw new ExpressionSaveException("Requested to c");
 
-                        await _context.Entry(mathExpression!).Reference(x => x.Left).LoadAsync();
-                        await _context.Entry(mathExpression!).Reference(x => x.Right).LoadAsync();
+                    var left = await _context.GetByIdOrThrowAsync<KPI>(mathExpr.LeftId ?? Guid.NewGuid());
+                    var right = await _context.GetByIdOrThrowAsync<KPI>(mathExpr.RightId ?? Guid.NewGuid());
 
-                        return (mathExpression as T)!;
-                    }
-                    else
-                    {
-                        throw new ExpressionSaveException();
-                    }
+                    (newExpression as MathOperationExpression)!.Left = left;
+                    (newExpression as MathOperationExpression)!.Right = right;
+
+                    break;
                 }
             case AggregateExpression aggregateExpr:
                 {
-                    if (aggregateExpr.FieldExpression != null)
-                    {
-                        var fieldExpression = await UpdateExpressionAsync(aggregateExpr.FieldExpression);
-                        return (aggregateExpr as T)!;
-                    }
-                    else
-                    {
+                    if (aggregateExpr == null)
                         throw new ExpressionSaveException();
-                    }
-                }
-            case FieldExpression fieldExpr:
-                {
-                    var fieldExpression = await _context.GetByIdOrThrowAsync<FieldExpression>(fieldExpr.Id);
-                    fieldExpression.Field = fieldExpr.Field;
-                    fieldExpression.QueryId = fieldExpr.QueryId;
 
-                    await _context.SaveChangesAsync();
-                    return (fieldExpression as T)!;
+                    (newExpression as AggregateExpression)!.Field = aggregateExpr.Field;
+                    (newExpression as AggregateExpression)!.QueryId = aggregateExpr.QueryId;
+                    break;
                 }
-            case NumericValueExpression valExpr:
+            case NumericValueExpression numericValueExpr:
                 {
-                    var valueExpression = await _context.GetByIdOrThrowAsync<NumericValueExpression>(valExpr.Id);
-                    valueExpression.Value = valExpr.Value;
+                    if (numericValueExpr == null)
+                        throw new ExpressionSaveException();
 
-                    await _context.SaveChangesAsync();
-                    return (valueExpression as T)!;
+                    (newExpression as NumericValueExpression)!.Value = numericValueExpr.Value;
+                    break;
+                }
+            case PlainQueryExpression plainExpr:
+                {
+                    if (plainExpr == null)
+                        throw new ExpressionSaveException();
+
+                    (newExpression as PlainQueryExpression)!.QueryId = plainExpr.QueryId;
+                    break;
                 }
             case CountIfExpression countIfExpr:
                 {
-                    var countIfExpression = await _context.GetByIdOrThrowAsync<CountIfExpression>(countIfExpr.Id);
+                    if (countIfExpr == null)
+                        throw new ExpressionSaveException();
 
-                    countIfExpression.Field = countIfExpr.Field;
-                    countIfExpression.Operator = countIfExpr.Operator;
-                    countIfExpression.Value = countIfExpr.Value;
-                    countIfExpression.QueryId = countIfExpr.QueryId;
+                    (newExpression as CountIfExpression)!.Field = countIfExpr.Field;
+                    (newExpression as CountIfExpression)!.Operator = countIfExpr.Operator;
+                    (newExpression as CountIfExpression)!.CompareValue = countIfExpr.CompareValue;
+                    (newExpression as CountIfExpression)!.QueryId = countIfExpr.QueryId;
+                    break;
+                }
+            case CountExpression countExpr:
+                {
+                    if (countExpr == null)
+                        throw new ExpressionSaveException();
 
-                    await _context.SaveChangesAsync();
-                    return (countIfExpression as T)!;
+                    (newExpression as CountExpression)!.QueryId = countExpr.QueryId;
+                    break;
                 }
             default: throw new ExpressionSaveException();
         }
+
+        _context.Entry(existing).State = EntityState.Detached;
+        _context.Expressions.Update(newExpression);
+        await _context.SaveChangesAsync();
+        return (newExpression as T)!;
     }
 
     public async Task DeleteExpression<T>(T expression) where T : Expression
     {
         _context.Remove<T>(expression);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<(Dictionary<Guid, object?> result, Dictionary<string, QueryResult> queryResults)> EvaluateKPIs(IEnumerable<KPI> kpis, Dictionary<string, object?> queryParameterValues)
+    {
+        _logger.LogDebug($"Evaluating KPIs...");
+        var queries = kpis
+            .Where(x => x != null && x.Expression != null)
+            .SelectMany(x => x.Expression!.GetRequiredQueries())
+            .Distinct();
+
+        var queriesAndResults = new Dictionary<string, QueryResult>();
+        foreach (var query in queries)
+        {
+            _logger.LogDebug($"Executing query {query}...");
+            var queryResult = await _devopsProviderService.ExecuteQueryAsync(query, queryParameterValues);
+            _logger.LogDebug($"Got result: {queryResult.Value} of type {queryResult.Type}...");
+            queriesAndResults.Add(query, queryResult);
+        }
+
+        var result = new Dictionary<Guid, object?>();
+
+        foreach (var kpi in kpis)
+        {
+            var kpiValue = kpi.Expression?.Evaluate(queriesAndResults);
+            if (kpiValue != null)
+            {
+                result.Add(kpi.Id, kpiValue);
+            }
+        }
+
+        return (result, queriesAndResults);
+    }
+
+    public async Task<KPIConfigUpdate> UpdateKPIConfigAsync(Guid id, KPIConfigUpdate update)
+    {
+        var kpi = await GetByIdAsync(id);
+
+        kpi.AcceptableValues = update.AcceptableValues;
+        kpi.ShowInReport = update.ShowInReport;
+        kpi.Unit = update.Unit;
+
+        await _context.SaveChangesAsync();
+
+        return update;
     }
 }

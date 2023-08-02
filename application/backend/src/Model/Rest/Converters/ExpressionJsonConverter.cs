@@ -23,17 +23,18 @@ public class ExpressionJsonConverter : JsonConverter<Expression>
             {
                 Expression? expression = expressionType switch
                 {
-                    ExpressionType.Add => new AddExpression(),
-                    ExpressionType.Avg => new AvgExpression(),
-                    ExpressionType.CountIf => new CountIfExpression(),
-                    ExpressionType.Div => new DivExpression(),
-                    ExpressionType.Field => new FieldExpression(),
                     ExpressionType.Max => new MaxExpression(),
                     ExpressionType.Min => new MinExpression(),
+                    ExpressionType.Add => new AddExpression(),
+                    ExpressionType.Avg => new AvgExpression(),
+                    ExpressionType.Div => new DivExpression(),
                     ExpressionType.Multiply => new MultiplyExpression(),
                     ExpressionType.Subtract => new SubtractExpression(),
                     ExpressionType.Sum => new SumExpression(),
                     ExpressionType.Value => new NumericValueExpression(),
+                    ExpressionType.CountIf => new CountIfExpression(),
+                    ExpressionType.Count => new CountExpression(),
+                    ExpressionType.Plain => new PlainQueryExpression(),
                     _ => throw new JsonException($"Unknown type {expressionType}")
                 };
 

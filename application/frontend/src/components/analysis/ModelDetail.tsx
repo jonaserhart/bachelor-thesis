@@ -6,12 +6,13 @@ import {
   FileDoneOutlined,
 } from '@ant-design/icons';
 import { BackendError, useAppDispatch } from '../../app/hooks';
-import Queries from '../../components/analysis/queries/Queries';
+import Queries from '../../features/queries/Queries';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { updateModelDetails } from '../../features/analysis/analysisSlice';
 import { ModelContext } from '../../context/ModelContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import KPIs from './kpis/KPIs';
+import Reports from './reports/Reports';
 
 const { Title } = Typography;
 
@@ -86,6 +87,7 @@ const ModelDetail: React.FC = () => {
                   Latest Reports
                 </span>
               ),
+              children: <Reports />,
             },
             {
               key: '#kpis',

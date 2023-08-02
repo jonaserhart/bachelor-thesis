@@ -7,8 +7,7 @@ import {
 } from './analysisSlice';
 import { Button, Popover, Space, Spin, Typography, message } from 'antd';
 import CustomTable from '../../components/table/CustomTable';
-import { AnalysisModel, KPI, Project, Query } from './types';
-import CustomSelect from '../../components/CustomSelect';
+import { AnalysisModel, KPI } from './types';
 import { useNavigate } from 'react-router-dom';
 import { useCallback, useEffect, useState } from 'react';
 import handleError from '../../util/handleError';
@@ -23,12 +22,6 @@ const Analysis: React.FC = () => {
   const nav = useNavigate();
 
   const models = useAppSelector(selectModels);
-
-  const [createPopoverOpen, setCreatePopoverOpen] = useState(false);
-
-  const handleCreatePopoverOpenChange = useCallback((newOpen: boolean) => {
-    setCreatePopoverOpen(newOpen);
-  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -63,45 +56,24 @@ const Analysis: React.FC = () => {
           display: 'flex',
           flexDirection: 'row-reverse',
         }}>
-        <Popover
-          placement="left"
-          content={
-            <CustomSelect
-              request="/analysis/projects"
-              title="Select a project"
-              labelSelector={(p) => p.name}
-              onSubmit={(project: Project | undefined) => {
-                if (project) {
-                  dispatch(
-                    createModel({
-                      name: 'new model',
-                      project,
-                    })
-                  )
-                    .unwrap()
-                    .then((v) =>
-                      message.success(`Successfully created model ${v.name}`)
-                    )
-                    .catch(handleError)
-                    .finally(() => setCreatePopoverOpen(false));
-                } else {
-                  void message.error('No project selected!');
-                }
-              }}
-            />
+        <Button
+          ghost
+          onClick={() =>
+            dispatch(
+              createModel({
+                name: 'new model',
+              })
+            )
+              .unwrap()
+              .then((v) =>
+                message.success(`Successfully created model ${v.name}`)
+              )
+              .catch(handleError)
           }
-          title="Create analysis model"
-          trigger="click"
-          open={createPopoverOpen}
-          onOpenChange={handleCreatePopoverOpenChange}>
-          <Button
-            ghost
-            onClick={() => setCreatePopoverOpen(true)}
-            type="primary"
-            style={{ marginBottom: 16 }}>
-            Add a new model
-          </Button>
-        </Popover>
+          type="primary"
+          style={{ marginBottom: 16 }}>
+          Add a new model
+        </Button>
       </div>
       <CustomTable
         dataSource={models}
@@ -111,15 +83,6 @@ const Analysis: React.FC = () => {
             dataIndex: 'name',
             editable: true,
             title: 'Name',
-          },
-          {
-            key: 'proj',
-            dataIndex: 'project',
-            title: 'Project',
-            render(value) {
-              const proj = value as Project;
-              return proj?.name ?? 'No project';
-            },
           },
           {
             key: 'noKPIs',
@@ -136,23 +99,6 @@ const Analysis: React.FC = () => {
               compare: (a, b) =>
                 (a as AnalysisModel).kpis.length -
                 (b as AnalysisModel).kpis.length,
-            },
-          },
-          {
-            key: 'noQueries',
-            title: '# Queries',
-            dataIndex: 'queries',
-            render(value) {
-              const queries = value as Query[];
-              if (queries.length <= 0) {
-                return <div style={{ color: 'gray' }}>No queries yet</div>;
-              }
-              return queries.length;
-            },
-            sorter: {
-              compare: (a, b) =>
-                (a as AnalysisModel).queries.length -
-                (b as AnalysisModel).queries.length,
             },
           },
           {
