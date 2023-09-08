@@ -33,6 +33,8 @@ public class ExpressionJsonConverter : JsonConverter<Expression>
                     ExpressionType.Sum => new SumExpression(),
                     ExpressionType.Value => new NumericValueExpression(),
                     ExpressionType.CountIf => new CountIfExpression(),
+                    ExpressionType.CountIfMultiple => new CountIfMultipleExpression(),
+                    ExpressionType.SumIfMultiple => new SumIfMultipleExpression(),
                     ExpressionType.Count => new CountExpression(),
                     ExpressionType.Plain => new PlainQueryExpression(),
                     _ => throw new JsonException($"Unknown type {expressionType}")

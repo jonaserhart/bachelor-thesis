@@ -1,4 +1,4 @@
-namespace backend.Services.API;
+namespace backend.Services.DevOps.Custom.API;
 
 public interface IApiClientFactory
 {

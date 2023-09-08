@@ -9,12 +9,9 @@ namespace backend.Controllers;
 [Route("[controller]")]
 public class UserController : Controller
 {
-    private readonly IUserService _userService;
+    private readonly IUserService m_userService;
 
-    public UserController(IUserService userService)
-    {
-        _userService = userService;
-    }
+    public UserController(IUserService userService) => m_userService = userService;
 
     [HttpGet("me")]
     [Authorize]
@@ -23,7 +20,7 @@ public class UserController : Controller
     [ProducesResponseType(typeof(ApiError), 401)]
     public async Task<ActionResult<UserResponse>> GetSelfAsync()
     {
-        var user = await _userService.GetSelfAsync();
+        var user = await m_userService.GetSelfAsync();
         return Ok(UserResponse.From(user));
     }
 }

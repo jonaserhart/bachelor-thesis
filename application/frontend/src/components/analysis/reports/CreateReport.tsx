@@ -1,4 +1,4 @@
-import { Button, Divider, Form, Input, Steps } from 'antd';
+import { Button, Divider, Form, Input, Spin, Steps } from 'antd';
 import { useForm, useWatch } from 'antd/es/form/Form';
 import React, { useCallback, useContext, useEffect } from 'react';
 import { useMemo, useState } from 'react';
@@ -8,8 +8,9 @@ import { LoadingOutlined } from '@ant-design/icons';
 import { BackendError, useAppDispatch } from '../../../app/hooks';
 import { createReport } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
-import { QueryParameter } from '../../../features/queries/types';
 import { useNavigate } from 'react-router-dom';
+import KpiReportListDisplay from './KpiReportListDisplay';
+import { Report } from '../../../features/analysis/types';
 
 interface FormType {
   title: string;
@@ -41,31 +42,36 @@ const CreateReport: React.FC = () => {
   const [status, setStatus] = useState<'error' | undefined>(undefined);
 
   const handleNext = useCallback(() => {
+    const moveNext = () => setCurrent((prev) => (prev >= 3 ? prev : prev + 1));
     if (current === 0) {
       setBasicInfo({
         title,
         notes,
       });
-    }
-
-    if (current === 1) {
+      form.validateFields(['title']).then(moveNext);
+    } else if (current === 1) {
       setQueryParameters(queryParameters);
-    }
-
-    if (current >= 3) {
+      form.validateFields(['queryParameters']).then(moveNext);
+    } else if (current >= 3) {
       nav(`/analyze/${modelId}#l8estreports`);
+      moveNext();
+    } else {
+      moveNext();
     }
-
-    setCurrent((prev) => (prev >= 3 ? prev : prev + 1));
   }, [setCurrent, current, title, notes, queryParameters]);
 
   const handleBack = useCallback(() => {
+    if (current === 0) {
+      nav(`/analyze/${modelId}#l8estreports`);
+    }
     setCurrent((prev) => (prev <= 0 ? prev : prev - 1));
-  }, [setCurrent]);
+  }, [setCurrent, current, modelId, nav]);
 
   const dispatch = useAppDispatch();
 
   const [isExecuting, setIsExecuting] = useState(false);
+
+  const [result, setResult] = useState<Report | undefined>();
 
   useEffect(() => {
     setStatus(undefined);
@@ -78,7 +84,8 @@ const CreateReport: React.FC = () => {
         })
       )
         .unwrap()
-        .then(() => {
+        .then((report) => {
+          setResult(report);
           setIsExecuting(false);
           handleNext();
         })
@@ -93,7 +100,8 @@ const CreateReport: React.FC = () => {
   const canClickNext = useMemo(() => {
     return [
       title && title.trim() !== '',
-      queryParameters &&
+      !queryParameters ||
+        Object.keys(queryParameters).length <= 0 ||
         Object.keys(queryParameters).every(
           (x) => queryParameters[x] !== undefined
         ),
@@ -106,13 +114,13 @@ const CreateReport: React.FC = () => {
     () => [
       <React.Fragment key="0">
         <Divider orientationMargin={0} orientation="left">
-          Your new report
+          Report {(title?.length ?? 0) > 0 ? `'${title}'` : ''}
         </Divider>
         <Form.Item name={['title']} label="Title">
           <Input placeholder="Title of your report" />
         </Form.Item>
         <Form.Item name={['notes']} label="Notes">
-          <TextArea placeholder="Some notes about this sprint" />
+          <TextArea placeholder="Some notes about this report" />
         </Form.Item>
       </React.Fragment>,
       <React.Fragment key="1">
@@ -125,9 +133,18 @@ const CreateReport: React.FC = () => {
         <Divider orientationMargin={0} orientation="left">
           Executing queries
         </Divider>
+        <div style={{ minHeight: '300px', width: '100%' }}>
+          <Spin spinning />
+        </div>
+      </React.Fragment>,
+      <React.Fragment key="3">
+        <Divider orientationMargin={0} orientation="left">
+          Computed KPIs
+        </Divider>
+        <div>{result && <KpiReportListDisplay report={result} />}</div>
       </React.Fragment>,
     ],
-    []
+    [title, result]
   );
 
   return (
@@ -172,9 +189,9 @@ const CreateReport: React.FC = () => {
         }}>
         <Button
           onClick={handleBack}
-          disabled={current <= 0 || current >= 3}
+          disabled={current >= 3}
           style={{ marginRight: '20px' }}>
-          Back
+          {current <= 0 ? 'Cancel' : 'Back'}
         </Button>
         <Button onClick={handleNext} disabled={!canClickNext[current]}>
           {current >= 3 ? 'Done' : 'Next'}

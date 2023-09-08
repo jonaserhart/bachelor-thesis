@@ -1,25 +1,21 @@
 using System.Security.Claims;
 using backend.Model.Exceptions;
 using backend.Model.Users;
-using backend.Services.API;
 using backend.Services.Database;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Services.Users;
 
 public class UserService : IUserService
 {
-    private readonly DataContext _context;
-    private readonly ILogger<UserService> _logger;
-    private readonly IApiClientFactory _apiClientFactory;
-    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly DataContext m_context;
+    private readonly ILogger<UserService> m_logger;
+    private readonly IHttpContextAccessor m_httpContextAccessor;
 
-    public UserService(DataContext context, ILogger<UserService> logger, IApiClientFactory apiClientFactory, IHttpContextAccessor contextAccessor)
+    public UserService(DataContext context, ILogger<UserService> logger, IHttpContextAccessor contextAccessor)
     {
-        _context = context;
-        _logger = logger;
-        _apiClientFactory = apiClientFactory;
-        _httpContextAccessor = contextAccessor;
+        m_context = context;
+        m_logger = logger;
+        m_httpContextAccessor = contextAccessor;
     }
 
     /// <summary>
@@ -29,21 +25,21 @@ public class UserService : IUserService
     /// <returns>Created or updated user</returns>
     public async Task<User> CreateOrUpdateUserAsync(User user)
     {
-        var existing = await _context.Users.FindAsync(user.Id);
+        var existing = await m_context.Users.FindAsync(user.Id);
 
         if (existing != null)
         {
-            _logger.LogDebug($"Updating user {user.Id}.");
+            m_logger.LogDebug($"Updating user {user.Id}.");
             existing.DisplayName = user.DisplayName;
             existing.EMail = user.EMail;
         }
         else
         {
-            _logger.LogDebug($"Creating user {user.Id}.");
-            existing = (await _context.Users.AddAsync(user)).Entity;
+            m_logger.LogDebug($"Creating user {user.Id}.");
+            existing = (await m_context.Users.AddAsync(user)).Entity;
         }
 
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
         return existing;
     }
 
@@ -52,10 +48,11 @@ public class UserService : IUserService
     /// </summary>
     /// <param name="userId">UserId to search for</param>
     /// <returns>A User if the Id was found, null otherwise</returns>
-    public async Task<User?> GetByIdAsync(Guid userId)
+    public async Task<User> GetByIdAsync(Guid userId)
     {
-        return await _context.Users
-            .Include(x => x.UserModels).FirstOrDefaultAsync(x => x.Id == userId);
+        var user = await m_context.GetByIdOrThrowAsync<User>(userId);
+        await m_context.Entry(user).Collection(x => x.UserModels).LoadAsync();
+        return user;
     }
 
     /// <summary>
@@ -67,12 +64,10 @@ public class UserService : IUserService
     public async Task DeleteUserAsync(Guid userId)
     {
         var found = await GetByIdAsync(userId);
-        if (found == null)
-            throw new DbKeyNotFoundException(userId, typeof(User));
 
-        _context.Users.Remove(found);
+        m_context.Users.Remove(found);
 
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
     }
 
     /// <summary>
@@ -82,7 +77,7 @@ public class UserService : IUserService
     /// <returns>The currently authenticated user</returns>
     public async Task<User> GetSelfAsync()
     {
-        var userId = _httpContextAccessor
+        var userId = m_httpContextAccessor
             .HttpContext?
             .User?
             .FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -91,8 +86,6 @@ public class UserService : IUserService
             throw new UnauthorizedException("Could not find nameidentifier claim in token.");
 
         var user = await GetByIdAsync(id);
-        if (user == null)
-            throw new UnauthorizedException($"Could not find User with Id {id} in database.");
 
         return user;
     }

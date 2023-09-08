@@ -23,8 +23,6 @@ public abstract class Expression
         if (!data.TryGetValue(QueryId, out var queryResult))
             throw new ExpressionEvaluationException($"Could not evaluate CountIfExpression because query with id {QueryId} was not found.");
 
-        if (!ALLOWED_QUERY_TYPES.Contains(queryResult.Type))
-            throw new ExpressionEvaluationException($"Could not evaluate CountIfExpression because query with id {QueryId} is not in the list of allowed queries {string.Join(',', ALLOWED_QUERY_TYPES)}.");
         return queryResult;
     }
     public abstract object? Evaluate(Dictionary<string, QueryResult> data);

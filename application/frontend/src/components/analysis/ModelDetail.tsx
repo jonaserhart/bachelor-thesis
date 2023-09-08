@@ -1,9 +1,11 @@
 import { Spin, Typography, message, theme, Tabs } from 'antd';
 import {
+  AreaChartOutlined,
   BulbOutlined,
   CloudServerOutlined,
   EditOutlined,
   FileDoneOutlined,
+  SettingOutlined,
 } from '@ant-design/icons';
 import { BackendError, useAppDispatch } from '../../app/hooks';
 import Queries from '../../features/queries/Queries';
@@ -13,6 +15,7 @@ import { ModelContext } from '../../context/ModelContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 import KPIs from './kpis/KPIs';
 import Reports from './reports/Reports';
+import ModelSettings from './modelSettings/ModelSettings';
 
 const { Title } = Typography;
 
@@ -31,7 +34,11 @@ const ModelDetail: React.FC = () => {
   const location = useLocation();
 
   const activeKey = useMemo(() => {
-    if (['#kpis', '#queries', '#l8estreports'].includes(location.hash)) {
+    if (
+      ['#kpis', '#queries', '#l8estreports', '#settings'].includes(
+        location.hash
+      )
+    ) {
       return location.hash;
     } else return '#l8estreports';
   }, [location]);
@@ -108,6 +115,16 @@ const ModelDetail: React.FC = () => {
                 </span>
               ),
               children: <Queries />,
+            },
+            {
+              key: '#settings',
+              label: (
+                <span>
+                  <SettingOutlined />
+                  Settings
+                </span>
+              ),
+              children: <ModelSettings />,
             },
           ]}
         />

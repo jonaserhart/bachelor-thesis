@@ -8,6 +8,6 @@ public class DivExpression : MathOperationExpression
         {
             throw new DivideByZeroException();
         }
-        else return left / right;
+        else return Math.Round(left / right, 2);
     }
 }

@@ -3,20 +3,12 @@ using backend.Model.Enum;
 using backend.Model.Exceptions;
 using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.Model.Analysis.KPIs;
 
 namespace backend.Model.Analysis.Expressions;
 
-public abstract class MathOperationExpression : Expression
+public abstract class MathOperationExpression : LeftRightExpression
 {
-    [ForeignKey("Left")]
-    public Guid? LeftId { get; set; }
-    [ForeignKey("Right")]
-    public Guid? RightId { get; set; }
-
-    public KPI? Left { get; set; }
-
-    public KPI? Right { get; set; }
-
     protected abstract double DoOperation(double left, double right);
     public override List<QueryReturnType> ALLOWED_QUERY_TYPES => new List<QueryReturnType> { QueryReturnType.Number };
 
@@ -36,13 +28,4 @@ public abstract class MathOperationExpression : Expression
         else
             throw new ExpressionEvaluationException($"Could not deduce double values from left ({evalLeft}) or right expression ({evalRight}) of MathExpression");
     }
-
-    public override IEnumerable<string> GetRequiredQueries()
-    {
-        if (Left?.Expression == null || Right?.Expression == null)
-            return new List<string>();
-
-        return Left.Expression.GetRequiredQueries().Concat(Right.Expression.GetRequiredQueries());
-    }
-
 }

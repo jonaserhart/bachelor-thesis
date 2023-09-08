@@ -9,20 +9,15 @@ namespace backend.Controllers;
 [Route("[controller]")]
 public class OAuthController : Controller
 {
-    private readonly ILogger<OAuthController> _logger;
-    private readonly IOAuthService _oauthService;
-    public OAuthController(ILogger<OAuthController> logger, IOAuthService oAuthService)
-    {
-        _logger = logger;
-        _oauthService = oAuthService;
-    }
+    private readonly IOAuthService m_oauthService;
+    public OAuthController(IOAuthService oAuthService) => m_oauthService = oAuthService;
 
     [HttpGet("authorize")]
     [ProducesResponseType(typeof(string), 200)]
     [ProducesResponseType(typeof(ApiError), 400)]
     public ActionResult<string> Authorize()
     {
-        var url = _oauthService.GetNewAuthorizeUrl();
+        var url = m_oauthService.GetNewAuthorizeUrl();
         return Ok(url);
     }
 
@@ -31,18 +26,17 @@ public class OAuthController : Controller
     [ProducesResponseType(typeof(ApiError), 400)]
     public async Task<ActionResult> Callback([FromBody] OAuthCallbackModel submission)
     {
-        var response = await _oauthService.HandleOAuthCallbackAsync(submission);
+        var response = await m_oauthService.HandleOAuthCallbackAsync(submission);
         SetTokenCookie(response.Token?.RefreshToken);
         return Ok(response);
     }
-
 
     [HttpGet("refresh-token")]
     [ProducesResponseType(typeof(AuthenticationResponse), 200)]
     public async Task<ActionResult<string>> RefreshToken()
     {
         var refreshToken = Request.Cookies["refreshToken"];
-        var response = await _oauthService.RefreshTokenAsync(refreshToken);
+        var response = await m_oauthService.RefreshTokenAsync(refreshToken);
         SetTokenCookie(response.Token?.RefreshToken);
         return Ok(response);
     }

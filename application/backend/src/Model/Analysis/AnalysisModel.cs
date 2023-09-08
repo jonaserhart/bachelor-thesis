@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using backend.Model.Analysis.Graphical;
+using backend.Model.Analysis.KPIs;
 using backend.Model.Users;
 using Newtonsoft.Json;
 
@@ -14,6 +16,9 @@ public class AnalysisModel
     public List<UserModel> ModelUsers { get; set; } = new List<UserModel>();
     [JsonProperty("kpis")]
     public List<KPI> KPIs { get; set; } = new List<KPI>();
+    [JsonProperty("kpiFolders")]
+    public List<KPIFolder> KPIFolders { get; set; } = new List<KPIFolder>();
     public List<Report> Reports { get; set; } = new List<Report>();
+    public List<GraphicalConfiguration> Graphical { get; set; } = new List<GraphicalConfiguration>();
 
 }

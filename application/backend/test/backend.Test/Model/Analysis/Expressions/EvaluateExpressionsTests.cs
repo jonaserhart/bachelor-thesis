@@ -1,6 +1,7 @@
 using System.Net.Mail;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
+using backend.Model.Analysis.KPIs;
 using backend.Model.Enum;
 
 namespace backend.Test.Model.Analysis.Expressions;
@@ -8,7 +9,6 @@ namespace backend.Test.Model.Analysis.Expressions;
 [TestFixture]
 public class EvaluateExpressionsTests
 {
-
 
     [Test]
     public void EvaluateSumExpression_GiveWorkItems_EvaluatesExpression()
@@ -103,20 +103,49 @@ public class EvaluateExpressionsTests
         Assert.That(actual, Is.EqualTo(expected));
     }
 
-    // [Test]
-    // public void EvaluateMinExpression_GiveWorkItems_EvaluatesExpression()
-    // {
-    //     var fieldName = "System.OriginalEstimate";
-    //     var expected = 2;
-    //     var workItems = TestServices.GenerateWorkItemsWithField(fieldName, WorkItemValueType.Number, "2", "3", "7", "13");
+    [Test]
+    public void EvaluateCountIfMultipleConditionsExpression_GiveWorkItems_EvaluatesExpression()
+    {
+        var query = "q1";
+        var expected = 2;
+        var queryResult = new QueryResult
+        {
+            Type = QueryReturnType.ObjectList,
+            Value = new List<Dictionary<string, object>>
+                {
+                    new() {
+                        {"Field1", 20},
+                        {"Field2", "Value1"},
+                    },
+                    new() {
+                        {"Field1", 10},
+                        {"Field2", "Value2"},
+                    },
+                    new() {
+                        {"Field1", 10},
+                        {"Field2", "Value1"},
+                    }
+                }
+        };
 
+        var conditions = new List<Condition>
+            {
+                new Condition { Field = "Field1", Operator = CountIfOperator.IsMore, CompareValue = "9" },
+                new Condition { Field = "Field2", Operator = CountIfOperator.IsEqual, CompareValue = "Value1" }
+            };
 
-    //     var expression = new MinExpression { ChildExpression = new FieldExpression { Field = fieldName } };
+        var expression = new CountIfMultipleExpression
+        {
+            Conditions = conditions,
+            Connection = ConditionConnection.All,
+            QueryId = query,
+            Type = ExpressionType.CountIfMultiple
+        };
 
-    //     var actual = expression.Evaluate(workItems);
+        var actual = expression.Evaluate(new Dictionary<string, QueryResult> { { query, queryResult } });
 
-    //     Assert.That(actual, Is.EqualTo(expected));
-    // }
+        Assert.That(actual, Is.EqualTo(expected));
+    }
 
     [Test]
     public void EvaluateCountIfExpression_GiveWorkItems_EvaluatesExpression()
@@ -169,7 +198,6 @@ public class EvaluateExpressionsTests
         {
             Expression = new SumExpression { Field = fieldName, Type = ExpressionType.Sum, QueryId = query2 }
         };
-
 
         var expression = new DivExpression { Left = left, Right = right, Type = ExpressionType.Div };
 

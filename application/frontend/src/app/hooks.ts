@@ -1,6 +1,8 @@
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import type { RootState, AppDispatch } from './store';
 import { AsyncThunkPayloadCreator, createAsyncThunk } from '@reduxjs/toolkit';
+import { useEffect, useRef } from 'react';
+import { isEqual } from 'lodash';
 
 // Use throughout your app instead of plain `useDispatch` and `useSelector`
 export const useAppDispatch = () => useDispatch<AppDispatch>();
@@ -100,3 +102,22 @@ export const createAppAsyncThunk = <ReturnType, ThunkArg = void>(
       return defaultError;
     },
   });
+
+export default function useDeepEffect(effect: () => void, deps: any[]) {
+  const isFirst = useRef(true);
+  const prevDeps = useRef(deps);
+
+  useEffect(() => {
+    if (prevDeps.current) {
+      const isSame = prevDeps.current.every((obj, index) =>
+        isEqual(obj, deps[index])
+      );
+      if (isFirst.current || !isSame) {
+        effect();
+      }
+
+      isFirst.current = false;
+      prevDeps.current = deps;
+    }
+  }, deps);
+}

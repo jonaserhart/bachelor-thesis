@@ -37,6 +37,38 @@ namespace backend.Migrations
                     b.ToTable("AnalysisModels");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.Condition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CompareValue")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ExpressionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ExpressionId1")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Operator")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpressionId");
+
+                    b.HasIndex("ExpressionId1");
+
+                    b.ToTable("ExpressionConditions");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.Expressions.Expression", b =>
                 {
                     b.Property<Guid>("Id")
@@ -58,7 +90,112 @@ namespace backend.Migrations
                     b.UseTphMappingStrategy();
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ModelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModelId");
+
+                    b.ToTable("GraphicalConfigurations");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalItemDataSources", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("KPIs")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId")
+                        .IsUnique();
+
+                    b.ToTable("GraphicalItemDataSources");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("GraphicalConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraphicalConfigId");
+
+                    b.ToTable("GraphicalReportItems");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItemLayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("H")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("I")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("MaxH")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaxW")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinH")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MinW")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("W")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("I")
+                        .IsUnique();
+
+                    b.ToTable("GraphicalReportItemLayout");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.KPIs.KPI", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -73,6 +210,9 @@ namespace backend.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ExpressionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FolderId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
@@ -92,7 +232,34 @@ namespace backend.Migrations
 
                     b.HasIndex("ExpressionId");
 
+                    b.HasIndex("FolderId");
+
                     b.ToTable("KPIs");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.KPIs.KPIFolder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ModelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentFolderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ModelId");
+
+                    b.HasIndex("ParentFolderId");
+
+                    b.ToTable("KPIFolders");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Report", b =>
@@ -208,7 +375,7 @@ namespace backend.Migrations
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.HasDiscriminator().HasValue(10);
+                    b.HasDiscriminator().HasValue(12);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.CountIfExpression", b =>
@@ -229,6 +396,17 @@ namespace backend.Migrations
                     b.HasDiscriminator().HasValue(9);
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.DoIfMultipleExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
+
+                    b.Property<int>("Connection")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExtractField")
+                        .HasColumnType("text");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
@@ -239,11 +417,9 @@ namespace backend.Migrations
                     b.Property<Guid?>("RightId")
                         .HasColumnType("uuid");
 
-                    b.HasIndex("LeftId")
-                        .IsUnique();
+                    b.HasIndex("LeftId");
 
-                    b.HasIndex("RightId")
-                        .IsUnique();
+                    b.HasIndex("RightId");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MaxExpression", b =>
@@ -294,7 +470,7 @@ namespace backend.Migrations
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.HasDiscriminator().HasValue(11);
+                    b.HasDiscriminator().HasValue(13);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.SumExpression", b =>
@@ -312,6 +488,20 @@ namespace backend.Migrations
                         });
 
                     b.HasDiscriminator().HasValue(7);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.CountIfMultipleExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.DoIfMultipleExpression");
+
+                    b.HasDiscriminator().HasValue(10);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.SumIfMultipleExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.DoIfMultipleExpression");
+
+                    b.HasDiscriminator().HasValue(11);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.AddExpression", b =>
@@ -342,26 +532,109 @@ namespace backend.Migrations
                     b.HasDiscriminator().HasValue(6);
                 });
 
-            modelBuilder.Entity("backend.Model.Analysis.KPI", b =>
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.Condition", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Expressions.DoIfMultipleExpression", null)
+                        .WithMany("Conditions")
+                        .HasForeignKey("ExpressionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.Analysis.Expressions.DoIfMultipleExpression", "Expression")
+                        .WithMany()
+                        .HasForeignKey("ExpressionId1");
+
+                    b.Navigation("Expression");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalConfiguration", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.AnalysisModel", "Model")
+                        .WithMany("Graphical")
+                        .HasForeignKey("ModelId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Model");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalItemDataSources", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Graphical.GraphicalReportItem", "GraphicalReportItem")
+                        .WithOne("DataSources")
+                        .HasForeignKey("backend.Model.Analysis.Graphical.GraphicalItemDataSources", "ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GraphicalReportItem");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItem", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Graphical.GraphicalConfiguration", "Configuration")
+                        .WithMany("Items")
+                        .HasForeignKey("GraphicalConfigId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Configuration");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItemLayout", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Graphical.GraphicalReportItem", "GraphicalReportItem")
+                        .WithOne("Layout")
+                        .HasForeignKey("backend.Model.Analysis.Graphical.GraphicalReportItemLayout", "I")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GraphicalReportItem");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.KPIs.KPI", b =>
                 {
                     b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
                         .WithMany("KPIs")
-                        .HasForeignKey("AnalysisModelId");
+                        .HasForeignKey("AnalysisModelId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("backend.Model.Analysis.Expressions.Expression", "Expression")
                         .WithMany()
                         .HasForeignKey("ExpressionId");
 
+                    b.HasOne("backend.Model.Analysis.KPIs.KPIFolder", "Folder")
+                        .WithMany("KPIs")
+                        .HasForeignKey("FolderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.Navigation("AnalysisModel");
 
                     b.Navigation("Expression");
+
+                    b.Navigation("Folder");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.KPIs.KPIFolder", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
+                        .WithMany("KPIFolders")
+                        .HasForeignKey("ModelId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("backend.Model.Analysis.KPIs.KPIFolder", "ParentFolder")
+                        .WithMany("SubFolders")
+                        .HasForeignKey("ParentFolderId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("AnalysisModel");
+
+                    b.Navigation("ParentFolder");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Report", b =>
                 {
                     b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
                         .WithMany("Reports")
-                        .HasForeignKey("AnalysisModelId");
+                        .HasForeignKey("AnalysisModelId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AnalysisModel");
                 });
@@ -397,13 +670,13 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
                 {
-                    b.HasOne("backend.Model.Analysis.KPI", "Left")
-                        .WithOne()
-                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "LeftId");
+                    b.HasOne("backend.Model.Analysis.KPIs.KPI", "Left")
+                        .WithMany()
+                        .HasForeignKey("LeftId");
 
-                    b.HasOne("backend.Model.Analysis.KPI", "Right")
-                        .WithOne()
-                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "RightId");
+                    b.HasOne("backend.Model.Analysis.KPIs.KPI", "Right")
+                        .WithMany()
+                        .HasForeignKey("RightId");
 
                     b.Navigation("Left");
 
@@ -412,6 +685,10 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Model.Analysis.AnalysisModel", b =>
                 {
+                    b.Navigation("Graphical");
+
+                    b.Navigation("KPIFolders");
+
                     b.Navigation("KPIs");
 
                     b.Navigation("ModelUsers");
@@ -419,11 +696,35 @@ namespace backend.Migrations
                     b.Navigation("Reports");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalConfiguration", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItem", b =>
+                {
+                    b.Navigation("DataSources");
+
+                    b.Navigation("Layout");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.KPIs.KPIFolder", b =>
+                {
+                    b.Navigation("KPIs");
+
+                    b.Navigation("SubFolders");
+                });
+
             modelBuilder.Entity("backend.Model.Users.User", b =>
                 {
                     b.Navigation("RefreshTokens");
 
                     b.Navigation("UserModels");
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.DoIfMultipleExpression", b =>
+                {
+                    b.Navigation("Conditions");
                 });
 #pragma warning restore 612, 618
         }

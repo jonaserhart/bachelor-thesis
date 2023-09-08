@@ -17,7 +17,7 @@ public class UserServiceTests
     {
         using var dbContext = await TestServices.GetDatabaseContextAsync();
         var logger = TestServices.GetMockedLogger<UserService>();
-        var userService = new UserService(dbContext, logger, null, null);
+        var userService = new UserService(dbContext, logger, null);
         var userToCreate = new User()
         {
             EMail = "email@user.com",
@@ -43,7 +43,7 @@ public class UserServiceTests
     {
         using var dbContext = await TestServices.GetDatabaseContextAsync();
         var logger = TestServices.GetMockedLogger<UserService>();
-        var userService = new UserService(dbContext, logger, null, null);
+        var userService = new UserService(dbContext, logger, null);
         var existingUser = new User()
         {
             EMail = "email@user.com",
@@ -78,7 +78,7 @@ public class UserServiceTests
     {
         using var context = await TestServices.GetDatabaseContextAsync();
 
-        var userService = new UserService(context, null, null, null);
+        var userService = new UserService(context, null, null);
 
         var found = await userService.GetByIdAsync(Guid.NewGuid());
 
@@ -90,7 +90,7 @@ public class UserServiceTests
     {
         using var context = await TestServices.GetDatabaseContextAsync();
 
-        var userService = new UserService(context, null, null, null);
+        var userService = new UserService(context, null, null);
 
         var userId = Guid.NewGuid();
         var userInDb = new User
@@ -113,7 +113,7 @@ public class UserServiceTests
     {
         using var context = await TestServices.GetDatabaseContextAsync();
 
-        var userService = new UserService(context, null, null, null);
+        var userService = new UserService(context, null, null);
 
         var userIdToDelete = Guid.NewGuid();
         var userInDb = new User
@@ -142,7 +142,7 @@ public class UserServiceTests
     {
         using var context = await TestServices.GetDatabaseContextAsync();
 
-        var userService = new UserService(context, null, null, null);
+        var userService = new UserService(context, null, null);
 
         var userIdToDelete = Guid.NewGuid();
 
@@ -161,7 +161,7 @@ public class UserServiceTests
     {
         var contextAccessor = TestServices.GetMockedHttpContextAccessor();
 
-        var userService = new UserService(null, null, null, contextAccessor);
+        var userService = new UserService(null, null, contextAccessor);
 
         var getSelfMethod = async () => await userService.GetSelfAsync();
 
@@ -177,7 +177,7 @@ public class UserServiceTests
         var userIdInContext = Guid.NewGuid();
 
         var contextAccessor = TestServices.GetMockedHttpContextAccessor(authenticatedUserid: userIdInContext.ToString());
-        var userService = new UserService(dbContext, null, null, contextAccessor);
+        var userService = new UserService(dbContext, null, contextAccessor);
 
         var getSelfMethod = async () => await userService.GetSelfAsync();
 
@@ -199,7 +199,7 @@ public class UserServiceTests
         await dbContext.AddAllToDatabase(user);
 
         var contextAccessor = TestServices.GetMockedHttpContextAccessor(authenticatedUserid: userIdInContext.ToString());
-        var userService = new UserService(dbContext, null, null, contextAccessor);
+        var userService = new UserService(dbContext, null, contextAccessor);
 
         var authenticatedUser = await userService.GetSelfAsync();
 

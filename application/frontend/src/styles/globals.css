@@ -22,3 +22,23 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+
+@import url("/node_modules/react-grid-layout/css/styles.css");
+@import url("/node_modules/react-resizable/css/styles.css");
+
+.react-grid-item.react-grid-placeholder {
+  background: rgb(255, 255, 255)!important;
+  opacity: 0.1!important;
+  transition-duration: 100ms;
+  z-index: 2;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+}
+
+.react-resizable-handle {
+    background: linear-gradient(135deg, transparent 0%, transparent 45%, grey 65%, grey 100%);
+}

@@ -9,7 +9,7 @@ public class DbKeyNotFoundException : Exception
     {
     }
 
-    public DbKeyNotFoundException(object key, Type entity) : base($"Key {key} was not found in table for entity {entity.Name}")
+    public DbKeyNotFoundException(object key, Type entity) : base($"Key {key} was not found for type {entity.Name}")
     {
 
     }

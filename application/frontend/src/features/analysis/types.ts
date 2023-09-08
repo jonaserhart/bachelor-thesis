@@ -12,6 +12,8 @@ export enum ExpressionType {
   Sum = 'Sum',
   Value = 'Value',
   CountIf = 'CountIf',
+  CountIfMultiple = 'CountIfMultiple',
+  SumIfMultiple = 'SumIfMultiple',
   Count = 'Count',
   Plain = 'Plain',
 }
@@ -24,6 +26,11 @@ export enum CountIfOperator {
   IsLessOrEqual = 'IsLessOrEqual',
   IsMoreOrEqual = 'IsMoreOrEqual',
   Matches = 'Matches',
+}
+
+export enum ConditionConnection {
+  All = 'All',
+  Any = 'Any',
 }
 
 export const countIfOperatorsWithLabels = [
@@ -104,6 +111,14 @@ export interface KPIConfig {
 export interface KPI extends HasId, KPIConfig {
   name: string;
   expression: Expression;
+  folderId?: string;
+}
+
+export interface KPIFolder extends HasId {
+  name: string;
+  parentFolderId?: string;
+  subFolders: KPIFolder[];
+  kpis: KPI[];
 }
 
 export interface Report extends HasId {
@@ -118,13 +133,66 @@ export interface Report extends HasId {
   };
 }
 
+export interface GraphicalReportItemLayout {
+  id: string;
+  i: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  maxH?: number;
+  maxW?: number;
+  minH?: number;
+  minW?: number;
+}
+
+export enum GraphicalReportItemType {
+  Plain = 'Plain',
+  BarChart = 'BarChart',
+  PieChart = 'PieChart',
+}
+
+export type GraphicalReportItemData = {
+  kpis: string[];
+};
+
+export interface GraphicalReportItem extends HasId {
+  name: string;
+  type: GraphicalReportItemType;
+  dataSources: GraphicalReportItemData;
+  layout: GraphicalReportItemLayout;
+}
+
+export interface GraphicalConfiguration extends HasId {
+  name: string;
+  items: GraphicalReportItem[];
+}
+
 export interface AnalysisModel extends HasId {
   name: string;
   kpis: KPI[];
+  kpiFolders: KPIFolder[];
   reports: Report[];
+  graphical: GraphicalConfiguration[];
 }
 
 // Request/Response
 export interface AnalysisModelChange extends HasId {
   name: string;
+}
+
+export interface GraphicalReportItemLayoutSubmission {
+  h: number;
+  w: number;
+  x: number;
+  y: number;
+  maxH?: number;
+  maxW?: number;
+  minH?: number;
+  minW?: number;
+}
+
+export interface GraphicalReportItemSubmission {
+  type: GraphicalReportItemType;
+  layout: GraphicalReportItemLayoutSubmission;
 }

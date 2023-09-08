@@ -1,4 +1,5 @@
 import {
+  ConditionConnection,
   Expression,
   ExpressionType,
   KPI,
@@ -7,6 +8,7 @@ import {
 } from '../../../features/analysis/types';
 import {
   Button,
+  Card,
   Form,
   Input,
   Select,
@@ -21,12 +23,17 @@ import {
   useAppDispatch,
   useAppSelector,
 } from '../../../app/hooks';
-import { updateExpression } from '../../../features/analysis/analysisSlice';
+import {
+  selectAllKPIs,
+  updateExpression,
+} from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
 import { KPIContext } from '../../../context/KPIContext';
 import { useForm, useWatch } from 'antd/es/form/Form';
 import { selectQueries } from '../../../features/queries/querySclice';
 import { QueryReturnType } from '../../../features/queries/types';
+import { CloseOutlined } from '@ant-design/icons';
+import { useSelector } from 'react-redux';
 
 const formInputStyles = {
   maxWidth: 200,
@@ -190,6 +197,57 @@ const descriptions = {
       },
     ],
   },
+  [ExpressionType.CountIfMultiple]: {
+    title: 'Count if (multiple)',
+    kind: 'Conditional',
+    description: `
+      Count values in a list if they meet multiple conditions.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Extract field',
+        description:
+          'Extract a field from an object list to count (if the values are the same it only counts as one). Leave empty to just count every entry.',
+      },
+      {
+        name: 'Connection',
+        description: 'How the conditions are chained',
+      },
+      {
+        name: 'Conditions',
+        description: 'Conditions that are tested',
+      },
+    ],
+  },
+  [ExpressionType.SumIfMultiple]: {
+    title: 'Sum if (multiple)',
+    kind: 'Conditional',
+    description: `
+      Sum values in a list that they meet multiple conditions.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Extract field',
+        description: 'Extract a field from an object list to sum.',
+      },
+      {
+        name: 'Connection',
+        description: 'How the conditions are chained',
+      },
+      {
+        name: 'Conditions',
+        description: 'Conditions that are tested',
+      },
+    ],
+  },
   [ExpressionType.CountIf]: {
     title: 'Count if',
     kind: 'Conditional',
@@ -287,9 +345,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
     form.setFieldsValue(expression);
   }, [expression]);
 
-  const kpis = useMemo(() => {
-    return model?.kpis ?? [];
-  }, [model]);
+  const kpis = useSelector(selectAllKPIs(modelId));
 
   const type = useWatch('type', form);
   const selectedQueryId = useWatch('queryId', form);
@@ -328,6 +384,9 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
           QueryReturnType.ObjectList,
           QueryReturnType.StringList,
         ];
+      case ExpressionType.CountIfMultiple:
+      case ExpressionType.SumIfMultiple:
+        return [QueryReturnType.ObjectList];
       default:
         return [];
     }
@@ -371,7 +430,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
             </Form.Item>
             <Form.Item
               name={['rightId']}
-              label="Left (KPI)"
+              label="Right (KPI)"
               rules={[{ required: true }]}>
               <Select
                 options={kpis.map((q) => ({
@@ -492,6 +551,118 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
             </Form.Item>
           </>
         );
+
+      case ExpressionType.CountIfMultiple:
+      case ExpressionType.SumIfMultiple:
+        return (
+          <>
+            <Form.Item
+              name={['queryId']}
+              label="Query"
+              rules={[{ required: true }]}>
+              <Select
+                options={queries
+                  .filter((x) => allowedQueryTypes.includes(x.type))
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
+              />
+            </Form.Item>
+            <Form.Item name={['extractField']} label="Extract field">
+              <Input
+                disabled={selectedQuery?.type !== QueryReturnType.ObjectList}
+                style={formInputStyles}
+              />
+            </Form.Item>
+            <Form.Item
+              name={['connection']}
+              label="Connection"
+              rules={[{ required: true }]}>
+              <Select
+                options={[
+                  {
+                    label: 'All',
+                    value: ConditionConnection.All,
+                  },
+                  {
+                    label: 'Any',
+                    value: ConditionConnection.Any,
+                  },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item label="Conditions">
+              <Form.List name={['conditions']}>
+                {(fields, { add, remove }) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      rowGap: 16,
+                      flexDirection: 'column',
+                    }}>
+                    {fields.map((field) => (
+                      <Card
+                        size="small"
+                        title={`Condition ${field.name + 1}`}
+                        key={field.key}
+                        extra={
+                          <CloseOutlined
+                            onClick={() => {
+                              remove(field.name);
+                            }}
+                          />
+                        }>
+                        <Form.Item
+                          name={[field.name, 'field']}
+                          label="Field"
+                          rules={[
+                            {
+                              required:
+                                selectedQuery?.type ===
+                                QueryReturnType.ObjectList,
+                            },
+                          ]}>
+                          <Input
+                            disabled={
+                              selectedQuery?.type !== QueryReturnType.ObjectList
+                            }
+                            style={formInputStyles}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          name={[field.name, 'operator']}
+                          label="Operator">
+                          <Select
+                            options={countIfOperatorsWithLabels
+                              .filter((o) =>
+                                selectedQuery
+                                  ? o.allowed.includes(selectedQuery.type)
+                                  : false
+                              )
+                              .map((o) => ({
+                                label: o.label,
+                                value: o.value,
+                              }))}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          name={[field.name, 'compareValue']}
+                          label="Comparevalue">
+                          <Input style={formInputStyles} />
+                        </Form.Item>
+                      </Card>
+                    ))}
+
+                    <Button type="dashed" onClick={() => add()} block>
+                      + Add condition
+                    </Button>
+                  </div>
+                )}
+              </Form.List>
+            </Form.Item>
+          </>
+        );
       default:
         return null;
     }
@@ -592,6 +763,14 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                         label: 'Count if',
                         value: ExpressionType.CountIf,
                       },
+                      {
+                        label: 'Count if (multiple)',
+                        value: ExpressionType.CountIfMultiple,
+                      },
+                      {
+                        label: 'Sum if (multiple)',
+                        value: ExpressionType.SumIfMultiple,
+                      },
                     ],
                   },
                 ]}
@@ -635,7 +814,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
           </Space>
         </Form.Item>
         {formFields}
-        <Button onClick={() => form.submit()}>Submit</Button>
+        <Button onClick={() => form.submit()}>Save</Button>
       </Form>
     </>
   );

@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using backend.Middleware;
 using backend.Model.Config;
-using backend.Services.API;
 using backend.Services.Database;
 using backend.Services.OAuth;
 using backend.Services.Users;
@@ -13,6 +12,7 @@ using backend.Services.DevOps;
 using Newtonsoft.Json.Converters;
 using backend.Services.Expressions;
 using backend.Services.DevOps.Custom;
+using backend.Services.DevOps.Custom.API;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,12 +44,13 @@ builder.Services.Configure<DevOpsConfig>(builder.Configuration.GetSection("DevOp
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<IOAuthService, OAuthService>();
+builder.Services.AddScoped<IOAuthService, MicrosoftOAuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
 builder.Services.AddScoped<IAnalysisModelService, AnalysisModelService>();
 builder.Services.AddScoped<IKPIService, KPIService>();
 
+// Custom services
+builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
 builder.Services.AddScoped<IDevOpsProviderService, AzureDevOpsProviderService>();
 
 var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
@@ -94,7 +95,7 @@ if (app.Environment.IsDevelopment())
     Console.WriteLine("DEVELOPMENT");
     app.UseSwagger();
     app.UseSwaggerUI();
-    // app.UseCors(cp => cp.WithOrigins("http://localhost:3050").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+    app.UseCors(cp => cp.WithOrigins("http://localhost:3050").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 }
 app.UseHttpsRedirection();
 

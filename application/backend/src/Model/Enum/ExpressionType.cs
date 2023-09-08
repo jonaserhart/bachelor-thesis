@@ -12,6 +12,8 @@ public enum ExpressionType
     Sum,
     Value,
     CountIf,
+    CountIfMultiple,
+    SumIfMultiple,
     Count,
     Plain,
 }

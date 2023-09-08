@@ -5,35 +5,64 @@ import {
 } from '../../../../features/queries/types';
 import axios from '../../../../backendClient';
 import { ModelContext } from '../../../../context/ModelContext';
-import { Form, Input, InputNumber, Select, Spin, message } from 'antd';
-import { BackendError } from '../../../../app/hooks';
+import {
+  Card,
+  DatePicker,
+  Descriptions,
+  Divider,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Spin,
+  message,
+} from 'antd';
+import { BackendError, useAppSelector } from '../../../../app/hooks';
+import { selectQueries } from '../../../../features/queries/querySclice';
 
-function distinctByProperty<T>(arr: T[], property: keyof T) {
-  const distinctValues = new Set();
-  const distinctObjects = [];
+type QueryParameterAndId = QueryParameter & { query: any };
+
+function distinctByValueAggregate<T>(
+  arr: T[],
+  groupByProperty: keyof T,
+  aggregateProperty: keyof T
+) {
+  const aggregatedMap = new Map<any, T>();
 
   for (const obj of arr) {
-    const value = obj[property];
-    if (!distinctValues.has(value)) {
-      distinctValues.add(value);
-      distinctObjects.push(obj);
+    const groupByValue = obj[groupByProperty];
+    const aggregateValue = obj[aggregateProperty];
+
+    if (!aggregatedMap.has(groupByValue)) {
+      //@ts-ignore
+      aggregatedMap.set(groupByValue, {
+        ...obj,
+        [groupByProperty]: groupByValue,
+        [aggregateProperty]: [aggregateValue],
+      });
+    } else {
+      const existingObj = aggregatedMap.get(groupByValue);
+      if (existingObj) {
+        //@ts-ignore
+        existingObj[aggregateProperty].push(aggregateValue);
+      }
     }
   }
 
-  return distinctObjects;
+  return Array.from(aggregatedMap.values());
 }
 
 const QueryParameterForm: React.FC = () => {
-  const [queryParameters, setQueryParameters] = useState<QueryParameter[]>([]);
+  const [queryParameters, setQueryParameters] = useState<QueryParameterAndId[]>(
+    []
+  );
 
   const { model } = useContext(ModelContext);
   const modelId = useMemo(() => model?.id ?? '', []);
 
-  const [loading, setLoading] = useState(false);
+  const queries = useAppSelector(selectQueries);
 
-  useEffect(() => {
-    console.log(queryParameters);
-  }, [queryParameters]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -41,13 +70,30 @@ const QueryParameterForm: React.FC = () => {
       .get<string[]>(`/analysis/requiredQueries?modelId=${modelId}`)
       .then((response) => {
         const queries = response.data;
-        const p = queries.map((q) =>
-          axios.get<QueryParameter[]>(`/analysis/queryparameters?queryId=${q}`)
-        );
+        const p = queries
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .map(
+            (q) =>
+              new Promise<QueryParameterAndId[]>((resolve, reject) => {
+                axios
+                  .get<QueryParameter[]>(
+                    `/analysis/queryparameters?queryId=${q}`
+                  )
+                  .then((response) => {
+                    const result = response.data.map((x) => ({
+                      ...x,
+                      query: q,
+                    }));
+                    resolve(result);
+                  })
+                  .catch(reject);
+              })
+          );
         Promise.all(p)
           .then((values) => {
-            const parameters = values.flatMap((x) => x.data);
-            setQueryParameters(distinctByProperty(parameters, 'name'));
+            const flat = values.flatMap((x) => x);
+            const dist = distinctByValueAggregate(flat, 'name', 'query');
+            setQueryParameters(dist);
           })
           .then(console.error)
           .finally(() => setLoading(false));
@@ -67,7 +113,7 @@ const QueryParameterForm: React.FC = () => {
       case QueryParameterValueType.Select:
         return <Select options={qp.data} placeholder={qp.description} />;
       case QueryParameterValueType.Date:
-        return <div>Not available yet</div>;
+        return <DatePicker placeholder={qp.description} />;
     }
   }, []);
 
@@ -86,16 +132,51 @@ const QueryParameterForm: React.FC = () => {
   }
 
   return (
-    <Form.Item>
+    <div>
       {queryParameters.map((qp) => (
-        <Form.Item
-          key={qp.name}
-          label={qp.displayName}
-          name={['queryParameters', qp.name]}>
-          {renderFormItem(qp)}
-        </Form.Item>
+        <Card key={qp.name} style={{ marginBottom: '20px' }}>
+          <Descriptions
+            title={qp.displayName}
+            items={[
+              {
+                key: 'type',
+                label: 'Type',
+                children: <>{qp.type}</>,
+              },
+              {
+                key: 'paramName',
+                label: 'Parameter name',
+                children: <>{qp.name}</>,
+              },
+              {
+                key: 'desc',
+                label: 'Description',
+                children: <>{qp.description}</>,
+              },
+              {
+                key: 'queries',
+                label: 'Used by',
+                children: (
+                  <>
+                    {(qp.query as string[])
+                      .map((x) => queries.find((q) => q.id === x)?.name)
+                      .join(', ')}
+                  </>
+                ),
+              },
+            ]}
+          />
+          <Divider />
+          <Form.Item
+            key={qp.name}
+            label="Value"
+            rules={[{ required: true, message: 'Value is required' }]}
+            name={['queryParameters', qp.name]}>
+            {renderFormItem(qp)}
+          </Form.Item>
+        </Card>
       ))}
-    </Form.Item>
+    </div>
   );
 };
 

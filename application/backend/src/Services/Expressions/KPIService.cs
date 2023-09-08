@@ -1,79 +1,67 @@
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
+using backend.Model.Analysis.KPIs;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Services.Database;
 using backend.Services.DevOps;
 using Microsoft.EntityFrameworkCore;
+using System.Dynamic;
 using System.Reflection;
 
 namespace backend.Services.Expressions;
 
 public class KPIService : IKPIService
 {
-    private readonly DataContext _context;
-    private readonly IDevOpsProviderService _devopsProviderService;
-    private readonly ILogger<KPIService> _logger;
+    private readonly DataContext m_context;
+    private readonly IDevOpsProviderService m_devopsProviderService;
+    private readonly ILogger<KPIService> m_logger;
 
     public KPIService(DataContext context, IDevOpsProviderService devOpsProviderService, ILogger<KPIService> logger)
     {
-        _context = context;
-        _devopsProviderService = devOpsProviderService;
-        _logger = logger;
-    }
-
-    public async Task<KPI> CreateNewKPIAsync(Guid modelId)
-    {
-        var model = await _context.GetByIdOrThrowAsync<AnalysisModel>(modelId);
-        var newKPI = new KPI
-        {
-            Name = "New KPI",
-            Expression = new NumericValueExpression
-            {
-                Value = 12,
-                Type = Model.Enum.ExpressionType.Value
-            }
-        };
-        model.KPIs.Add(newKPI);
-        await _context.SaveChangesAsync();
-        return newKPI;
+        m_context = context;
+        m_devopsProviderService = devOpsProviderService;
+        m_logger = logger;
     }
 
     public async Task<KPI> GetByIdAsync(Guid kpiId)
     {
-        var found = await _context.GetByIdOrThrowAsync<KPI>(kpiId);
-        await _context.Entry(found).Reference(x => x.Expression).LoadAsync();
+        var found = await m_context.GetByIdOrThrowAsync<KPI>(kpiId);
+        await m_context.Entry(found)
+            .Reference(x => x.Expression)
+            .Query()
+            .LoadAsync(); ;
         return found;
     }
 
     public async Task<KPI> UpdateKPIAsync(KPIUpdate updated)
     {
-        var found = await _context.GetByIdOrThrowAsync<KPI>(updated.Id);
+        var found = await m_context.GetByIdOrThrowAsync<KPI>(updated.Id);
         found.Name = updated.Name;
 
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
         return found;
     }
 
     public async Task DeleteKPIAsync(Guid id)
     {
-        var found = await _context.GetByIdOrThrowAsync<KPI>(id);
-        _context.Remove(found);
-        await _context.SaveChangesAsync();
+        var found = await m_context.GetByIdOrThrowAsync<KPI>(id);
+        m_context.Remove(found);
+        await m_context.SaveChangesAsync();
     }
 
     public async Task<T> SaveExpressionAsync<T>(Guid addToKPI, T expression) where T : Expression
     {
-        var kpi = await _context.GetByIdOrThrowAsync<KPI>(addToKPI);
-        _context.Add<T>(expression);
+        var kpi = await m_context.GetByIdOrThrowAsync<KPI>(addToKPI);
+        m_context.Add<T>(expression);
         kpi.Expression = expression;
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
         return expression;
     }
 
     public async Task<T> UpdateExpressionAsync<T>(Guid kpiId, T expression) where T : Expression
     {
-        var entry = await _context.FindAsync<T>(expression.Id);
+        var entry = await m_context.FindAsync<T>(expression.Id);
         if (entry == null)
         {
             await SaveExpressionAsync(kpiId, expression);
@@ -81,11 +69,10 @@ public class KPIService : IKPIService
         return await UpdateExpressionAsync(expression);
     }
 
-    private object ConvertExpression(Type tExisting, Type tNew, object existingExpression)
+    private object ConvertExpression(Type tNew, object existingExpression)
     {
-        var newExpression = Activator.CreateInstance(tNew);
-        if (newExpression == null)
-            throw new ExpressionSaveException($"Could not dynamically create expression of type {tNew}");
+        var newExpression = Activator.CreateInstance(tNew)
+            ?? throw new ExpressionSaveException($"Could not dynamically create expression of type {tNew}");
 
         var commonProperties = typeof(Expression).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                                  .Where(p => p.CanRead && p.CanWrite)
@@ -102,21 +89,53 @@ public class KPIService : IKPIService
         return newExpression;
     }
 
+    private static void UpdateConditions(DoIfMultipleExpression leftExpression, DoIfMultipleExpression rightExpression)
+    {
+        var rightConditionsDict = rightExpression.Conditions.Where(x => Guid.Empty != x.Id).ToDictionary(c => c.Id);
+
+        for (var i = leftExpression.Conditions.Count - 1; i >= 0; i--)
+        {
+            var leftCondition = leftExpression.Conditions[i];
+            if (rightConditionsDict.TryGetValue(leftCondition.Id, out var matchingRightCondition))
+            {
+                leftCondition.Operator = matchingRightCondition.Operator;
+                leftCondition.CompareValue = matchingRightCondition.CompareValue;
+                leftCondition.Field = matchingRightCondition.Field;
+            }
+            else
+            {
+                leftExpression.Conditions.RemoveAt(i);
+            }
+        }
+
+        foreach (var rightCondition in rightExpression.Conditions)
+        {
+            if (!leftExpression.Conditions.Any(c => c.Id == rightCondition.Id) || rightCondition.Id == Guid.Empty)
+            {
+                leftExpression.Conditions.Add(new Condition
+                {
+                    Operator = rightCondition.Operator,
+                    CompareValue = rightCondition.CompareValue,
+                    Field = rightCondition.Field
+                });
+            }
+        }
+    }
+
     private async Task<T> UpdateExpressionAsync<T>(T expression) where T : Expression
     {
         Expression existing;
-        Expression? newExpression;
+        Expression? existingExpressionOfType;
 
-        existing = await _context.GetByIdOrThrowAsync<T>(expression.Id);
+        existing = await m_context.GetByIdOrThrowAsync<T>(expression.Id);
 
         // convert expression if needed
-        newExpression = ConvertExpression(existing.GetType(), expression.GetType(), existing) as T;
+        existingExpressionOfType = ConvertExpression(expression.GetType(), existing) as T;
 
-
-        if (newExpression == null)
+        if (existingExpressionOfType == null)
             throw new ExpressionSaveException($"Could not update expression {existing.Id}");
 
-        newExpression.Type = expression.Type;
+        existingExpressionOfType.Type = expression.Type;
 
         // copy rest of properties specific to the expression type
         switch (expression)
@@ -127,11 +146,11 @@ public class KPIService : IKPIService
                     if (mathExpr.LeftId == null || mathExpr.RightId == null)
                         throw new ExpressionSaveException("Requested to c");
 
-                    var left = await _context.GetByIdOrThrowAsync<KPI>(mathExpr.LeftId ?? Guid.NewGuid());
-                    var right = await _context.GetByIdOrThrowAsync<KPI>(mathExpr.RightId ?? Guid.NewGuid());
+                    var left = await m_context.GetByIdOrThrowAsync<KPI>(mathExpr.LeftId ?? Guid.NewGuid());
+                    var right = await m_context.GetByIdOrThrowAsync<KPI>(mathExpr.RightId ?? Guid.NewGuid());
 
-                    (newExpression as MathOperationExpression)!.Left = left;
-                    (newExpression as MathOperationExpression)!.Right = right;
+                    (existingExpressionOfType as MathOperationExpression)!.Left = left;
+                    (existingExpressionOfType as MathOperationExpression)!.Right = right;
 
                     break;
                 }
@@ -140,8 +159,8 @@ public class KPIService : IKPIService
                     if (aggregateExpr == null)
                         throw new ExpressionSaveException();
 
-                    (newExpression as AggregateExpression)!.Field = aggregateExpr.Field;
-                    (newExpression as AggregateExpression)!.QueryId = aggregateExpr.QueryId;
+                    (existingExpressionOfType as AggregateExpression)!.Field = aggregateExpr.Field;
+                    (existingExpressionOfType as AggregateExpression)!.QueryId = aggregateExpr.QueryId;
                     break;
                 }
             case NumericValueExpression numericValueExpr:
@@ -149,7 +168,7 @@ public class KPIService : IKPIService
                     if (numericValueExpr == null)
                         throw new ExpressionSaveException();
 
-                    (newExpression as NumericValueExpression)!.Value = numericValueExpr.Value;
+                    (existingExpressionOfType as NumericValueExpression)!.Value = numericValueExpr.Value;
                     break;
                 }
             case PlainQueryExpression plainExpr:
@@ -157,7 +176,7 @@ public class KPIService : IKPIService
                     if (plainExpr == null)
                         throw new ExpressionSaveException();
 
-                    (newExpression as PlainQueryExpression)!.QueryId = plainExpr.QueryId;
+                    (existingExpressionOfType as PlainQueryExpression)!.QueryId = plainExpr.QueryId;
                     break;
                 }
             case CountIfExpression countIfExpr:
@@ -165,10 +184,10 @@ public class KPIService : IKPIService
                     if (countIfExpr == null)
                         throw new ExpressionSaveException();
 
-                    (newExpression as CountIfExpression)!.Field = countIfExpr.Field;
-                    (newExpression as CountIfExpression)!.Operator = countIfExpr.Operator;
-                    (newExpression as CountIfExpression)!.CompareValue = countIfExpr.CompareValue;
-                    (newExpression as CountIfExpression)!.QueryId = countIfExpr.QueryId;
+                    (existingExpressionOfType as CountIfExpression)!.Field = countIfExpr.Field;
+                    (existingExpressionOfType as CountIfExpression)!.Operator = countIfExpr.Operator;
+                    (existingExpressionOfType as CountIfExpression)!.CompareValue = countIfExpr.CompareValue;
+                    (existingExpressionOfType as CountIfExpression)!.QueryId = countIfExpr.QueryId;
                     break;
                 }
             case CountExpression countExpr:
@@ -176,27 +195,38 @@ public class KPIService : IKPIService
                     if (countExpr == null)
                         throw new ExpressionSaveException();
 
-                    (newExpression as CountExpression)!.QueryId = countExpr.QueryId;
+                    (existingExpressionOfType as CountExpression)!.QueryId = countExpr.QueryId;
+                    break;
+                }
+            case DoIfMultipleExpression doIfMultipleExpression:
+                {
+                    if (doIfMultipleExpression == null)
+                        throw new ExpressionSaveException();
+
+                    UpdateConditions((existingExpressionOfType as DoIfMultipleExpression)!, doIfMultipleExpression);
+                    (existingExpressionOfType as DoIfMultipleExpression)!.Connection = doIfMultipleExpression.Connection;
+                    (existingExpressionOfType as DoIfMultipleExpression)!.QueryId = doIfMultipleExpression.QueryId;
+                    (existingExpressionOfType as DoIfMultipleExpression)!.ExtractField = doIfMultipleExpression.ExtractField;
                     break;
                 }
             default: throw new ExpressionSaveException();
         }
 
-        _context.Entry(existing).State = EntityState.Detached;
-        _context.Expressions.Update(newExpression);
-        await _context.SaveChangesAsync();
-        return (newExpression as T)!;
+        m_context.Entry(existing).State = EntityState.Detached;
+        m_context.Expressions.Update(existingExpressionOfType);
+        await m_context.SaveChangesAsync();
+        return (existingExpressionOfType as T)!;
     }
 
     public async Task DeleteExpression<T>(T expression) where T : Expression
     {
-        _context.Remove<T>(expression);
-        await _context.SaveChangesAsync();
+        m_context.Remove<T>(expression);
+        await m_context.SaveChangesAsync();
     }
 
     public async Task<(Dictionary<Guid, object?> result, Dictionary<string, QueryResult> queryResults)> EvaluateKPIs(IEnumerable<KPI> kpis, Dictionary<string, object?> queryParameterValues)
     {
-        _logger.LogDebug($"Evaluating KPIs...");
+        m_logger.LogDebug($"Evaluating KPIs...");
         var queries = kpis
             .Where(x => x != null && x.Expression != null)
             .SelectMany(x => x.Expression!.GetRequiredQueries())
@@ -205,9 +235,9 @@ public class KPIService : IKPIService
         var queriesAndResults = new Dictionary<string, QueryResult>();
         foreach (var query in queries)
         {
-            _logger.LogDebug($"Executing query {query}...");
-            var queryResult = await _devopsProviderService.ExecuteQueryAsync(query, queryParameterValues);
-            _logger.LogDebug($"Got result: {queryResult.Value} of type {queryResult.Type}...");
+            m_logger.LogDebug($"Executing query {query}...");
+            var queryResult = await m_devopsProviderService.ExecuteQueryAsync(query, queryParameterValues);
+            m_logger.LogDebug($"Got result: {queryResult.Value} of type {queryResult.Type}...");
             queriesAndResults.Add(query, queryResult);
         }
 
@@ -215,6 +245,7 @@ public class KPIService : IKPIService
 
         foreach (var kpi in kpis)
         {
+            m_logger.LogDebug($"Evaluating KPI ${kpi.Name}");
             var kpiValue = kpi.Expression?.Evaluate(queriesAndResults);
             if (kpiValue != null)
             {
@@ -233,8 +264,143 @@ public class KPIService : IKPIService
         kpi.ShowInReport = update.ShowInReport;
         kpi.Unit = update.Unit;
 
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
 
         return update;
+    }
+
+    public async Task<KPI> CreateNewKPIAsync(Guid modelId, Guid? folderId)
+    {
+
+        var model = await m_context.GetByIdOrThrowAsync<AnalysisModel>(modelId);
+        var newKPI = new KPI
+        {
+            Name = "New KPI",
+            Expression = new NumericValueExpression
+            {
+                Value = 12,
+                Type = Model.Enum.ExpressionType.Value
+            }
+        };
+
+        if (folderId != null)
+        {
+            var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId!);
+            folder.KPIs.Add(newKPI);
+        }
+        else
+        {
+            model.KPIs.Add(newKPI);
+        }
+
+        await m_context.SaveChangesAsync();
+        return newKPI;
+    }
+
+    public async Task<KPIFolder> CreateNewKPIFolderAsync(Guid modelId, Guid? folderId, string name)
+    {
+        var model = await m_context.GetByIdOrThrowAsync<AnalysisModel>(modelId);
+        var newKPIFolder = new KPIFolder
+        {
+            Name = name,
+
+        };
+
+        if (folderId != null)
+        {
+            var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId!);
+            await m_context.Entry(folder).Collection(x => x.SubFolders).LoadAsync();
+            folder.SubFolders.Add(newKPIFolder);
+        }
+        else
+        {
+            await m_context.Entry(model).Collection(x => x.KPIFolders).LoadAsync();
+            model.KPIFolders.Add(newKPIFolder);
+        }
+
+        await m_context.SaveChangesAsync();
+        return newKPIFolder;
+    }
+
+    public async Task<KPIFolder> GetKPIFolderContents(Guid folderId)
+    {
+        var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId!);
+        await m_context.Entry(folder).Collection(x => x.SubFolders).Query().LoadAsync();
+        await m_context.Entry(folder).Collection(x => x.KPIs)
+            .Query()
+            .Include(x => x.Expression).LoadAsync();
+        return folder;
+    }
+
+    public async Task<KPIFolder> UpdateKPIFolderAsync(Guid folderId, UpdateKPIFolderSubmission submission)
+    {
+        if (string.IsNullOrEmpty(submission.Name))
+        {
+            throw new BadRequestException("Name of folder cannot be empty.");
+        }
+        var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId!);
+        folder.Name = submission.Name;
+        await m_context.SaveChangesAsync();
+        return folder;
+    }
+
+    public async Task DeleteKPIFolderAsync(Guid folderId)
+    {
+        var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId);
+        m_context.KPIFolders.Remove(folder);
+
+        await m_context.SaveChangesAsync();
+    }
+
+    public async Task MoveKPIFolderAsync(MoveKPISubmission submission)
+    {
+        var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(submission.Id);
+
+        if (submission.MoveToFolder != null)
+        {
+            if (submission.MoveToModel == submission.Id)
+            {
+                throw new BadRequestException("Cannot move folder into itself you joker.");
+            }
+            var folderToMoveTo = await m_context.GetByIdOrThrowAsync<KPIFolder>(submission.MoveToFolder);
+            folder.ParentFolder = folderToMoveTo;
+
+            await m_context.SaveChangesAsync();
+            return;
+        }
+        if (submission.MoveToModel != null)
+        {
+            var modelToMoveTo = await m_context.GetByIdOrThrowAsync<AnalysisModel>(submission.MoveToModel);
+            folder.ParentFolder = null;
+            folder.AnalysisModel = modelToMoveTo;
+
+            await m_context.SaveChangesAsync();
+            return;
+        }
+        throw new BadRequestException($"Please provide either folder or model to move KPI folder '{folder.Name}' to");
+
+    }
+
+    public async Task MoveKPIAsync(MoveKPISubmission submission)
+    {
+        var kpi = await m_context.GetByIdOrThrowAsync<KPI>(submission.Id);
+        if (submission.MoveToFolder != null)
+        {
+            var folderToMoveTo = await m_context.GetByIdOrThrowAsync<KPIFolder>(submission.MoveToFolder);
+            kpi.Folder = folderToMoveTo;
+
+            await m_context.SaveChangesAsync();
+            return;
+        }
+        if (submission.MoveToModel != null)
+        {
+            var modelToMoveTo = await m_context.GetByIdOrThrowAsync<AnalysisModel>(submission.MoveToModel);
+            kpi.Folder = null;
+            kpi.AnalysisModel = modelToMoveTo;
+
+            await m_context.SaveChangesAsync();
+            return;
+        }
+        throw new BadRequestException($"Please provide either folder or model to move KPI '{kpi.Name}' to");
     }
 }

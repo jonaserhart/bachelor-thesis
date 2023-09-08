@@ -6,34 +6,37 @@ using backend.Model.Config;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Model.Users;
-using backend.Services.API;
 using backend.Services.Database;
 using backend.Services.Users;
 using Microsoft.Extensions.Options;
+using Microsoft.VisualStudio.Services.OAuth;
+using Microsoft.VisualStudio.Services.Profile;
+using Microsoft.VisualStudio.Services.Profile.Client;
+using Microsoft.VisualStudio.Services.WebApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace backend.Services.OAuth;
 
-public class OAuthService : IOAuthService
+public class MicrosoftOAuthService : IOAuthService
 {
-    private readonly ILogger<OAuthService> _logger;
-    private readonly DataContext _context;
-    private readonly OAuthConfig _oauthConfig;
-    private readonly IUserService _userService;
-    private readonly IApiClientFactory _apiClientFactory;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<MicrosoftOAuthService> m_logger;
+    private readonly DataContext m_context;
+    private readonly OAuthConfig m_oauthConfig;
+    private readonly DevOpsConfig m_devOpsConfig;
+    private readonly IUserService m_userService;
+    private readonly IHttpClientFactory m_httpClientFactory;
 
     private static readonly ConcurrentDictionary<Guid, TokenModel> s_authorizationRequests = new();
 
-    public OAuthService(DataContext context, ILogger<OAuthService> logger, IOptions<OAuthConfig> oauthConfig, IUserService userService, IApiClientFactory apiClientFactory, IHttpClientFactory httpClientFactory)
+    public MicrosoftOAuthService(DataContext context, ILogger<MicrosoftOAuthService> logger, IOptions<OAuthConfig> oauthConfig, IUserService userService, IHttpClientFactory httpClientFactory, IOptions<DevOpsConfig> devOpsConfig)
     {
-        _context = context;
-        _logger = logger;
-        _oauthConfig = oauthConfig.Value;
-        _userService = userService;
-        _apiClientFactory = apiClientFactory;
-        _httpClientFactory = httpClientFactory;
+        m_context = context;
+        m_logger = logger;
+        m_oauthConfig = oauthConfig.Value;
+        m_userService = userService;
+        m_httpClientFactory = httpClientFactory;
+        m_devOpsConfig = devOpsConfig.Value;
     }
 
     /// <summary>
@@ -45,14 +48,14 @@ public class OAuthService : IOAuthService
         var state = Guid.NewGuid();
         s_authorizationRequests[state] = new TokenModel { IsPending = true };
 
-        var uriBuilder = new UriBuilder(_oauthConfig.AuthorizationUri);
+        var uriBuilder = new UriBuilder(m_oauthConfig.AuthorizationUri);
         var queryParams = HttpUtility.ParseQueryString(uriBuilder.Query ?? String.Empty);
 
-        queryParams["client_id"] = _oauthConfig.ClientId;
+        queryParams["client_id"] = m_oauthConfig.ClientId;
         queryParams["response_type"] = "Assertion";
         queryParams["state"] = state.ToString();
-        queryParams["scope"] = _oauthConfig.Scope;
-        queryParams["redirect_uri"] = _oauthConfig.RedirectUri;
+        queryParams["scope"] = m_oauthConfig.Scope;
+        queryParams["redirect_uri"] = m_oauthConfig.RedirectUri;
 
         uriBuilder.Query = queryParams.ToString();
 
@@ -68,39 +71,39 @@ public class OAuthService : IOAuthService
     {
         var code = submission.Code;
         var state = submission.State;
-        _logger.LogInformation($"Requested callback for auth request ${state}");
+        m_logger.LogInformation($"Requested callback for auth request ${state}");
         foreach (var entry in s_authorizationRequests)
         {
-            _logger.LogInformation($"{entry.Key}: {entry.Value.IsPending}");
+            m_logger.LogInformation($"{entry.Key}: {entry.Value.IsPending}");
         }
 
         if (!CallbackValuesAreValid(code, state.ToString(), out var error))
         {
-            _logger.LogError($"Error when validating parameters: '{error}'");
+            m_logger.LogError($"Error when validating parameters: '{error}'");
             throw new BadRequestException(error);
         }
 
-        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, _oauthConfig.TokenUri);
+        var tokenRequest = new HttpRequestMessage(HttpMethod.Post, m_oauthConfig.TokenUri);
         tokenRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         var form = new Dictionary<string, string>
         {
             { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
-            { "client_assertion", _oauthConfig.ClientSecret },
+            { "client_assertion", m_oauthConfig.ClientSecret },
             { "grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer" },
             { "assertion", code },
-            { "redirect_uri", _oauthConfig.RedirectUri }
+            { "redirect_uri", m_oauthConfig.RedirectUri }
         };
 
         tokenRequest.Content = new FormUrlEncodedContent(form);
 
-        var response = await _httpClientFactory.CreateClient().SendAsync(tokenRequest);
+        var response = await m_httpClientFactory.CreateClient().SendAsync(tokenRequest);
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError($"Token request failed: {response}");
+            m_logger.LogError($"Token request failed: {response}");
             var content = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Content: {content}");
+            m_logger.LogError($"Content: {content}");
             throw new BadRequestException($"Token request failed: {response.ReasonPhrase} {response.StatusCode}");
         }
 
@@ -119,16 +122,25 @@ public class OAuthService : IOAuthService
 
     private async Task<User> GetUserInfoAndAddToken(TokenModel token)
     {
-        var apiClient = await _apiClientFactory.GetApiClientAsync(token.AccessToken);
-        var user = await apiClient.GetSelfAsync();
+        var connection = new VssConnection(new Uri(m_devOpsConfig.ServerUrl), new VssOAuthAccessTokenCredential(token.AccessToken));
+        await connection.ConnectAsync();
 
-        await _userService.CreateOrUpdateUserAsync(user);
+        using var userClient = connection.GetClient<ProfileHttpClient>();
+        var self = await userClient.GetProfileAsync(new ProfileQueryContext(AttributesScope.Core));
+        var user = new User
+        {
+            Id = self.Id,
+            DisplayName = self.DisplayName,
+            EMail = self.EmailAddress,
+        };
+
+        await m_userService.CreateOrUpdateUserAsync(user);
         user.RefreshTokens.Add(new RefreshToken
         {
             Token = token.RefreshToken,
             IsActive = true
         });
-        await _context.SaveChangesAsync();
+        await m_context.SaveChangesAsync();
         return user;
     }
 
@@ -143,7 +155,7 @@ public class OAuthService : IOAuthService
     {
         error = string.Empty;
 
-        if (String.IsNullOrEmpty(code))
+        if (string.IsNullOrEmpty(code))
             error = $"Invalid parameter: 'code': '{code}'.";
         else
         {
@@ -168,25 +180,25 @@ public class OAuthService : IOAuthService
         if (string.IsNullOrEmpty(token))
             throw new ArgumentNullException(nameof(token));
 
-        var requestMessage = new HttpRequestMessage(HttpMethod.Post, _oauthConfig.TokenUri);
+        var requestMessage = new HttpRequestMessage(HttpMethod.Post, m_oauthConfig.TokenUri);
         requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         var form = new Dictionary<String, String>()
                 {
                     { "client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer" },
-                    { "client_assertion", _oauthConfig.ClientSecret },
+                    { "client_assertion", m_oauthConfig.ClientSecret },
                     { "grant_type", "refresh_token" },
                     { "assertion", token },
-                    { "redirect_uri", _oauthConfig.RedirectUri }
+                    { "redirect_uri", m_oauthConfig.RedirectUri }
                 };
         requestMessage.Content = new FormUrlEncodedContent(form);
 
-        var responseMessage = await _httpClientFactory.CreateClient().SendAsync(requestMessage);
+        var responseMessage = await m_httpClientFactory.CreateClient().SendAsync(requestMessage);
 
         if (responseMessage.IsSuccessStatusCode)
         {
             // Handle successful request
-            String body = await responseMessage.Content.ReadAsStringAsync();
+            var body = await responseMessage.Content.ReadAsStringAsync();
             var newToken = JObject.Parse(body).ToObject<TokenModel>();
             if (newToken == null)
             {

@@ -1,12 +1,14 @@
 import { useContext, useMemo } from 'react';
 import { ModelContext } from '../../../context/ModelContext';
-import { Button, Space, message } from 'antd';
+import { Button, Space, Typography, message } from 'antd';
 import CustomTable from '../../table/CustomTable';
 import { formatDate } from '../../../util/formatDate';
 import { Report } from '../../../features/analysis/types';
 import { useNavigate } from 'react-router-dom';
 import { BackendError, useAppDispatch } from '../../../app/hooks';
 import { deleteReport } from '../../../features/analysis/analysisSlice';
+
+const { Title } = Typography;
 
 const Reports: React.FC = () => {
   const { model } = useContext(ModelContext);
@@ -21,6 +23,10 @@ const Reports: React.FC = () => {
 
   return (
     <>
+      <Title level={4} style={{ marginTop: 0 }}>
+        Reports
+      </Title>
+      <Typography>This is where all your created reports are saved.</Typography>
       <div
         style={{
           width: '100%',
@@ -54,6 +60,7 @@ const Reports: React.FC = () => {
             sorter: {
               compare: (a, b) => (a as Report).created - (b as Report).created,
             },
+            defaultSortOrder: 'descend',
           },
           {
             fixed: 'right',
@@ -67,8 +74,9 @@ const Reports: React.FC = () => {
                 <Space size="middle">
                   <Button
                     type="text"
-                    // onClick={() => nav(`/analyze/${modelId}/report/${report.id}`)}
-                  >
+                    onClick={() =>
+                      nav(`/analyze/${modelId}/report/${report.id}`)
+                    }>
                     Details
                   </Button>
                   <Button
