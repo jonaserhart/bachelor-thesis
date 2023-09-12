@@ -210,6 +210,8 @@ public class AnalysisModelService : IAnalysisModelService
             .Query()
             .Include(x => x.Layout)
             .Include(x => x.DataSources)
+            .Include(x => x.Configuration)
+            .Include(x => x.Properties)
             .LoadAsync();
 
         return config;
@@ -330,12 +332,19 @@ public class AnalysisModelService : IAnalysisModelService
         var item = await m_context.GetByIdOrThrowAsync<GraphicalReportItem>(id);
 
         await m_context.Entry(item).Reference(x => x.DataSources).LoadAsync();
-        if (item.DataSources == null)
-        {
-            item.DataSources = new GraphicalItemDataSources();
-        }
-
+        item.DataSources ??= new GraphicalItemDataSources();
         item.DataSources.KPIs = submission.KPIs;
+
+        await m_context.SaveChangesAsync();
+    }
+
+    public async Task UpdateGraphicalConfigItemProperties(Guid id, UpdatePropertiesOfGraphicalItemSubmission submission)
+    {
+        var item = await m_context.GetByIdOrThrowAsync<GraphicalReportItem>(id);
+
+        await m_context.Entry(item).Reference(x => x.Properties).LoadAsync();
+        item.Properties ??= new GraphicalReportItemProperties();
+        item.Properties.ListFields = submission.Properties?.ListFields ?? new List<string>();
 
         await m_context.SaveChangesAsync();
     }

@@ -44,6 +44,12 @@ const KpiReportListDisplay: React.FC<Props> = (props) => {
             key: 'value',
             dataIndex: 'value',
             title: 'Value',
+            render(value, record, index) {
+              if (Array.isArray(value)) {
+                return `List of length ${value.length}`;
+              }
+              return value;
+            },
           },
           {
             key: 'unit',

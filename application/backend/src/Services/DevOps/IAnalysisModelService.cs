@@ -22,5 +22,6 @@ public interface IAnalysisModelService
     Task<GraphicalReportItem> AddGraphicalConfigLayoutItemAsync(Guid id, AddReportItemSubmission submission);
     Task DeleteGraphicalConfigLayoutItemAsync(Guid id);
     Task<GraphicalReportItem> UpdateGraphicalConfigLayoutItemAsync(Guid id, UpdateReportItemSubmission submission);
+    Task UpdateGraphicalConfigItemProperties(Guid id, UpdatePropertiesOfGraphicalItemSubmission submission);
     Task UpdateGraphicalConfigItemKPIs(Guid id, UpdateKPIsOfGraphicalItemSubmission submission);
 }

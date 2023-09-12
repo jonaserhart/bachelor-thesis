@@ -11,6 +11,15 @@ export const store = configureStore({
   },
 });
 
+if (process.env.NODE_ENV === 'development') {
+  // Add redux state to window to debug
+  Object.defineProperty(window, 'reduxStore', {
+    get() {
+      return store.getState();
+    },
+  });
+}
+
 export type AppDispatch = typeof store.dispatch;
 export type RootState = ReturnType<typeof store.getState>;
 export type AppThunk<ReturnType = void> = ThunkAction<

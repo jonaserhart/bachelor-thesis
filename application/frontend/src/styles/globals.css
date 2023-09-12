@@ -42,3 +42,7 @@ body {
 .react-resizable-handle {
     background: linear-gradient(135deg, transparent 0%, transparent 45%, grey 65%, grey 100%);
 }
+
+.recharts-wrapper{
+  position: absolute;
+}

@@ -15,7 +15,7 @@ public class WorkItemFieldsComparer : IEqualityComparer<Dictionary<string, objec
 
         if (x.TryGetValue("System.Id", out var idX) && y.TryGetValue("System.Id", out var idY))
         {
-            return idX == idY;
+            return idX.Equals(idY);
         }
 
         return x.Count == y.Count && !x.Except(y).Any();

@@ -1,7 +1,9 @@
+using System.Security.Cryptography.X509Certificates;
 using System.Data;
 using backend.Model.Analysis;
 using backend.Model.Custom;
 using backend.Model.Users;
+using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi.Types;
 using Microsoft.TeamFoundation.Work.WebApi;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
@@ -23,9 +25,16 @@ public sealed class ApiClient : IApiClient
         m_logger = logger;
     }
 
+    public async Task<IEnumerable<(Guid Id, string Name)>> GetProjectNameAsync()
+    {
+        var client = m_connection.GetClient<ProjectHttpClient>();
+        var projects = await client.GetProjects();
+        return projects.Select(x => (x.Id, x.Name));
+    }
+
     public async Task<IEnumerable<AzureDevopsIteration>> GetIterationsAsync(string projectId, string teamId)
     {
-        using var workClient = m_connection.GetClient<WorkHttpClient>();
+        var workClient = m_connection.GetClient<WorkHttpClient>();
         var iterations = await workClient.GetTeamIterationsAsync(new TeamContext(projectId, teamId));
         return iterations.Select(x => new AzureDevopsIteration { Id = x.Id, Name = x.Name, Path = x.Path });
     }
@@ -38,7 +47,7 @@ public sealed class ApiClient : IApiClient
 
         var fetchedWorkItems = new List<Dictionary<string, object>>();
 
-        using var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
         foreach (var id in tasks)
         {
             var workItem = await witClient.GetWorkItemAsync(teamContext.Project ?? teamContext.ProjectId.ToString(), id);
@@ -57,7 +66,7 @@ public sealed class ApiClient : IApiClient
 
         var fetchedWorkItems = new List<Dictionary<string, object>>();
 
-        using var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
         foreach (var id in userStoriesAndBugs)
         {
             var workItem = await witClient.GetWorkItemAsync(teamContext.Project ?? teamContext.ProjectId.ToString(), id);
@@ -84,22 +93,20 @@ public sealed class ApiClient : IApiClient
             throw new ArgumentException("Argument 'workItemTypes' cannot be empty.");
         }
 
-        using var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
-        var asOfString = asOf.ToString("M-d-yyyy HH:mm:ss");
-
         var queryParts = workitemTypes.Select(type => $"[System.WorkItemType] = '{type}'").ToArray();
 
         var workItemTypeClause = string.Join(" OR ", queryParts);
 
         var query = $"""
-            SELECT [System.Id] 
+            SELECT [System.Id]
             FROM workitems 
             WHERE 
-                [System.TeamProject] = '${project}' 
+                [System.TeamProject] = '{project}' 
                 AND ({workItemTypeClause}) 
-                AND [System.IterationPath] = '${iterationPath}' 
-            ASOF '${asOfString}' 
+                AND (EVER ([System.IterationPath] = '{iterationPath}' ))
         """;
+
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
 
         var queryResult = await witClient.QueryByWiqlAsync(new Wiql() { Query = query });
         var ids = queryResult.WorkItems.Select(x => x.Id);
@@ -108,17 +115,129 @@ public sealed class ApiClient : IApiClient
 
         foreach (var id in ids)
         {
-            var workItem = await witClient.GetWorkItemAsync(project, id);
-            var wi = workItem.Fields.ToDictionary(x => x.Key, x => x.Value); ;
-            fetchedWorkItems.Add(wi);
+            try
+            {
+                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: asOf);
+                if (workItem.Fields.TryGetValue("System.IterationPath", out var actualIteration) && iterationPath.Equals(actualIteration?.ToString()))
+                {
+                    var wi = workItem.Fields.ToDictionary(x => x.Key, x => x.Value);
+                    wi.TryAdd("System.Id", workItem.Id);
+                    fetchedWorkItems.Add(wi);
+                }
+            }
+            catch (Exception e)
+            {
+                m_logger.LogError(e.Message);
+            }
         }
 
         return fetchedWorkItems;
     }
 
+    public async Task<List<Dictionary<string, object>>> GetNormalTicketsAsOfAsync(string project, string iterationPath, DateTime asOf)
+    {
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
+
+        var query = $"""
+            SELECT [System.Id] 
+            FROM workitems 
+            WHERE 
+                [System.TeamProject] = '{project}' 
+                AND [System.WorkItemType] = 'Task' 
+                AND [LatitudeAgile.Blocker] = false
+                AND [Custom.8edfbb8b-fae7-4ede-8694-d157a4d38e8a] = false
+                AND (EVER ([System.IterationPath] = '{iterationPath}' ))
+        """;
+
+        var queryResult = await witClient.QueryByWiqlAsync(new Wiql() { Query = query });
+        var ids = queryResult.WorkItems.Select(x => x.Id);
+
+        var fetchedWorkItems = await GetParentWorkItems(project, asOf, witClient, ids, iterationPath);
+
+        return fetchedWorkItems;
+    }
+
+    public async Task<List<Dictionary<string, object>>> GetBlockerTicketsAsOfAsync(string project, string iterationPath, DateTime asOf)
+    {
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
+
+        var query = $"""
+            SELECT [System.Id] 
+            FROM workitems 
+            WHERE 
+                [System.TeamProject] = '{project}' 
+                AND [System.WorkItemType] = 'Task' 
+                AND [LatitudeAgile.Blocker] = true
+                AND (EVER ([System.IterationPath] = '{iterationPath}' ))
+        """;
+
+        var queryResult = await witClient.QueryByWiqlAsync(new Wiql() { Query = query });
+        var ids = queryResult.WorkItems.Select(x => x.Id);
+
+        var fetchedWorkItems = await GetParentWorkItems(project, asOf, witClient, ids, iterationPath);
+
+        return fetchedWorkItems;
+    }
+
+    public async Task<List<Dictionary<string, object>>> GetAfterThoughtTicketsAsOfAsync(string project, string iterationPath, DateTime asOf)
+    {
+        var witClient = await m_connection.GetClientAsync<WorkItemTrackingHttpClient>();
+
+        var query = $"""
+            SELECT [System.Id] 
+            FROM workitems 
+            WHERE 
+                [System.TeamProject] = '{project}' 
+                AND [System.WorkItemType] = 'Task' 
+                AND [Custom.8edfbb8b-fae7-4ede-8694-d157a4d38e8a] = true
+                AND (EVER ([System.IterationPath] = '{iterationPath}' ))
+        """;
+
+        var queryResult = await witClient.QueryByWiqlAsync(new Wiql() { Query = query });
+        var ids = queryResult.WorkItems.Select(x => x.Id);
+        var fetchedWorkItems = await GetParentWorkItems(project, asOf, witClient, ids, iterationPath);
+
+        return fetchedWorkItems;
+    }
+
+    private async Task<List<Dictionary<string, object>>> GetParentWorkItems(string project, DateTime asOf, WorkItemTrackingHttpClient witClient, IEnumerable<int> ids, string iterationPath)
+    {
+        var fetchedWorkItems = new Dictionary<int, Dictionary<string, object>>();
+
+        foreach (var id in ids)
+        {
+            try
+            {
+                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: asOf);
+                var parent = workItem.Fields.Where(x => x.Key == "System.Parent").FirstOrDefault();
+                if (int.TryParse(parent.Value?.ToString(), out var parentId))
+                {
+                    if (fetchedWorkItems.ContainsKey(parentId))
+                    {
+                        continue;
+                    }
+                    var parentWorkItem = await witClient.GetWorkItemAsync(project, parentId, expand: WorkItemExpand.Fields, asOf: asOf);
+                    if (parentWorkItem.Fields.TryGetValue("System.IterationPath", out var actualIteration) && iterationPath.Equals(actualIteration?.ToString()))
+                    {
+                        var wi = parentWorkItem.Fields.ToDictionary(x => x.Key, x => x.Value);
+                        wi.TryAdd("System.Id", parentId);
+                        fetchedWorkItems.Add(parentId, wi);
+                    }
+
+                }
+            }
+            catch (Exception e)
+            {
+                m_logger.LogError(e.Message);
+            }
+        }
+
+        return fetchedWorkItems.Values.ToList();
+    }
+
     private async Task<IterationWorkItems> GetIterationWorkItemsAsync(TeamContext teamContext, Guid iterationId)
     {
-        using var workClient = m_connection.GetClient<WorkHttpClient>();
+        var workClient = m_connection.GetClient<WorkHttpClient>();
         var workItems = await workClient.GetIterationWorkItemsAsync(teamContext, iterationId);
 
         return workItems;
@@ -143,7 +262,7 @@ public sealed class ApiClient : IApiClient
 
     public async Task<double> GetIterationCapacitiesAsync(TeamContext teamContext, Guid iteration)
     {
-        using var workClient = m_connection.GetClient<WorkHttpClient>();
+        var workClient = m_connection.GetClient<WorkHttpClient>();
         var r = await workClient.GetCapacitiesWithIdentityRefAndTotalsAsync(teamContext, iteration);
 
         var nonWorkDays = new[] { DayOfWeek.Sunday, DayOfWeek.Saturday };

@@ -2,9 +2,10 @@ import {
   BarChartOutlined,
   EditOutlined,
   EyeOutlined,
+  FieldStringOutlined,
   NumberOutlined,
+  OrderedListOutlined,
   PieChartOutlined,
-  SaveOutlined,
 } from '@ant-design/icons';
 import {
   Avatar,
@@ -16,7 +17,7 @@ import {
   message,
   theme,
 } from 'antd';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { GraphicalConfigContext } from '../../../../context/GraphicalConfigContext';
 import { ModelContext } from '../../../../context/ModelContext';
 import { BackendError, useAppDispatch } from '../../../../app/hooks';
@@ -26,14 +27,13 @@ import {
   updateGraphicalConfigDetails,
   updateGraphicalConfigItemDetails,
   updateGraphicalItemKPIs,
+  updateGraphicalItemProperties,
   updateLayout,
 } from '../../../../features/analysis/analysisSlice';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import {
-  GraphicalReportItem,
-  GraphicalReportItemData,
+  GraphicalItemProperties,
   GraphicalReportItemLayout,
-  GraphicalReportItemLayoutSubmission,
   GraphicalReportItemSubmission,
   GraphicalReportItemType,
 } from '../../../../features/analysis/types';
@@ -283,6 +283,30 @@ const GraphicalConfigDetail: React.FC = () => {
     [modelId, graphicalConfigId]
   );
 
+  const onItemPropsUpdate = useCallback(
+    (id: string, graphicalItemProperties: GraphicalItemProperties) =>
+      new Promise<void>((res, rej) => {
+        dispatch(
+          updateGraphicalItemProperties({
+            modelId,
+            graphicalConfigId,
+            id,
+            itemProperties: graphicalItemProperties,
+          })
+        )
+          .unwrap()
+          .then(() => {
+            message.success('Updated properties!');
+            res();
+          })
+          .catch((err: BackendError) => {
+            rej(err);
+            message.error(err.message);
+          });
+      }),
+    [modelId, graphicalConfigId]
+  );
+
   return (
     <Spin spinning={loading}>
       <div>
@@ -341,6 +365,10 @@ const GraphicalConfigDetail: React.FC = () => {
                 onTitleChange={(newTitle) => onItemNameChange(newTitle, x.id)}
                 onKPIsChange={(kpis) => onKPIsUpdate(x.id, kpis)}
                 selectedKPIsForItem={x.dataSources?.kpis ?? []}
+                graphicalItemProperties={x.properties}
+                onGraphicalItemPropertiesChange={(itemProps) =>
+                  onItemPropsUpdate(x.id, itemProps)
+                }
                 onDelete={() => onItemDelete(x.id)}
                 type={x.type}
               />
@@ -365,6 +393,23 @@ const GraphicalConfigDetail: React.FC = () => {
               hoverable
               style={cardStyles}
               onClick={() =>
+                onWidgetSelect(GraphicalReportItemType.Text, 4, 1, 12, 1, 1, 1)
+              }>
+              <Card.Meta
+                title="Text"
+                description="Displays a text helpful for structuring your dashboard"
+                avatar={
+                  <Avatar
+                    style={{ backgroundColor: colorPrimary }}
+                    icon={<FieldStringOutlined />}
+                  />
+                }
+              />
+            </Card>
+            <Card
+              hoverable
+              style={cardStyles}
+              onClick={() =>
                 onWidgetSelect(GraphicalReportItemType.Plain, 2, 2, 2, 2, 1, 2)
               }>
               <Card.Meta
@@ -374,6 +419,23 @@ const GraphicalConfigDetail: React.FC = () => {
                   <Avatar
                     style={{ backgroundColor: colorPrimary }}
                     icon={<NumberOutlined />}
+                  />
+                }
+              />
+            </Card>
+            <Card
+              hoverable
+              style={cardStyles}
+              onClick={() =>
+                onWidgetSelect(GraphicalReportItemType.List, 6, 6, 12, 12, 4, 4)
+              }>
+              <Card.Meta
+                title="List of objects"
+                description="Displays the plain value of a kpi in a comprehensive list"
+                avatar={
+                  <Avatar
+                    style={{ backgroundColor: colorPrimary }}
+                    icon={<OrderedListOutlined />}
                   />
                 }
               />

@@ -5,6 +5,8 @@ import {
   Tooltip as DesignTooltip,
   Alert,
   Typography,
+  Empty,
+  Table,
 } from 'antd';
 import {
   GraphicalReportItem,
@@ -27,6 +29,7 @@ import { selectAllKPIs } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
 import { ReportContext } from '../../../context/ReportContext';
 import { WarningOutlined } from '@ant-design/icons';
+import { selectColors } from '../../../util/graphicalUtils';
 
 interface Props {
   item: GraphicalReportItem;
@@ -58,6 +61,10 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
       };
     }
 
+    const colors = selectColors(item.dataSources.kpis.length);
+
+    let i = 0;
+
     for (let dataSourceId of item.dataSources.kpis) {
       const kpi = allModelKpis.find((kpi) => kpi.id === dataSourceId);
       const warnings = [];
@@ -69,20 +76,31 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
       if (!(dataSourceId in reportData)) {
         warnings.push(`No data found for KPI with id ${dataSourceId}`);
       }
+      if (item.type === GraphicalReportItemType.List) {
+        if (!Array.isArray(reportData[dataSourceId])) {
+          warnings.push(`Data computed by kpi '${kpi?.name}' was not a list.`);
+        } else if (typeof reportData[dataSourceId][0] !== 'object') {
+          warnings.push(
+            `Data computed by kpi '${kpi?.name}' was not a list or does not have any items.`
+          );
+        }
+      }
       if (warnings.length > 0) {
         preparedWarnings.push(...warnings);
       } else {
         preparedData.push({
           ...kpi,
           value: reportData[dataSourceId],
+          fill: colors[i],
         });
+        i++;
       }
     }
     return {
       data: preparedData,
       warnings: preparedWarnings,
     };
-  }, [reportData, item.dataSources.kpis, allModelKpis]);
+  }, [reportData, item.dataSources.kpis, item.type, allModelKpis]);
 
   const content = useMemo(() => {
     switch (item.type) {
@@ -93,34 +111,65 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
             suffix={data.data.length ? data.data[0].unit : undefined}
           />
         );
+      case GraphicalReportItemType.List:
+        const listFields = item?.properties?.listFields;
+        if (!listFields || listFields.length <= 0 || data.data.length <= 0) {
+          return <Empty />;
+        }
+        const tableData = data.data[0].value;
 
+        const columns = listFields.map((field) => ({
+          title: field,
+          dataIndex: field,
+          key: field,
+          render: (text: any) => text || '',
+        }));
+
+        return (
+          <div style={{ width: '100%', height: '100%', overflow: 'scroll' }}>
+            <Table
+              style={{ minWidth: '300px', minHeight: '200px' }}
+              dataSource={tableData}
+              columns={columns}
+            />
+          </div>
+        );
       case GraphicalReportItemType.BarChart:
         return (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.data}>
               <XAxis dataKey="name" />
               <YAxis />
-              <Bar dataKey="value" fill="#8884d8" />
+              <Bar dataKey="value" fill="#000" />
+              <Tooltip />
             </BarChart>
           </ResponsiveContainer>
         );
       case GraphicalReportItemType.PieChart:
+        if (data.data.every((x) => x.value === 0)) {
+          return (
+            <Empty description="Every selected KPI for this chart has value '0'." />
+          );
+        }
         return (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer>
             <PieChart>
               <Pie
-                dataKey="value"
+                nameKey="name"
                 data={data.data}
-                innerRadius={40}
+                cx="50%"
+                cy="50%"
                 outerRadius={80}
-                fill="#82ca9d"
-                label
+                fill="#8884d8"
+                dataKey="value"
               />
               <Tooltip />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
         );
+      case GraphicalReportItemType.Text:
+        return null;
     }
   }, [item.type, data]);
 
@@ -140,8 +189,8 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
             title={
               <Alert
                 message="Warning"
-                description={data.warnings.map((w) => (
-                  <Typography>{w}</Typography>
+                description={data.warnings.map((w, i) => (
+                  <Typography key={`warning-${w}-${item.id}`}>{w}</Typography>
                 ))}
                 type="warning"
                 showIcon

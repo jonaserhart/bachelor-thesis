@@ -19,7 +19,9 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
     private const string LAST_ITER_END_WI_TICKETS_QUERY = "LAST_ITER_END_WI_TICKETS_QUERY";
     private const string LAST_ITER_START_WI_TASKS_QUERY = "LAST_ITER_START_WI_TASKS_QUERY";
     private const string LAST_ITER_END_WI_TASKS_QUERY = "LAST_ITER_END_WI_TASKS_QUERY";
-    private const string LAST_ITER_WI_REMOVED_TICKETS_QUERY = "LAST_ITER_END_WI_REMOVED_TICKETS_QUER";
+    private const string LAST_ITER_WI_REMOVED_TICKETS_QUERY = "LAST_ITER_END_WI_REMOVED_TICKETS_QUERY";
+    private const string LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY = "LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY";
+    private const string LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY = "LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY";
 
     // Parameter names
     private const string ITERATION_PARAMETER = "iteration";
@@ -33,14 +35,15 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
         m_apiClientFactory = apiClientFactory;
         m_queries = new List<Query>
         {
-            new Query(LAST_ITER_WI_TASKS_QUERY, "GeoMan - Last iteration tasks", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_WI_TICKETS_QUERY, "GeoMan - Last iteration tickets", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_CAP_QUERY, "GeoMan - Last iteration capacity", Model.Enum.QueryReturnType.Number),
-            new Query(LAST_ITER_START_WI_TICKETS_QUERY, "GeoMan - Tickets at sprint start", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_END_WI_TICKETS_QUERY, "GeoMan - Tickets at sprint end", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_START_WI_TASKS_QUERY, "GeoMan - Tasks at sprint start", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_END_WI_TASKS_QUERY, "GeoMan - Tasks at sprint end", Model.Enum.QueryReturnType.ObjectList),
-            new Query(LAST_ITER_WI_REMOVED_TICKETS_QUERY, "GeoMan - Removed tickets", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_WI_TASKS_QUERY, "GeoMan - Last iteration tasks", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_WI_TICKETS_QUERY, "GeoMan - Last iteration tickets", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_CAP_QUERY, "GeoMan - Last iteration capacity", Model.Enum.QueryReturnType.Number),
+            new(LAST_ITER_START_WI_TICKETS_QUERY, "GeoMan - Tickets at sprint start", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_END_WI_TICKETS_QUERY, "GeoMan - Tickets at sprint end", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_START_WI_TASKS_QUERY, "GeoMan - Tasks at sprint start", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_END_WI_TASKS_QUERY, "GeoMan - Tasks at sprint end", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_WI_REMOVED_TICKETS_QUERY, "GeoMan - Removed tickets", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY, "GeoMan - Tickets with blocker tasks", Model.Enum.QueryReturnType.ObjectList),
         };
     }
 
@@ -127,6 +130,14 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
                 AddStartDateParameter(queryParameters);
                 AddEndDateParameter(queryParameters);
                 break;
+            case LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY:
+                await AddIterationPathParameter(queryParameters, client);
+                AddEndDateParameter(queryParameters);
+                break;
+            case LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY:
+                await AddIterationPathParameter(queryParameters, client);
+                AddEndDateParameter(queryParameters);
+                break;
             default:
                 throw new KeyNotFoundException($"Query with id {query.Id} not found.");
         }
@@ -172,7 +183,7 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintStart = GetDateTimeParameterOrThrow(SPRINT_START_PARAMETER, parameterValues);
 
-                value = await apiClient.GetWorkItemsOfIterationAndAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintStart, "Bug", "User Story");
+                value = await apiClient.GetNormalTicketsAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintStart);
                 break;
             case LAST_ITER_START_WI_TASKS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
@@ -184,7 +195,7 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
-                value = await apiClient.GetWorkItemsOfIterationAndAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintEnd, "Bug", "User Story");
+                value = await apiClient.GetNormalTicketsAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintEnd);
                 break;
             case LAST_ITER_END_WI_TASKS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
@@ -192,12 +203,24 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
 
                 value = await apiClient.GetWorkItemsOfIterationAndAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintEnd, "Task");
                 break;
+            case LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY:
+                iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
+                sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
+
+                value = await apiClient.GetBlockerTicketsAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintEnd);
+                break;
+            case LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY:
+                iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
+                sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
+
+                value = await apiClient.GetAfterThoughtTicketsAsOfAsync(GEOMAN_PROJECT, iterationPath, sprintEnd);
+                break;
             case LAST_ITER_WI_REMOVED_TICKETS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintStart = GetDateTimeParameterOrThrow(SPRINT_START_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
-                value = await apiClient.GetRemovedWorkItemsAsync(GEOMAN_PROJECT, iterationPath, sprintEnd, sprintStart, "Bug", "User Story");
+                value = await apiClient.GetRemovedWorkItemsAsync(GEOMAN_PROJECT, iterationPath, sprintEnd, sprintStart, "Task");
                 break;
             default:
                 throw new KeyNotFoundException($"Query with id {query.Id} not found.");

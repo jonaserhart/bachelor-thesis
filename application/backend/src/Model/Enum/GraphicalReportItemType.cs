@@ -4,5 +4,7 @@ public enum GraphicalReportItemType
 {
     Plain,
     BarChart,
-    PieChart
+    PieChart,
+    List,
+    Text
 }

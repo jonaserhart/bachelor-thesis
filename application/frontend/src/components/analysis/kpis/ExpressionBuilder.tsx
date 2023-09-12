@@ -422,10 +422,16 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
               label="Left (KPI)"
               rules={[{ required: true }]}>
               <Select
-                options={kpis.map((q) => ({
-                  label: q.name,
-                  value: q.id,
-                }))}
+                showSearch
+                filterOption={(input, option) =>
+                  option?.label !== undefined && option.label.includes(input)
+                }
+                options={kpis
+                  .filter((x) => x.id !== kpiId)
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
               />
             </Form.Item>
             <Form.Item
@@ -433,10 +439,16 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
               label="Right (KPI)"
               rules={[{ required: true }]}>
               <Select
-                options={kpis.map((q) => ({
-                  label: q.name,
-                  value: q.id,
-                }))}
+                showSearch
+                filterOption={(input, option) =>
+                  option?.label !== undefined && option.label.includes(input)
+                }
+                options={kpis
+                  .filter((x) => x.id !== kpiId)
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
               />
             </Form.Item>
           </>

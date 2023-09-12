@@ -4,6 +4,7 @@ import {
   AnalysisModelChange,
   Expression,
   GraphicalConfiguration,
+  GraphicalItemProperties,
   GraphicalReportItem,
   GraphicalReportItemLayout,
   GraphicalReportItemSubmission,
@@ -348,6 +349,25 @@ export const updateGraphicalItemKPIs = createAppAsyncThunk(
   }
 );
 
+export const updateGraphicalItemProperties = createAppAsyncThunk(
+  prefix('updateGraphicalItemProperties'),
+  async function (arg: {
+    modelId: string;
+    graphicalConfigId: string;
+    id: string;
+    itemProperties: GraphicalItemProperties;
+  }) {
+    const response = await axios.put(
+      `/analysis/model/graphicalconfig/item/properties?id=${arg.id}`,
+      {
+        properties: arg.itemProperties,
+      }
+    );
+
+    return response.data;
+  }
+);
+
 const analysisSlice = createSlice({
   name: PREFIX,
   initialState,
@@ -640,6 +660,33 @@ const analysisSlice = createSlice({
       ].dataSources.kpis = action.meta.arg.kpis;
     });
 
+    builder.addCase(
+      updateGraphicalItemProperties.fulfilled,
+      (state, action) => {
+        const indices = getIndices(
+          state,
+          action.meta.arg.modelId,
+          action.meta.arg.graphicalConfigId,
+          'graphical'
+        );
+        if (!indices) {
+          return;
+        }
+        const index = state.models[indices.modelIndex].graphical[
+          indices.secondIndex
+        ].items.findIndex((x) => x.id === action.meta.arg.id);
+
+        if (index < 0) {
+          console.error(`Could not find item with id ${action.meta.arg.id}.`);
+          return;
+        }
+
+        state.models[indices.modelIndex].graphical[indices.secondIndex].items[
+          index
+        ].properties = action.meta.arg.itemProperties;
+      }
+    );
+
     builder.addCase(createKPIFolder.fulfilled, (state, action) => {
       const { modelId, folderId } = action.meta.arg;
       const modelIndex = state.models.findIndex(
@@ -801,6 +848,7 @@ const removeModelCollectionItem = <P extends CollectionTypes<AnalysisModel>>(
   const indices = getIndices(state, modelId, secondId, collection);
   if (!indices) return;
 
+  //@ts-ignore
   state.models[indices.modelIndex][collection] = state.models[
     indices.modelIndex
     //@ts-ignore

@@ -89,7 +89,7 @@ public class KPIService : IKPIService
         return newExpression;
     }
 
-    private static void UpdateConditions(DoIfMultipleExpression leftExpression, DoIfMultipleExpression rightExpression)
+    private static void UpdateConditions(DataContext context, DoIfMultipleExpression leftExpression, DoIfMultipleExpression rightExpression)
     {
         var rightConditionsDict = rightExpression.Conditions.Where(x => Guid.Empty != x.Id).ToDictionary(c => c.Id);
 
@@ -104,6 +104,8 @@ public class KPIService : IKPIService
             }
             else
             {
+                var toRemove = leftExpression.Conditions[i];
+                context.ExpressionConditions.Remove(toRemove);
                 leftExpression.Conditions.RemoveAt(i);
             }
         }
@@ -203,7 +205,7 @@ public class KPIService : IKPIService
                     if (doIfMultipleExpression == null)
                         throw new ExpressionSaveException();
 
-                    UpdateConditions((existingExpressionOfType as DoIfMultipleExpression)!, doIfMultipleExpression);
+                    UpdateConditions(m_context, (existingExpressionOfType as DoIfMultipleExpression)!, doIfMultipleExpression);
                     (existingExpressionOfType as DoIfMultipleExpression)!.Connection = doIfMultipleExpression.Connection;
                     (existingExpressionOfType as DoIfMultipleExpression)!.QueryId = doIfMultipleExpression.QueryId;
                     (existingExpressionOfType as DoIfMultipleExpression)!.ExtractField = doIfMultipleExpression.ExtractField;

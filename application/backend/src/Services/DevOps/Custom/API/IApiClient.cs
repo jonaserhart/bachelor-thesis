@@ -12,5 +12,8 @@ public interface IApiClient : IDisposable
     Task<List<Dictionary<string, object>>> GetIterationTasksAsync(TeamContext teamContext, Guid iterationId);
     Task<double> GetIterationCapacitiesAsync(TeamContext teamContext, Guid iteration);
     Task<List<Dictionary<string, object>>> GetWorkItemsOfIterationAndAsOfAsync(string project, string iterationPath, DateTime asOf, params string[] workitemTypes);
+    Task<List<Dictionary<string, object>>> GetNormalTicketsAsOfAsync(string project, string iterationPath, DateTime asOf);
+    Task<List<Dictionary<string, object>>> GetBlockerTicketsAsOfAsync(string project, string iterationPath, DateTime asOf);
+    Task<List<Dictionary<string, object>>> GetAfterThoughtTicketsAsOfAsync(string project, string iterationPath, DateTime asOf);
     Task<List<Dictionary<string, object>>> GetRemovedWorkItemsAsync(string project, string iterationPath, DateTime sprintEnd, DateTime sprintStart, params string[] workItemTypes);
 }

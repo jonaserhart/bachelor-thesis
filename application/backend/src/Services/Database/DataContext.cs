@@ -81,8 +81,8 @@ public class DataContext : DbContext
         modelBuilder.Entity<DoIfMultipleExpression>(dme =>
         {
             dme.HasMany(x => x.Conditions)
-            .WithOne()
-            .HasForeignKey(x => x.ExpressionId);
+                .WithOne()
+                .HasForeignKey(x => x.ExpressionId);
 
             dme.Navigation(x => x.Conditions).AutoInclude();
         });
@@ -110,11 +110,13 @@ public class DataContext : DbContext
         {
             moe.HasOne(x => x.Left)
                 .WithMany()
-                .HasForeignKey(x => x.LeftId);
+                .HasForeignKey(x => x.LeftId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             moe.HasOne(x => x.Right)
                 .WithMany()
-                .HasForeignKey(x => x.RightId);
+                .HasForeignKey(x => x.RightId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<AnalysisModel>(model =>
@@ -173,6 +175,16 @@ public class DataContext : DbContext
                 .HasOne(x => x.DataSources)
                 .WithOne(x => x.GraphicalReportItem)
                 .HasForeignKey<GraphicalItemDataSources>(x => x.ItemId);
+
+            reportItem
+                .HasOne(x => x.Properties)
+                .WithOne(x => x.Item)
+                .HasForeignKey<GraphicalReportItemProperties>(x => x.ItemId);
+        });
+
+        modelBuilder.Entity<GraphicalReportItemProperties>(properties =>
+        {
+            properties.Property(x => x.ListFields).HasJsonConversion();
         });
 
         modelBuilder.Entity<GraphicalItemDataSources>()

@@ -131,6 +131,15 @@ public class AnalysisController : Controller
         return Ok();
     }
 
+    [HttpPut("model/graphicalconfig/item/properties")]
+    [ProducesResponseType(typeof(void), 200)]
+    [Authorize]
+    public async Task<ActionResult<GraphicalReportItem>> UpdateGraphicalConfigLayoutItemProperties([FromQuery] Guid id, [FromBody] UpdatePropertiesOfGraphicalItemSubmission submission)
+    {
+        await m_analysisModelService.UpdateGraphicalConfigItemProperties(id, submission);
+        return Ok();
+    }
+
     [HttpPut("model/graphicalconfig/layout")]
     [ProducesResponseType(typeof(List<GraphicalReportItemLayout>), 200)]
     [Authorize]

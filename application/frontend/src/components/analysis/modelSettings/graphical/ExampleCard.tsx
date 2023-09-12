@@ -9,6 +9,7 @@ import {
   YAxis,
 } from 'recharts';
 import {
+  GraphicalItemProperties,
   GraphicalReportItemType,
   KPI,
   KPIFolder,
@@ -17,34 +18,30 @@ import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
   Button,
   Card,
+  Divider,
   Dropdown,
-  Form,
-  Menu,
-  Popover,
   Select,
   Spin,
   Statistic,
+  Table,
   Tooltip,
   TreeSelect,
   Typography,
   message,
   theme,
 } from 'antd';
-import { BackendError, useAppSelector } from '../../../../app/hooks';
+import { useAppSelector } from '../../../../app/hooks';
 import {
   CloseOutlined,
   DragOutlined,
   EditOutlined,
   MoreOutlined,
 } from '@ant-design/icons';
-import {
-  selectAllKPIs,
-  selectModel,
-} from '../../../../features/analysis/analysisSlice';
+import { selectAllKPIs } from '../../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../../context/ModelContext';
 import { mapToFolderStructure } from '../../../../util/kpiFolderUtils';
 
-const { Paragraph } = Typography;
+const { Paragraph, Title } = Typography;
 
 const isLeafNode = (
   value: string,
@@ -81,6 +78,10 @@ interface Props {
   onDelete?: () => Promise<void>;
   onKPIsChange: (kpis: string[]) => Promise<void>;
   selectedKPIsForItem: string[];
+  graphicalItemProperties: GraphicalItemProperties;
+  onGraphicalItemPropertiesChange: (
+    props: GraphicalItemProperties
+  ) => Promise<void>;
 }
 
 const ExampleCard: React.FC<Props> = (props) => {
@@ -92,6 +93,8 @@ const ExampleCard: React.FC<Props> = (props) => {
     onTitleChange,
     onKPIsChange,
     selectedKPIsForItem,
+    graphicalItemProperties,
+    onGraphicalItemPropertiesChange,
   } = props;
 
   const {
@@ -101,7 +104,11 @@ const ExampleCard: React.FC<Props> = (props) => {
   const [busy, setBusy] = useState(false);
 
   const multipleKPIs = useMemo(
-    () => type !== GraphicalReportItemType.Plain,
+    () =>
+      [
+        GraphicalReportItemType.BarChart,
+        GraphicalReportItemType.PieChart,
+      ].includes(type),
     [type]
   );
 
@@ -111,13 +118,20 @@ const ExampleCard: React.FC<Props> = (props) => {
 
   const kpis = useAppSelector(selectAllKPIs(modelId));
 
-  const [selectedKPIs, setSelectedKPIs] = useState<string[]>([]);
+  const [selectedKPIs, setSelectedKPIs] = useState<string[] | string>([]);
+  const [selectedListFields, setSelectedListFields] = useState<string[]>([]);
 
   useEffect(() => {
-    setSelectedKPIs(selectedKPIsForItem);
+    if (selectedKPIsForItem.length) {
+      setSelectedKPIs(selectedKPIsForItem);
+    }
   }, [selectedKPIsForItem]);
 
-  const onChange = useCallback(
+  useEffect(() => {
+    setSelectedListFields(graphicalItemProperties?.listFields ?? []);
+  }, [graphicalItemProperties]);
+
+  const onKPISelect = useCallback(
     (values: string[] | string) => {
       const vals = Array.isArray(values) ? values : [values];
       const isLeafValue = vals.every((value) => isLeafNode(value, kpis));
@@ -127,6 +141,17 @@ const ExampleCard: React.FC<Props> = (props) => {
       }
     },
     [setSelectedKPIs, kpis]
+  );
+
+  const onConfigChange = useCallback(
+    (values: string[]) => {
+      setSelectedListFields(values);
+      onGraphicalItemPropertiesChange({
+        ...graphicalItemProperties,
+        listFields: values,
+      });
+    },
+    [setSelectedListFields, graphicalItemProperties]
   );
 
   const [configOpen, setConfigOpen] = useState(false);
@@ -163,6 +188,10 @@ const ExampleCard: React.FC<Props> = (props) => {
             </PieChart>
           </ResponsiveContainer>
         );
+      case GraphicalReportItemType.List:
+        return <Table />;
+      case GraphicalReportItemType.Text:
+        return null;
     }
   }, [type]);
 
@@ -172,6 +201,66 @@ const ExampleCard: React.FC<Props> = (props) => {
       ...(model?.kpis?.map(mapToFolderStructure) ?? []),
     ];
   }, [model]);
+
+  const canDefineKPIs = useMemo(
+    () =>
+      [
+        GraphicalReportItemType.BarChart,
+        GraphicalReportItemType.List,
+        GraphicalReportItemType.PieChart,
+        GraphicalReportItemType.Plain,
+      ].includes(type),
+    [type]
+  );
+
+  if (type === GraphicalReportItemType.Text) {
+    return (
+      <Card
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}>
+        {enableEdit && (
+          <div
+            className="drag-handle"
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              zIndex: 1,
+            }}>
+            <Tooltip title="Drag this element anywhere">
+              <Button icon={<DragOutlined />} type="text" />
+            </Tooltip>
+          </div>
+        )}
+        <Divider orientation="left" orientationMargin={0}>
+          <Title
+            level={4}
+            style={{
+              margin: 0,
+              marginInline: 12,
+            }}
+            editable={
+              !enableEdit && {
+                onChange: (newTitle: string) => {
+                  onTitleChange(newTitle);
+                },
+                icon: busy ? (
+                  <Spin />
+                ) : (
+                  <EditOutlined style={{ color: colorPrimary }} />
+                ),
+                tooltip: 'click to edit text',
+              }
+            }>
+            {title}
+          </Title>
+        </Divider>
+      </Card>
+    );
+  }
 
   return (
     <>
@@ -199,7 +288,9 @@ const ExampleCard: React.FC<Props> = (props) => {
           </Paragraph>
         }
         style={{ height: 'inherit' }}
-        bodyStyle={{ height: '90%' }}
+        bodyStyle={{
+          height: '90%',
+        }}
         extra={
           <>
             {enableEdit && (
@@ -210,6 +301,7 @@ const ExampleCard: React.FC<Props> = (props) => {
                       {
                         key: 'configure',
                         label: 'Configure KPIs',
+                        disabled: !canDefineKPIs,
                         onClick() {
                           setConfigOpen(true);
                         },
@@ -288,8 +380,14 @@ const ExampleCard: React.FC<Props> = (props) => {
                 }
                 style={{ minWidth: 300, minHeight: 100 }}>
                 <TreeSelect
-                  onChange={onChange}
-                  value={selectedKPIs}
+                  onChange={onKPISelect}
+                  value={
+                    multipleKPIs
+                      ? selectedKPIs
+                      : selectedKPIs.length
+                      ? selectedKPIs[0]
+                      : undefined
+                  }
                   style={{ width: '100%' }}
                   multiple={multipleKPIs}
                   treeData={kpiFolders}
@@ -299,6 +397,15 @@ const ExampleCard: React.FC<Props> = (props) => {
                     value: 'id',
                   }}
                 />
+                {type === GraphicalReportItemType.List && (
+                  <Select
+                    value={selectedListFields}
+                    mode="tags"
+                    onChange={onConfigChange}
+                    style={{ width: '100%' }}
+                    placeholder="Add fields to display in your list"
+                  />
+                )}
               </Card>
             </div>
           </div>

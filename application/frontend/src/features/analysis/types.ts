@@ -150,17 +150,24 @@ export enum GraphicalReportItemType {
   Plain = 'Plain',
   BarChart = 'BarChart',
   PieChart = 'PieChart',
+  List = 'List',
+  Text = 'Text',
 }
 
 export type GraphicalReportItemData = {
   kpis: string[];
 };
 
+export interface GraphicalItemProperties extends HasId {
+  listFields?: string[];
+}
+
 export interface GraphicalReportItem extends HasId {
   name: string;
   type: GraphicalReportItemType;
   dataSources: GraphicalReportItemData;
   layout: GraphicalReportItemLayout;
+  properties: GraphicalItemProperties;
 }
 
 export interface GraphicalConfiguration extends HasId {

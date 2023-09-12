@@ -16,8 +16,8 @@ public abstract class DoIfMultipleExpression : Expression
 
     private bool ConditionIfString(object item, Condition condition)
     {
-        var value = item.ToString() ?? string.Empty;
-        var cv = condition.CompareValue.ToString() ?? string.Empty;
+        var value = item?.ToString()?.ToLowerInvariant() ?? string.Empty;
+        var cv = condition.CompareValue.ToString().ToLowerInvariant() ?? string.Empty;
         return condition.Operator switch
         {
             CountIfOperator.IsEqual => cv == value,
@@ -79,7 +79,8 @@ public abstract class DoIfMultipleExpression : Expression
 
         if (!obj.TryGetValue(ExtractField, out var fieldValue))
         {
-            throw new ExpressionEvaluationException($"Could not find field {ExtractField} in object {obj} (keys: {string.Join(',', obj.Keys)})");
+            Console.WriteLine($"Could not find field {ExtractField} in object {obj} (keys: {string.Join(',', obj.Keys)}), Returning 0...");
+            return 0;
         }
 
         return fieldValue;
@@ -107,11 +108,11 @@ public abstract class DoIfMultipleExpression : Expression
 
         bool conditionalFunc(object item)
         {
-            var result = true;
+            var result = Connection == ConditionConnection.All;
 
             foreach (var condition in Conditions)
             {
-                bool conditionResult = false;
+                var conditionResult = false;
 
                 conditionResult = queryResult.Type switch
                 {
