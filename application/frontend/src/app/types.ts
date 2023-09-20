@@ -19,3 +19,13 @@ export type CollectionTypes<T> = {
       : never
     : never;
 }[keyof T];
+
+export {};
+
+declare global {
+  interface Window {
+    __RUNTIME_CONFIG__: {
+      REACT_APP_BACKEND_URL: string;
+    };
+  }
+}

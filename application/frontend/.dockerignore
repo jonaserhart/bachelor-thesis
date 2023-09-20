@@ -1,0 +1,7 @@
+node_modules
+.vscode
+.prettierrc.json
+.prettierignore
+.gitignore
+.Dockerfile.dev
+README.md

@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: scrum-backend-ingress
+    namespace: scrum-backend
+    labels:
+        name: scrum-backend-ingress
+    annotations:
+        nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+    ingressClassName: nginx-scrum-backend
+    tls:
+        - hosts:
+              - scrum-backend.westeurope.cloudapp.azure.com
+          secretName: letsencrypt-secret-scrum-backend
+    rules:
+        - host: scrum-backend.westeurope.cloudapp.azure.com
+          http:
+              paths:
+                  - pathType: Prefix
+                    path: /.*
+                    backend:
+                        service:
+                            name: scrum-backend-service
+                            port:
+                                number: 80

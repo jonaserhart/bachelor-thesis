@@ -9,7 +9,10 @@ type TokenPromiseFunction = {
 };
 
 const instance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  withCredentials: true,
+  baseURL:
+    window.__RUNTIME_CONFIG__.REACT_APP_BACKEND_URL ??
+    process.env.REACT_APP_BACKEND_URL,
 });
 
 /**

@@ -1,14 +1,13 @@
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0.401-bullseye-slim AS build
 WORKDIR /source
 
-COPY *.csproj .
-RUN dotnet restore --use-current-runtime
+COPY ./src .
+RUN dotnet publish -c Release -o /app .
 
-COPY . .
-RUN dotnet publish -c Release -o /app --use-current-runtime --self-contained false --no-restore
-
-# final stage/image
-FROM mcr.microsoft.com/dotnet/runtime:7.0
+FROM mcr.microsoft.com/dotnet/aspnet:7.0.11-bullseye-slim
 WORKDIR /app
+
+ENV ASPNETCORE_URLS="http://+"
+
 COPY --from=build /app .
 ENTRYPOINT ["dotnet", "backend.dll"]

@@ -81,7 +81,6 @@ const Analysis: React.FC = () => {
           {
             key: 'name',
             dataIndex: 'name',
-            editable: true,
             title: 'Name',
           },
           {

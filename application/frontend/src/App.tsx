@@ -1,4 +1,9 @@
-import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import {
+  Outlet,
+  RouterProvider,
+  createBrowserRouter,
+  useNavigate,
+} from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Analysis from './features/analysis/Analysis';
 import Callback from './features/auth/Callback';
@@ -13,6 +18,7 @@ import { ReportContextProvider } from './context/ReportContext';
 import ReportDetail from './components/analysis/reports/ReportDetail';
 import { GraphicalConfigContextProvider } from './context/GraphicalConfigContext';
 import GraphicalConfigDetail from './components/analysis/modelSettings/graphical/GraphicalConfigDetail';
+import ServerInfoPage from './components/error/ServerInfoPage';
 
 const App = () => {
   const router = createBrowserRouter([
@@ -96,6 +102,10 @@ const App = () => {
     {
       path: '/oauth-callback',
       element: <Callback />,
+    },
+    {
+      path: '/server-info',
+      element: <ServerInfoPage />,
     },
   ]);
 

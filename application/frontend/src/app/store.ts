@@ -2,12 +2,14 @@ import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit';
 import analysisReducer from '../features/analysis/analysisSlice';
 import authReducer from '../features/auth/authSlice';
 import queryReducer from '../features/queries/querySclice';
+import healthReducer from '../features/health/healthSlice';
 
 export const store = configureStore({
   reducer: {
     analysis: analysisReducer,
     auth: authReducer,
     queries: queryReducer,
+    health: healthReducer,
   },
 });
 

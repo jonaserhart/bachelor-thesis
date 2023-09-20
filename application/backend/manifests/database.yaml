@@ -1,0 +1,79 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+    name: azuredisk-custom-storageclass
+    namespace: scrum-backend
+provisioner: kubernetes.io/azure-disk
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+    storageaccounttype: Standard_LRS
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: scrum-backend-db-pvc
+    namespace: scrum-backend
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: "azuredisk-custom-storageclass"
+    resources:
+        requests:
+            storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: scrum-backend-db
+    namespace: scrum-backend
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: scrum-backend-db
+    template:
+        metadata:
+            labels:
+                app: scrum-backend-db
+        spec:
+            nodeSelector:
+                "kubernetes.io/os": linux
+            containers:
+                - name: scrum-backend-db
+                  image: postgres:latest
+                  resources: {}
+                  ports:
+                      - containerPort: 5432
+                  env:
+                      - name: POSTGRES_DB
+                        value: scrum-backend-db
+                      - name: POSTGRES_USER
+                        value: postgres
+                      - name: POSTGRES_PASSWORD
+                        value: 7p9Zi2FvFm38gvHG5T5V
+                      - name: POSTGRES_INITDB_ARGS
+                        value: --encoding=UTF-8
+                      - name: PGDATA
+                        value: /var/lib/postgresql/backup
+                  volumeMounts:
+                      - name: databasevolume
+                        mountPath: /var/lib/postgresql
+                        subPath: backup
+            volumes:
+                - name: databasevolume
+                  persistentVolumeClaim:
+                      claimName: scrum-backend-db-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: scrum-backend-db-service
+    namespace: scrum-backend
+spec:
+    selector:
+        app: scrum-backend-db
+    ports:
+        - protocol: TCP
+          port: 5432
+          targetPort: 5432

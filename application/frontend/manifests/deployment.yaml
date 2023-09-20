@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scrum-frontend
+spec:
+  selector:
+    matchLabels:
+      app: scrum-frontend
+  template:
+    metadata:
+      labels:
+        app: scrum-frontend
+    spec:
+      nodeSelector:
+        'kubernetes.io/os': linux
+      containers:
+        - name: scrum-frontend
+          image: jonaserhartuibk/scrum-frontend:latest
+          imagePullPolicy: Always
+          resources: {}
+          ports:
+            - containerPort: 80
+          env:
+            - name: REACT_APP_BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: scrum-frontend-config
+                  key: backendUrl
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scrum-frontend-service
+spec:
+  selector:
+    app: scrum-frontend
+  ports:
+    - port: 80
+      targetPort: 80

@@ -60,6 +60,10 @@ public class AuthController : Controller
         {
             HttpOnly = true,
             Expires = DateTime.UtcNow.AddDays(7),
+            SameSite = SameSiteMode.None,
+            IsEssential = true,
+            Secure = true,
+            Domain = m_authenticationConfig.CookieDomain
         };
 
         Response.Cookies.Append("refreshToken", token, cookieOptions);

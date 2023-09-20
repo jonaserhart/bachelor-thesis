@@ -15,6 +15,10 @@ using backend.Services.DevOps.Custom.API;
 using Microsoft.AspNetCore.Authorization;
 using backend.Services.Security.Handlers;
 using backend.Services.Security;
+using backend.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Newtonsoft.Json.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,12 +95,19 @@ builder.Services.AddAuthentication((x) =>
 builder.Services.AddScoped<IAuthorizationHandler, ModelAuthorizationHandler>();
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<DataContext>()
+    .AddCheck<HealthCheck>("Main");
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<DataContext>();
-    context.Database.Migrate();
+    var context = scope.ServiceProvider.GetService<DataContext>();
+    if (context != null && context.Database.CanConnect())
+    {
+        context.Database.Migrate();
+    }
 }
 
 // Configure the HTTP request pipeline.
@@ -105,7 +116,10 @@ if (app.Environment.IsDevelopment())
     Console.WriteLine("DEVELOPMENT");
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseCors(cp => cp.WithOrigins("http://localhost:3050").AllowAnyHeader().AllowAnyMethod().AllowCredentials());
+}
+else
+{
+    app.UseCors(cp => cp.SetIsOriginAllowed(host => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 }
 app.UseHttpsRedirection();
 
@@ -116,5 +130,24 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    ResponseWriter = (context, report) =>
+    {
+        context.Response.ContentType = "application/json; charset=utf-8";
+
+        var o = JObject.FromObject(new
+        {
+            status = new
+            {
+                code = report.Status.ToString(),
+                details = report.Entries.Select(x => new { key = x.Key, value = x.Value }).ToArray()
+            }
+        }
+        );
+
+        return context.Response.WriteAsync(o.ToString());
+    }
+});
 
 app.Run();

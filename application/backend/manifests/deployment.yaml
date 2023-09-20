@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: scrum-backend
+    namespace: scrum-backend
+spec:
+    selector:
+        matchLabels:
+            app: scrum-backend
+    template:
+        metadata:
+            labels:
+                app: scrum-backend
+        spec:
+            nodeSelector:
+                "kubernetes.io/os": linux
+
+            containers:
+                - name: scrum-backend
+                  image: jonaserhartuibk/scrum-backend
+                  imagePullPolicy: Always
+                  resources: {}
+                  ports:
+                      - containerPort: 80
+                  env:
+                      - name: SCRUM_BACKEND_ConnectionStrings__PostgresDatabase
+                        valueFrom:
+                            configMapKeyRef:
+                                name: scrum-backend-database-config
+                                key: connectionString
+                  volumeMounts:
+                      - name: config
+                        mountPath: "/app/appsettings.json"
+                        subPath: appsettings.json
+            volumes:
+                - name: config
+                  configMap:
+                      name: scrum-backend-appsettings
+                      items:
+                          - key: "appsettings.json"
+                            path: "appsettings.json"
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: scrum-backend-service
+    namespace: scrum-backend
+spec:
+    selector:
+        app: scrum-backend
+    ports:
+        - port: 80
+          targetPort: 80
+          name: http

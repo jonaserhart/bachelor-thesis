@@ -11,6 +11,11 @@ import { getMe, selectAuthenticatedUser } from '../features/auth/authSlice';
 import { useCallback, useEffect, useMemo } from 'react';
 import { getLogger } from '../util/logger';
 import handleError from '../util/handleError';
+import axios from '../backendClient';
+import {
+  State as BackendStatusInfo,
+  checkHealthEndpoint,
+} from '../features/health/healthSlice';
 
 const logger = getLogger('NavBar');
 
@@ -23,6 +28,17 @@ const NavBar: React.FC = () => {
   const location = useLocation();
 
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(checkHealthEndpoint())
+      .unwrap()
+      .then((result) => {
+        if (result.status.code !== 'Healthy') {
+          nav('/server-info');
+        }
+      })
+      .catch(() => nav('/server-info'));
+  }, [dispatch]);
 
   const me = useAppSelector(selectAuthenticatedUser);
 

@@ -214,7 +214,7 @@ public class AnalysisController : Controller
     [ProducesResponseType(typeof(void), 200)]
     public async Task<ActionResult<User>> ChangeUserPermissionOnModel(Guid modelId, Guid userId, [FromQuery] ModelPermission permission)
     {
-        await m_securityService.AuthorizeModelAsync(modelId, Operations.AddUserToModel, User);
+        await m_securityService.AuthorizeModelAsync(modelId, Operations.ChangeUserRoleOnModel, User);
 
         await m_analysisModelService.ChangeUserPermissionOnModelAsync(modelId, userId, permission);
         return Ok();

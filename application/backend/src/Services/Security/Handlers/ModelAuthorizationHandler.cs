@@ -91,6 +91,8 @@ public class ModelAuthorizationHandler : AuthorizationHandler<OperationAuthoriza
             case Operations.DeleteKPIFolderOperation:
             case Operations.DeleteKPIOperation:
             case Operations.DeleteReportOperation:
+            case Operations.AddUserToModelOperation:
+            case Operations.ChangeUserRoleOnModelOperation:
                 if (!CanDeleteProject(userModel.Permission))
                     context.Fail(new AuthorizationFailureReason(this, $"User {user.Id} ({user.DisplayName}) has insufficient permissions to delete {resource.Name}"));
                 break;

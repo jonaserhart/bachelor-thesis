@@ -12,15 +12,15 @@ using backend.Services.Database;
 namespace backend.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20230905144629_added_DoIfMultipleExpressions")]
-    partial class added_DoIfMultipleExpressions
+    [Migration("20230920155020_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.3")
+                .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -198,6 +198,27 @@ namespace backend.Migrations
                     b.ToTable("GraphicalReportItemLayout");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItemProperties", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ListFields")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId")
+                        .IsUnique();
+
+                    b.ToTable("GraphicalReportItemProperties");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.KPIs.KPI", b =>
                 {
                     b.Property<Guid>("Id")
@@ -302,6 +323,45 @@ namespace backend.Migrations
                     b.ToTable("Reports");
                 });
 
+            modelBuilder.Entity("backend.Model.Users.ModelAssociationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("CompletedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("IssuedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+
+                    b.Property<Guid>("IssuedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ModelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Permission")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssuedById");
+
+                    b.HasIndex("ModelId");
+
+                    b.ToTable("ModelAssociationRequests");
+                });
+
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>
                 {
                     b.Property<string>("Token")
@@ -346,9 +406,8 @@ namespace backend.Migrations
                     b.Property<Guid?>("ModelId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Permissions")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Permission")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId", "ModelId");
 
@@ -378,7 +437,7 @@ namespace backend.Migrations
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.HasDiscriminator().HasValue(11);
+                    b.HasDiscriminator().HasValue(12);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.CountIfExpression", b =>
@@ -405,6 +464,9 @@ namespace backend.Migrations
 
                     b.Property<int>("Connection")
                         .HasColumnType("integer");
+
+                    b.Property<string>("ExtractField")
+                        .HasColumnType("text");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
@@ -417,11 +479,9 @@ namespace backend.Migrations
                     b.Property<Guid?>("RightId")
                         .HasColumnType("uuid");
 
-                    b.HasIndex("LeftId")
-                        .IsUnique();
+                    b.HasIndex("LeftId");
 
-                    b.HasIndex("RightId")
-                        .IsUnique();
+                    b.HasIndex("RightId");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MaxExpression", b =>
@@ -472,7 +532,7 @@ namespace backend.Migrations
                 {
                     b.HasBaseType("backend.Model.Analysis.Expressions.Expression");
 
-                    b.HasDiscriminator().HasValue(12);
+                    b.HasDiscriminator().HasValue(13);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.SumExpression", b =>
@@ -497,6 +557,13 @@ namespace backend.Migrations
                     b.HasBaseType("backend.Model.Analysis.Expressions.DoIfMultipleExpression");
 
                     b.HasDiscriminator().HasValue(10);
+                });
+
+            modelBuilder.Entity("backend.Model.Analysis.Expressions.SumIfMultipleExpression", b =>
+                {
+                    b.HasBaseType("backend.Model.Analysis.Expressions.DoIfMultipleExpression");
+
+                    b.HasDiscriminator().HasValue(11);
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.Expressions.AddExpression", b =>
@@ -584,6 +651,17 @@ namespace backend.Migrations
                     b.Navigation("GraphicalReportItem");
                 });
 
+            modelBuilder.Entity("backend.Model.Analysis.Graphical.GraphicalReportItemProperties", b =>
+                {
+                    b.HasOne("backend.Model.Analysis.Graphical.GraphicalReportItem", "Item")
+                        .WithOne("Properties")
+                        .HasForeignKey("backend.Model.Analysis.Graphical.GraphicalReportItemProperties", "ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Item");
+                });
+
             modelBuilder.Entity("backend.Model.Analysis.KPIs.KPI", b =>
                 {
                     b.HasOne("backend.Model.Analysis.AnalysisModel", "AnalysisModel")
@@ -634,6 +712,25 @@ namespace backend.Migrations
                     b.Navigation("AnalysisModel");
                 });
 
+            modelBuilder.Entity("backend.Model.Users.ModelAssociationRequest", b =>
+                {
+                    b.HasOne("backend.Model.Users.User", "IssuedBy")
+                        .WithMany()
+                        .HasForeignKey("IssuedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.Analysis.AnalysisModel", "Model")
+                        .WithMany()
+                        .HasForeignKey("ModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IssuedBy");
+
+                    b.Navigation("Model");
+                });
+
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>
                 {
                     b.HasOne("backend.Model.Users.User", "User")
@@ -666,12 +763,14 @@ namespace backend.Migrations
             modelBuilder.Entity("backend.Model.Analysis.Expressions.MathOperationExpression", b =>
                 {
                     b.HasOne("backend.Model.Analysis.KPIs.KPI", "Left")
-                        .WithOne()
-                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "LeftId");
+                        .WithMany()
+                        .HasForeignKey("LeftId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("backend.Model.Analysis.KPIs.KPI", "Right")
-                        .WithOne()
-                        .HasForeignKey("backend.Model.Analysis.Expressions.MathOperationExpression", "RightId");
+                        .WithMany()
+                        .HasForeignKey("RightId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Left");
 
@@ -701,6 +800,8 @@ namespace backend.Migrations
                     b.Navigation("DataSources");
 
                     b.Navigation("Layout");
+
+                    b.Navigation("Properties");
                 });
 
             modelBuilder.Entity("backend.Model.Analysis.KPIs.KPIFolder", b =>

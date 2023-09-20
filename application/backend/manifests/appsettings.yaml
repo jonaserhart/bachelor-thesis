@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: scrum-backend-appsettings
+    namespace: scrum-backend
+data:
+    appsettings.json: |
+        {
+          "Logging": {
+            "LogLevel": {
+              "Default": "Information",
+              "Microsoft.AspNetCore": "Warning"
+            }
+          },
+          "AllowedHosts": "*",
+          "ConnectionStrings": {
+            "PostgresDatabase": ""
+          },
+          "Auth": {
+            "AvailableMethods": [
+              {
+                "Key": "azure-oauth",
+                "Name": "Microsoft OAuth"
+              }
+            ],
+            "CookieDomain": "westeurope.cloudapp.azure.com",
+            "OAuth": {
+              "AuthorizationUri": "https://app.vssps.visualstudio.com/oauth2/authorize",
+              "TokenUri": "https://app.vssps.visualstudio.com/oauth2/token",
+              "ClientId": "113C97E9-8297-4A9F-88ED-F2FFF43F9941",
+              "ClientSecret": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6Im9PdmN6NU1fN3AtSGpJS2xGWHo5M3VfVjBabyJ9.eyJjaWQiOiIxMTNjOTdlOS04Mjk3LTRhOWYtODhlZC1mMmZmZjQzZjk5NDEiLCJjc2kiOiI0Njg2MGFhMS00MWU4LTQ0MDktOTU2Ni1mMGEzNjYyYjY3MzEiLCJuYW1laWQiOiI3ZTdlNWJlNi1kMDdhLTYxYmMtYTUxMC05NDZjZmZmNmRmMzQiLCJpc3MiOiJhcHAudnN0b2tlbi52aXN1YWxzdHVkaW8uY29tIiwiYXVkIjoiYXBwLnZzdG9rZW4udmlzdWFsc3R1ZGlvLmNvbSIsIm5iZiI6MTY5NTIxMTk2NywiZXhwIjoxODUzMDY0NzY3fQ.XhU7_b7F1CCOeEtXBAXriflwDTaGXwVsH1jq3tRadizZBvRt5DTBmMz3Wt183eX2peMRZ729WYNuWIdg_J_cvnkbrwkLp0dBoLAumWCx2pD738_fXlOx_QhnlrExfqYMJG7Sv0Irpik40klTKZqsLxtmDKXtBfJFNem_nMa1U3kch6yV5xF7LQvHusWCmm5k5GjisgnwsFP_1SwTT35OWhSP8yIpfpa-A_8i9HmsgYx4b5TAeMnEUf6p0Wddl5y4QLh49wYk_eHM_PLc5isZoEEZYQwp-FwGoh2QuDwHUTKCP0ecDdvmAriT9FGKItrzOCC3gAOYy-Md2HdquXtDDw",
+              "Scope": "vso.analytics vso.code vso.work",
+              "RedirectUri": "https://scrum.westeurope.cloudapp.azure.com/oauth-callback",
+              "JWTIssuer": "app.vstoken.visualstudio.com",
+              "JWTAudience": "app.vstoken.visualstudio.com"
+            }
+          },
+          "DevOps": {
+            "ServerUrl": "https://dev.azure.com/vertigis",
+            "TokenSources": [
+              {
+                "Type": "Auth"
+              },
+              {
+                "Type": "Config",
+                "Token": "PAT"
+              }
+            ]
+          }
+        }

@@ -16,7 +16,7 @@ const root = createRoot(container);
 
 const logger = getLogger('app');
 
-logger.logDebug(process.env);
+logger.logDebug('Runtime-config', window.__RUNTIME_CONFIG__);
 
 root.render(
   <React.StrictMode>
