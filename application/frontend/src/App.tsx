@@ -1,21 +1,17 @@
 import { Outlet, RouterProvider, createBrowserRouter } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
 import Analysis from './features/analysis/Analysis';
-import Callback from './features/oauth/Callback';
+import Callback from './features/auth/Callback';
 import NavBar from './components/Navbar';
-import Authorize from './features/oauth/Authorize';
+import Authorize from './features/auth/Authorize';
 import ModelDetail from './components/analysis/ModelDetail';
 import ModelContextProvider from './context/ModelContext';
-import QueryContextProvider from './context/QueryContext';
 import KPIContextProvider from './context/KPIContext';
 import KPIDetail from './components/analysis/kpis/KPIDetail';
 import CreateReport from './components/analysis/reports/CreateReport';
 import { ReportContextProvider } from './context/ReportContext';
 import ReportDetail from './components/analysis/reports/ReportDetail';
-import {
-  GraphicalConfigContext,
-  GraphicalConfigContextProvider,
-} from './context/GraphicalConfigContext';
+import { GraphicalConfigContextProvider } from './context/GraphicalConfigContext';
 import GraphicalConfigDetail from './components/analysis/modelSettings/graphical/GraphicalConfigDetail';
 
 const App = () => {
@@ -94,7 +90,7 @@ const App = () => {
       ],
     },
     {
-      path: '/oauth-authorize',
+      path: '/auth-authorize',
       element: <Authorize />,
     },
     {

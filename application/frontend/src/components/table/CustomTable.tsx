@@ -11,10 +11,19 @@ type EditableTableProps = Parameters<typeof Table>[0];
 
 type ColumnTypes = Exclude<EditableTableProps['columns'], undefined>;
 
+export type EditProps<T> = {
+  renderEditControl?: (
+    save: () => Promise<void>,
+    ref: React.RefObject<InputRef>,
+    value: T
+  ) => React.ReactNode;
+};
+
 interface Props<T> {
   dataSource: readonly T[];
   defaultColumns: (ColumnTypes[number] & {
     editable?: boolean;
+    editProps?: EditProps<T>;
     searchable?: boolean;
     dataIndex: keyof T | 'actions';
   })[];
@@ -124,6 +133,7 @@ const CustomTable = <T,>(
         onCell: (record: T) => ({
           record,
           editable: col.editable,
+          editProps: col.editProps,
           dataIndex: col.dataIndex,
           title: col.title,
           handleSave,

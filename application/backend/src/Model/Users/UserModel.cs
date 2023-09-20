@@ -5,11 +5,12 @@ namespace backend.Model.Users;
 
 public class UserModel
 {
-    [JsonIgnore]
     public User? User { get; set; }
+    [JsonIgnore]
     public Guid? UserId { get; set; }
     [JsonIgnore]
     public AnalysisModel? Model { get; set; }
+    [JsonIgnore]
     public Guid? ModelId { get; set; }
-    public IEnumerable<ModelPermission> Permissions { get; set; } = new List<ModelPermission>();
+    public ModelPermission Permission { get; set; }
 }

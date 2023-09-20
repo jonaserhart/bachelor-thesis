@@ -1,11 +1,7 @@
 import { AxiosResponse } from 'axios';
-import { AuthResponse } from '../features/oauth/types';
+import { AuthResponse } from '../features/auth/types';
 import { store } from '../app/store';
-import {
-  setToken,
-  setTokenExpired,
-  setUser,
-} from '../features/oauth/authSlice';
+import { setToken, setTokenExpired, setUser } from '../features/auth/authSlice';
 
 export default function handleAuthResponse(
   response: AxiosResponse<AuthResponse, any>

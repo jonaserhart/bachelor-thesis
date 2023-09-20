@@ -7,24 +7,33 @@ using backend.Services.Users;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using backend.Services.DevOps;
 using Newtonsoft.Json.Converters;
 using backend.Services.Expressions;
 using backend.Services.DevOps.Custom;
 using backend.Services.DevOps.Custom.API;
+using Microsoft.AspNetCore.Authorization;
+using backend.Services.Security.Handlers;
+using backend.Services.Security;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers().AddNewtonsoftJson(opts =>
 {
     opts.SerializerSettings.Converters.Add(new StringEnumConverter());
 });
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile(Path.Join(builder.Environment.ContentRootPath, "src", "appsettings.Development.json"), optional: false, reloadOnChange: true);
+}
+else
+{
+    builder.Configuration.AddJsonFile(Path.Join(builder.Environment.ContentRootPath, "appsettings.json"), optional: false, reloadOnChange: true);
+}
 
 builder.Configuration.AddEnvironmentVariables(prefix: "SCRUM_BACKEND_");
 
@@ -39,7 +48,7 @@ builder.Services
         opts.UseNpgsql(builder.Configuration.GetConnectionString("PostgresDatabase"));
     });
 
-builder.Services.Configure<OAuthConfig>(builder.Configuration.GetSection("OAuth"));
+builder.Services.Configure<AuthenticationConfig>(builder.Configuration.GetSection("Auth"));
 builder.Services.Configure<DevOpsConfig>(builder.Configuration.GetSection("DevOps"));
 
 builder.Services.AddHttpContextAccessor();
@@ -53,8 +62,6 @@ builder.Services.AddScoped<IKPIService, KPIService>();
 builder.Services.AddScoped<IApiClientFactory, ApiClientFactory>();
 builder.Services.AddScoped<IDevOpsProviderService, AzureDevOpsProviderService>();
 
-var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("OAuth:ClientSecret").Value ?? "");
-
 builder.Services.AddAuthentication((x) =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -67,8 +74,8 @@ builder.Services.AddAuthentication((x) =>
     x.SaveToken = true;
     x.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidIssuer = builder.Configuration.GetSection("OAuth:JWTIssuer").Value,
-        ValidAudience = builder.Configuration.GetSection("OAuth:JWTAudience").Value,
+        ValidIssuer = builder.Configuration.GetSection("Auth:OAuth:JWTIssuer").Value,
+        ValidAudience = builder.Configuration.GetSection("Auth:OAuth:JWTAudience").Value,
         ValidateIssuer = true,
         ValidateAudience = true,
         ClockSkew = TimeSpan.Zero,
@@ -80,6 +87,9 @@ builder.Services.AddAuthentication((x) =>
         },
     };
 });
+
+builder.Services.AddScoped<IAuthorizationHandler, ModelAuthorizationHandler>();
+builder.Services.AddScoped<ISecurityService, SecurityService>();
 
 var app = builder.Build();
 

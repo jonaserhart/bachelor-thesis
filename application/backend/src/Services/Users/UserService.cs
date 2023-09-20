@@ -2,6 +2,8 @@ using System.Security.Claims;
 using backend.Model.Exceptions;
 using backend.Model.Users;
 using backend.Services.Database;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace backend.Services.Users;
 
@@ -31,12 +33,30 @@ public class UserService : IUserService
         {
             m_logger.LogDebug($"Updating user {user.Id}.");
             existing.DisplayName = user.DisplayName;
-            existing.EMail = user.EMail;
+            existing.EMail = user.EMail.ToLowerInvariant();
         }
         else
         {
+            user.EMail = user.EMail.ToLowerInvariant();
             m_logger.LogDebug($"Creating user {user.Id}.");
             existing = (await m_context.Users.AddAsync(user)).Entity;
+
+            var modelAssocRequests = await m_context.ModelAssociationRequests.Where(x => x.Email == user.EMail && !x.Completed).ToListAsync();
+            foreach (var request in modelAssocRequests)
+            {
+                var model = await m_context.AnalysisModels.FindAsync(request.ModelId);
+                var userModel = new UserModel
+                {
+                    Model = model,
+                    User = existing,
+                    Permission = request.Permission,
+                };
+
+                await m_context.UserModels.AddAsync(userModel);
+
+                request.Completed = true;
+                request.CompletedAt = DateTime.Now.ToUnixEpochTime();
+            }
         }
 
         await m_context.SaveChangesAsync();

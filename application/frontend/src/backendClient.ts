@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { store } from './app/store';
-import { AuthResponse } from './features/oauth/types';
+import { AuthResponse } from './features/auth/types';
 import handleAuthResponse from './util/handleAuthResponse';
 
 type TokenPromiseFunction = {
@@ -30,9 +30,9 @@ let timer: NodeJS.Timeout | undefined = undefined;
 let failedQueue: TokenPromiseFunction[] = [];
 
 const urlsWithoutAuthenticationRequirement = [
-  'oauth/refresh-token',
-  'oauth/authorize',
-  'oauth/callback',
+  'auth/refresh-token',
+  'auth/authorize',
+  'auth/callback',
 ];
 
 const processQueue = (error: any, token: string | null = null) => {
@@ -91,7 +91,7 @@ instance.interceptors.response.use(
 
       return new Promise((resolve, reject) => {
         instance
-          .get<AuthResponse>('/oauth/refresh-token', {
+          .get<AuthResponse>('/auth/refresh-token', {
             headers: {
               'X-IS-FST': isFirstRequest,
             },
@@ -123,7 +123,7 @@ instance.interceptors.response.use(
           })
           .catch((err) => {
             // eslint-disable-next-line no-restricted-globals
-            location.href = '/oauth-authorize';
+            location.href = '/auth-authorize';
             processQueue(err, null);
             reject(error);
           })

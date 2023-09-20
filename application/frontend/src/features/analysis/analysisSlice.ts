@@ -29,6 +29,7 @@ import {
   updateKPIInModel,
   updateKPIParentFolderInModel,
 } from '../../util/kpiFolderUtils';
+import { User } from '../auth/types';
 
 const logger = getLogger('analysisSlice');
 
@@ -47,7 +48,7 @@ const initialState: AnalysisState = {
 export const getMyModels = createAppAsyncThunk(
   prefix('getMyModels'),
   async function () {
-    const response = await axios.get<AnalysisModel[]>('/analysis/mymodels');
+    const response = await axios.get<AnalysisModel[]>('/analysis/models');
     return response.data;
   }
 );
@@ -55,10 +56,7 @@ export const getMyModels = createAppAsyncThunk(
 export const createModel = createAppAsyncThunk(
   prefix('createModel'),
   async function (model: { name: string }) {
-    const response = await axios.post<AnalysisModel>(
-      '/analysis/createmodel',
-      model
-    );
+    const response = await axios.post<AnalysisModel>('/analysis/models', model);
     return response.data;
   }
 );
@@ -67,7 +65,7 @@ export const updateModelDetails = createAppAsyncThunk(
   prefix('updateModelDetails'),
   async function (changedModel: AnalysisModelChange) {
     const response = await axios.put<AnalysisModel>(
-      `/analysis/model/${changedModel.id}/update`,
+      `/analysis/models/${changedModel.id}`,
       changedModel
     );
     return response.data;
@@ -78,7 +76,7 @@ export const getModelDetails = createAppAsyncThunk(
   prefix('getModelDetails'),
   async function (modelId: string) {
     const response = await axios.get<AnalysisModel>(
-      `/analysis/model/${modelId}/details`
+      `/analysis/models/${modelId}`
     );
     return response.data;
   }
@@ -88,7 +86,7 @@ export const createNewKPI = createAppAsyncThunk(
   prefix('createNewKPI'),
   async function (arg: { modelId: string; folderId?: string }) {
     const response = await axios.post<KPI>(
-      `/analysis/kpi?modelId=${arg.modelId}${
+      `/analysis/models/${arg.modelId}/kpis?${
         arg.folderId ? '&folderId=' + arg.folderId : ''
       }`
     );
@@ -99,14 +97,18 @@ export const createNewKPI = createAppAsyncThunk(
 export const deleteKPI = createAppAsyncThunk(
   prefix('deleteKPI'),
   async function (arg: { kpiId: string; modelId: string }) {
-    await axios.delete<void>(`/analysis/kpi?id=${arg.kpiId}`);
+    await axios.delete<void>(
+      `/analysis/models/${arg.modelId}/kpis/${arg.kpiId}`
+    );
   }
 );
 
 export const getKPIDetails = createAppAsyncThunk(
   prefix('getKPIDetails'),
   async function (arg: { kpiId: string; modelId: string }) {
-    const response = await axios.get<KPI>(`/analysis/kpi?id=${arg.kpiId}`);
+    const response = await axios.get<KPI>(
+      `/analysis/models/${arg.modelId}/kpis/${arg.kpiId}`
+    );
     return response.data;
   }
 );
@@ -114,10 +116,12 @@ export const getKPIDetails = createAppAsyncThunk(
 export const updateKPIDetails = createAppAsyncThunk(
   prefix('updateKPIDetails'),
   async function (arg: { id: string; name: string; modelId: string }) {
-    const response = await axios.put<KPI>(`/analysis/kpi`, {
-      id: arg.id,
-      name: arg.name,
-    });
+    const response = await axios.put<KPI>(
+      `/analysis/models/${arg.modelId}/kpis/${arg.id}`,
+      {
+        name: arg.name,
+      }
+    );
     return response.data;
   }
 );
@@ -126,7 +130,7 @@ export const updateKPIConfig = createAppAsyncThunk(
   prefix('updateKPIConfig'),
   async function (arg: { id: string; config: KPIConfig; modelId: string }) {
     const response = await axios.put<KPIConfig>(
-      `/analysis/kpi/config?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/kpis/${arg.id}/config`,
       {
         ...arg.config,
       }
@@ -138,9 +142,13 @@ export const updateKPIConfig = createAppAsyncThunk(
 export const createKPIFolder = createAppAsyncThunk(
   prefix('createKPIFolder'),
   async function (arg: { modelId: string; name: string; folderId?: string }) {
-    const response = await axios.post<KPIFolder>(`/analysis/kpifolder`, {
-      ...arg,
-    });
+    const response = await axios.post<KPIFolder>(
+      `/analysis/models/${arg.modelId}/kpifolders`,
+      {
+        name: arg.name,
+        folderId: arg.folderId,
+      }
+    );
     return response.data;
   }
 );
@@ -149,7 +157,7 @@ export const updateKPIFolder = createAppAsyncThunk(
   prefix('updateKPIFolder'),
   async function (arg: { modelId: string; folderId: string; name: string }) {
     const reponse = await axios.put<KPIFolder>(
-      `/analysis/kpifolder?folderId=${arg.folderId}`,
+      `/analysis/kmodels/${arg.modelId}/kpifolders/${arg.folderId}`,
       {
         name: arg.name,
       }
@@ -162,31 +170,21 @@ export const updateKPIFolder = createAppAsyncThunk(
 export const deleteKPIFolder = createAppAsyncThunk(
   prefix('deleteKPIFolder'),
   async function (arg: { modelId: string; folderId: string }) {
-    await axios.delete(`/analysis/kpifolder?folderId=${arg.folderId}`);
+    await axios.delete(
+      `/analysis/models/${arg.modelId}/kpifolders/${arg.folderId}`
+    );
   }
 );
 
-export const moveKpi = createAppAsyncThunk(
-  prefix('moveKPI'),
-  async function (arg: {
-    id: string;
-    modelId: string;
-    moveToFolder?: string;
-    moveToModel?: string;
-  }) {
-    await axios.put(`/analysis/kpi/move`, arg);
-  }
-);
-
-export const updateExpression = createAppAsyncThunk(
-  prefix('updateExpression'),
+export const addOrUpdateExpression = createAppAsyncThunk(
+  prefix('addOrUpdateExpression'),
   async function (arg: {
     kpiId: string;
     modelId: string;
     expression: Expression;
   }) {
     const response = await axios.put<Expression>(
-      `/analysis/kpi/expression?kpiId=${arg.kpiId}`,
+      `/analysis/models/${arg.modelId}/kpis/${arg.kpiId}/expression`,
       {
         expression: arg.expression,
       }
@@ -203,9 +201,12 @@ export const createReport = createAppAsyncThunk(
     title: string;
     notes: string;
   }) {
-    const response = await axios.post<Report>(`/analysis/model/createreport`, {
-      ...arg,
-    });
+    const response = await axios.post<Report>(
+      `/analysis/models/${arg.modelId}/reports`,
+      {
+        ...arg,
+      }
+    );
     return response.data;
   }
 );
@@ -214,7 +215,7 @@ export const getReportDetails = createAppAsyncThunk(
   prefix('getReportDetails'),
   async function (arg: { modelId: string; reportId: string }) {
     const response = await axios.get<Report>(
-      `/analysis/report?id=${arg.reportId}`
+      `/analysis/models/${arg.modelId}/reports/${arg.reportId}`
     );
     return response.data;
   }
@@ -223,17 +224,9 @@ export const getReportDetails = createAppAsyncThunk(
 export const deleteReport = createAppAsyncThunk(
   prefix('deleteReport'),
   async function (arg: { reportId: string; modelId: string }) {
-    await axios.delete(`/analysis/model/deleteReport?reportId=${arg.reportId}`);
-  }
-);
-
-export const getGraphicalConfigDetails = createAppAsyncThunk(
-  prefix('getGraphicalConfigDetails'),
-  async function (arg: { modelId: string; configId: string }) {
-    const response = await axios.get<GraphicalConfiguration>(
-      `/analysis/model/graphicalconfig?graphicalId=${arg.configId}`
+    await axios.delete(
+      `/analysis/models/${arg.modelId}/reports/${arg.reportId}`
     );
-    return response.data;
   }
 );
 
@@ -241,7 +234,17 @@ export const createGraphicalConfig = createAppAsyncThunk(
   prefix('createGraphicalConfig'),
   async function (arg: { modelId: string }) {
     const response = await axios.post<GraphicalConfiguration>(
-      `/analysis/model/graphicalconfig?modelId=${arg.modelId}`
+      `/analysis/models/${arg.modelId}/graphicalconfig`
+    );
+    return response.data;
+  }
+);
+
+export const getGraphicalConfigDetails = createAppAsyncThunk(
+  prefix('getGraphicalConfigDetails'),
+  async function (arg: { modelId: string; configId: string }) {
+    const response = await axios.get<GraphicalConfiguration>(
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.configId}`
     );
     return response.data;
   }
@@ -251,7 +254,7 @@ export const updateGraphicalConfigDetails = createAppAsyncThunk(
   prefix('updateGraphicalConfigDetails'),
   async function (arg: { modelId: string; id: string; name: string }) {
     const response = await axios.put<GraphicalConfiguration>(
-      `/analysis/model/graphicalconfig?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.id}`,
       {
         name: arg.name,
       }
@@ -263,7 +266,9 @@ export const updateGraphicalConfigDetails = createAppAsyncThunk(
 export const deleteGraphicalConfig = createAppAsyncThunk(
   prefix('deleteGraphicalConfig'),
   async function (arg: { modelId: string; id: string }) {
-    await axios.delete(`/analysis/model/graphicalconfig?id=${arg.id}`);
+    await axios.delete(
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.id}`
+    );
   }
 );
 
@@ -275,7 +280,7 @@ export const createGraphicalConfigItem = createAppAsyncThunk(
     submission: GraphicalReportItemSubmission;
   }) {
     const response = await axios.post<GraphicalReportItem>(
-      `/analysis/model/graphicalconfig/item?id=${arg.graphicalConfigId}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item`,
       arg.submission
     );
     return response.data;
@@ -291,7 +296,7 @@ export const updateGraphicalConfigItemDetails = createAppAsyncThunk(
     name: string;
   }) {
     const response = await axios.put<GraphicalReportItem>(
-      `/analysis/model/graphicalconfig/item?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item/${arg.id}`,
       {
         name: arg.name,
       }
@@ -307,7 +312,9 @@ export const deleteGraphicalConfigItem = createAppAsyncThunk(
     graphicalConfigId: string;
     id: string;
   }) {
-    await axios.delete(`/analysis/model/graphicalconfig/item?id=${arg.id}`);
+    await axios.delete(
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item/${arg.id}`
+    );
   }
 );
 
@@ -320,7 +327,7 @@ export const updateLayout = createAppAsyncThunk(
     layoutSubmission: GraphicalReportItemLayout;
   }) {
     const response = await axios.put<GraphicalReportItemLayout>(
-      `/analysis/model/graphicalconfig/layout?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item/${arg.id}/layout`,
       {
         layout: arg.layoutSubmission,
       }
@@ -339,7 +346,7 @@ export const updateGraphicalItemKPIs = createAppAsyncThunk(
     kpis: string[];
   }) {
     const response = await axios.put(
-      `/analysis/model/graphicalconfig/item/kpis?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item/${arg.id}/kpis`,
       {
         kpis: arg.kpis,
       }
@@ -358,13 +365,45 @@ export const updateGraphicalItemProperties = createAppAsyncThunk(
     itemProperties: GraphicalItemProperties;
   }) {
     const response = await axios.put(
-      `/analysis/model/graphicalconfig/item/properties?id=${arg.id}`,
+      `/analysis/models/${arg.modelId}/graphicalconfig/${arg.graphicalConfigId}/item/${arg.id}/properties`,
       {
         properties: arg.itemProperties,
       }
     );
 
     return response.data;
+  }
+);
+
+export const addUserToModel = createAppAsyncThunk(
+  prefix('addUserToModel'),
+  async function (arg: {
+    email: string;
+    modelId: string;
+    permission: 'READER' | 'EDITOR' | 'ADMIN';
+  }) {
+    const response = await axios.post<User | undefined>(
+      `/analysis/models/${arg.modelId}/users`,
+      {
+        email: arg.email,
+        permission: arg.permission,
+      }
+    );
+
+    return response.data;
+  }
+);
+
+export const changeUserPermission = createAppAsyncThunk(
+  prefix('changeUserPermission'),
+  async function (arg: {
+    userId: string;
+    modelId: string;
+    permission: 'READER' | 'EDITOR' | 'ADMIN';
+  }) {
+    await axios.post(
+      `/analysis/models/${arg.modelId}/users/${arg.userId}?permission=${arg.permission}`
+    );
   }
 );
 
@@ -486,7 +525,7 @@ const analysisSlice = createSlice({
       });
     });
 
-    builder.addCase(updateExpression.fulfilled, (state, action) => {
+    builder.addCase(addOrUpdateExpression.fulfilled, (state, action) => {
       const modelId = action.meta.arg.modelId;
       const kpiId = action.meta.arg.kpiId;
 
@@ -756,8 +795,14 @@ const analysisSlice = createSlice({
       );
     });
 
-    builder.addCase(moveKpi.fulfilled, (state, action) => {
-      const { id, modelId, moveToFolder } = action.meta.arg;
+    builder.addCase(addUserToModel.fulfilled, (state, action) => {
+      if (
+        action.payload === undefined ||
+        (action.payload as unknown as string).length === 0
+      ) {
+        return;
+      }
+      const { modelId, permission } = action.meta.arg;
       const modelIndex = state.models.findIndex(
         (x) => x.id === action.meta.arg.modelId
       );
@@ -767,11 +812,33 @@ const analysisSlice = createSlice({
         return;
       }
 
-      moveKPIBetweenFoldersOrToModel(
-        state.models[modelIndex],
-        id,
-        moveToFolder
+      state.models[modelIndex].modelUsers.push({
+        user: action.payload,
+        permission: permission,
+      });
+    });
+
+    builder.addCase(changeUserPermission.fulfilled, (state, action) => {
+      const { modelId, userId, permission } = action.meta.arg;
+      const modelIndex = state.models.findIndex(
+        (x) => x.id === action.meta.arg.modelId
       );
+
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      const userIndex = state.models[modelIndex].modelUsers.findIndex(
+        (x) => x.user.id === userId
+      );
+
+      if (userIndex < 0) {
+        logger.logError(`Could not find user in model with id ${modelId}`);
+        return;
+      }
+
+      state.models[modelIndex].modelUsers[userIndex].permission = permission;
     });
   },
 });

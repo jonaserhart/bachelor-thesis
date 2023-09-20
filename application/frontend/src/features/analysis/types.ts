@@ -1,4 +1,5 @@
 import { HasId } from '../../app/types';
+import { User } from '../auth/types';
 import { QueryResult, QueryReturnType } from '../queries/types';
 
 export enum ExpressionType {
@@ -175,12 +176,20 @@ export interface GraphicalConfiguration extends HasId {
   items: GraphicalReportItem[];
 }
 
+export type ModelPermission = 'READER' | 'EDITOR' | 'ADMIN';
+
+export interface ModelUser {
+  user: User;
+  permission: ModelPermission;
+}
+
 export interface AnalysisModel extends HasId {
   name: string;
   kpis: KPI[];
   kpiFolders: KPIFolder[];
   reports: Report[];
   graphical: GraphicalConfiguration[];
+  modelUsers: ModelUser[];
 }
 
 // Request/Response

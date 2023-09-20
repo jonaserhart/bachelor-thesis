@@ -18,6 +18,8 @@ import { useForm, useWatch } from 'antd/es/form/Form';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import {
   NumberRange,
+  SingleValue,
+  ValueArray,
   ValuesType,
   acceptableValuesToString,
   stringToAcceptableValues,
@@ -27,12 +29,7 @@ interface FormType {
   unit: string;
   type: ValuesType;
   showInReport: boolean;
-  acceptableValues:
-    | string
-    | number
-    | string[]
-    | number[]
-    | { from: number; to: number };
+  acceptableValues: NumberRange | SingleValue | ValueArray;
 }
 
 const formItemLayout = {
@@ -104,35 +101,33 @@ const KPIConfigForm: React.FC = () => {
 
   useEffect(() => {
     if (kpi) {
-      console.log('Setting: ', kpi);
-
       const parsed = stringToAcceptableValues(kpi.acceptableValues);
 
-      form.setFieldValue(['type'], parsed.type);
+      const valuesToSet: Partial<FormType> = {
+        type: parsed.type,
+        unit: kpi.unit,
+        showInReport: kpi.showInReport,
+      };
       if (parsed.type === 'range') {
         const v = parsed.value as NumberRange;
-        form.setFieldValue(['acceptableValues', 'from'], v.from);
-        form.setFieldValue(['acceptableValues', 'to'], v.to);
+        valuesToSet.acceptableValues = {
+          from: v.from,
+          to: v.to,
+        };
       } else {
-        form.setFieldValue(['acceptableValues'], parsed.value);
+        valuesToSet.acceptableValues = parsed.value;
       }
-      form.setFieldValue(['unit'], kpi.unit);
-      form.setFieldValue(['showInReport'], kpi.showInReport);
-      console.log(form.getFieldsValue());
+      console.log('Setting: ', valuesToSet);
+
+      form.setFieldsValue({
+        ...valuesToSet,
+      });
     }
   }, [kpi, form]);
 
   const onAccepableValuesUpdate = useCallback(() => {
     debouncedUpdateConfig();
   }, [debouncedUpdateConfig]);
-
-  useEffect(() => {
-    if (type === 'any') {
-      form.setFieldValue(['acceptableValues'], 'any');
-    } else {
-      form.setFieldValue(['acceptableValues'], undefined);
-    }
-  }, [type]);
 
   const acceplableValuesForm = useMemo(() => {
     switch (type) {
@@ -237,13 +232,25 @@ const KPIConfigForm: React.FC = () => {
           <Form.Item {...formItemLayout} label="Acceptable value">
             <Form.Item
               name={['acceptableValues', 'from']}
-              rules={[{ required: true, message: 'Value is required' }]}>
-              <Input onChange={onAccepableValuesUpdate} type="number" />
+              rules={[
+                {
+                  required: true,
+                  message: 'Value is required',
+                  type: 'number',
+                },
+              ]}>
+              <Input onChange={onAccepableValuesUpdate} />
             </Form.Item>
             <Form.Item
               name={['acceptableValues', 'to']}
-              rules={[{ required: true, message: 'Value is required' }]}>
-              <Input onChange={onAccepableValuesUpdate} type="number" />
+              rules={[
+                {
+                  required: true,
+                  message: 'Value is required',
+                  type: 'number',
+                },
+              ]}>
+              <Input onChange={onAccepableValuesUpdate} />
             </Form.Item>
           </Form.Item>
         );

@@ -5,11 +5,11 @@ import {
   selectModels,
   updateModelDetails,
 } from './analysisSlice';
-import { Button, Popover, Space, Spin, Typography, message } from 'antd';
+import { Button, Space, Spin, Typography, message } from 'antd';
 import CustomTable from '../../components/table/CustomTable';
 import { AnalysisModel, KPI } from './types';
 import { useNavigate } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import handleError from '../../util/handleError';
 
 const { Title } = Typography;

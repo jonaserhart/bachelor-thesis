@@ -320,6 +320,45 @@ namespace backend.Migrations
                     b.ToTable("Reports");
                 });
 
+            modelBuilder.Entity("backend.Model.Users.ModelAssociationRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Completed")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("CompletedAt")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("IssuedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+
+                    b.Property<Guid>("IssuedById")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ModelId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Permission")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IssuedById");
+
+                    b.HasIndex("ModelId");
+
+                    b.ToTable("ModelAssociationRequests");
+                });
+
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>
                 {
                     b.Property<string>("Token")
@@ -364,9 +403,8 @@ namespace backend.Migrations
                     b.Property<Guid?>("ModelId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Permissions")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Permission")
+                        .HasColumnType("integer");
 
                     b.HasKey("UserId", "ModelId");
 
@@ -669,6 +707,25 @@ namespace backend.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("AnalysisModel");
+                });
+
+            modelBuilder.Entity("backend.Model.Users.ModelAssociationRequest", b =>
+                {
+                    b.HasOne("backend.Model.Users.User", "IssuedBy")
+                        .WithMany()
+                        .HasForeignKey("IssuedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("backend.Model.Analysis.AnalysisModel", "Model")
+                        .WithMany()
+                        .HasForeignKey("ModelId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("IssuedBy");
+
+                    b.Navigation("Model");
                 });
 
             modelBuilder.Entity("backend.Model.Users.RefreshToken", b =>

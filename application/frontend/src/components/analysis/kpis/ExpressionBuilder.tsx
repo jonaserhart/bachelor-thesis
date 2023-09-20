@@ -25,7 +25,7 @@ import {
 } from '../../../app/hooks';
 import {
   selectAllKPIs,
-  updateExpression,
+  addOrUpdateExpression,
 } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
 import { KPIContext } from '../../../context/KPIContext';
@@ -692,7 +692,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
         onFinish={(values) => {
           console.log('Finish: ', { ...values, id: expression.id });
           dispatch(
-            updateExpression({
+            addOrUpdateExpression({
               kpiId,
               modelId,
               expression: { ...values, id: expression.id } as Expression,

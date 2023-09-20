@@ -52,11 +52,6 @@ const CreateReport: React.FC = () => {
     } else if (current === 1) {
       setQueryParameters({
         ...queryParameters,
-        // Convert datetime parameters to datetime without timezone
-        sprintStart: queryParameters['sprintStart']?.format(
-          'YYYY-MM-DD HH:mm:ss'
-        ),
-        sprintEnd: queryParameters['sprintEnd']?.format('YYYY-MM-DD HH:mm:ss'),
       });
       form.validateFields(['queryParameters']).then(moveNext);
     } else if (current >= 3) {

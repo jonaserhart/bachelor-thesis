@@ -19,12 +19,11 @@ const Callback: React.FC = () => {
     const state = searchParams.get('state');
     if (code && state) {
       axios
-        .post<AuthResponse>('/oauth/callback', {
+        .post<AuthResponse>('/auth/callback', {
           code,
           state,
         })
         .then((r) => {
-          logger.logDebug('response:', r);
           dispatch(setUser(r.data.user));
           dispatch(setToken(r.data.token));
           setTimeout(() => {

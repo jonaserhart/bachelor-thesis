@@ -67,7 +67,7 @@ const QueryParameterForm: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     axios
-      .get<string[]>(`/analysis/requiredQueries?modelId=${modelId}`)
+      .get<string[]>(`/analysis/models/${modelId}/requiredQueries`)
       .then((response) => {
         const queries = response.data;
         const p = queries
@@ -77,7 +77,7 @@ const QueryParameterForm: React.FC = () => {
               new Promise<QueryParameterAndId[]>((resolve, reject) => {
                 axios
                   .get<QueryParameter[]>(
-                    `/analysis/queryparameters?queryId=${q}`
+                    `/analysis/customqueries/${q}/queryparameters`
                   )
                   .then((response) => {
                     const result = response.data.map((x) => ({
@@ -113,7 +113,13 @@ const QueryParameterForm: React.FC = () => {
       case QueryParameterValueType.Select:
         return <Select options={qp.data} placeholder={qp.description} />;
       case QueryParameterValueType.Date:
-        return <DatePicker showTime placeholder={qp.description} />;
+        return (
+          <DatePicker
+            onChange={console.log}
+            showTime
+            placeholder={qp.description}
+          />
+        );
     }
   }, []);
 

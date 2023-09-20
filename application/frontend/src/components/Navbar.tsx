@@ -7,7 +7,7 @@ import { Breadcrumb, Button, Layout, Menu, Space, message, theme } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { getMe, selectAuthenticatedUser } from '../features/oauth/authSlice';
+import { getMe, selectAuthenticatedUser } from '../features/auth/authSlice';
 import { useCallback, useEffect, useMemo } from 'react';
 import { getLogger } from '../util/logger';
 import handleError from '../util/handleError';

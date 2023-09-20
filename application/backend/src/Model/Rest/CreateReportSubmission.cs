@@ -5,7 +5,6 @@ namespace backend.Model.Rest;
 public class CreateReportSubmission
 {
     public Dictionary<string, object?> QueryParameterValues { get; set; } = new Dictionary<string, object?>();
-    public Guid ModelId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string Notes { get; set; } = string.Empty;
 }

@@ -28,7 +28,7 @@ export const getQuery = createAppAsyncThunk(
   prefix('getCustomQuery'),
   async function (queryId: string) {
     const response = await axios.get<Query>(
-      `/analysis/customquery?queryId=${queryId}`
+      `/analysis/customqueries/${queryId}`
     );
     return response.data;
   }

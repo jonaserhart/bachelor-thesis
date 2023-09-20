@@ -22,18 +22,36 @@ public class ApiClientFactory : IApiClientFactory
 
     public async Task<IApiClient> GetApiClientAsync(string accessToken)
     {
-        m_logger.LogDebug($"User with token ${accessToken} requested a client.");
         var connection = new VssConnection(new Uri(m_config.ServerUrl), new VssOAuthAccessTokenCredential(accessToken));
         await connection.ConnectAsync();
-        m_logger.LogDebug($"Client for token ${accessToken} issued.");
         return new ApiClient(connection, m_logger);
     }
 
     public async Task<IApiClient> GetApiClientAsync()
     {
-        var token = m_contextAccessor?.HttpContext?.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
+        string? token = null;
+        foreach (var method in m_config.TokenSources)
+        {
+            switch (method.Type)
+            {
+                case Model.Enum.TokenSourceType.Auth:
+                    token = m_contextAccessor?.HttpContext?.Request.Headers.Authorization.FirstOrDefault()?.Replace("Bearer ", "");
+                    break;
+                case Model.Enum.TokenSourceType.Config:
+                    token = method.Token;
+                    break;
+                case Model.Enum.TokenSourceType.Env:
+                    if (string.IsNullOrEmpty(method.VariableName))
+                        break;
+                    token = Environment.GetEnvironmentVariable(method.VariableName);
+                    break;
+            }
+            if (!string.IsNullOrEmpty(token))
+                break;
+        }
+
         if (string.IsNullOrEmpty(token))
-            throw new UnauthorizedException("No access token found in request, cannot create api client.");
+            throw new UnauthorizedException($"No access token found, cannot create api client, tried ${m_config.TokenSources.Count} token sources [{string.Join(", ", m_config.TokenSources.Select(x => x.Type))}].");
 
         return await GetApiClientAsync(token);
     }

@@ -1,23 +1,26 @@
 import { Spin, Typography, message, theme, Tabs } from 'antd';
 import {
-  AreaChartOutlined,
   BulbOutlined,
   CloudServerOutlined,
   EditOutlined,
   FileDoneOutlined,
+  LockOutlined,
   SettingOutlined,
 } from '@ant-design/icons';
 import { BackendError, useAppDispatch } from '../../app/hooks';
 import Queries from '../../features/queries/Queries';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { updateModelDetails } from '../../features/analysis/analysisSlice';
 import { ModelContext } from '../../context/ModelContext';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import KPIs from './kpis/KPIs';
 import Reports from './reports/Reports';
 import ModelSettings from './modelSettings/ModelSettings';
+import ModelAccess from './access/ModelAccess';
 
 const { Title } = Typography;
+
+const TAB_PARAM = 'tab';
 
 const ModelDetail: React.FC = () => {
   const { loading, model } = useContext(ModelContext);
@@ -30,18 +33,19 @@ const ModelDetail: React.FC = () => {
     token: { colorPrimary },
   } = theme.useToken();
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const activeKey = useMemo(() => {
+  const tabId = useMemo(() => {
+    const param = searchParams.get(TAB_PARAM) ?? 'l8estreports';
+
     if (
-      ['#kpis', '#queries', '#l8estreports', '#settings'].includes(
-        location.hash
-      )
+      ['kpis', 'queries', 'l8estreports', 'settings', 'access'].includes(param)
     ) {
-      return location.hash;
-    } else return '#l8estreports';
-  }, [location]);
+      return param;
+    }
+
+    return 'l8estreports';
+  }, [searchParams]);
 
   const onNameChange = useCallback(
     (strVal: string) => {
@@ -81,13 +85,16 @@ const ModelDetail: React.FC = () => {
           {model?.name}
         </Title>
         <Tabs
-          activeKey={activeKey}
+          activeKey={tabId}
           onChange={(activeKey) => {
-            navigate(activeKey);
+            setSearchParams((prev) => {
+              prev.set(TAB_PARAM, activeKey);
+              return prev;
+            });
           }}
           items={[
             {
-              key: '#l8estreports',
+              key: 'l8estreports',
               label: (
                 <span>
                   <FileDoneOutlined />
@@ -97,7 +104,7 @@ const ModelDetail: React.FC = () => {
               children: <Reports />,
             },
             {
-              key: '#kpis',
+              key: 'kpis',
               label: (
                 <span>
                   <BulbOutlined />
@@ -107,7 +114,7 @@ const ModelDetail: React.FC = () => {
               children: <KPIs />,
             },
             {
-              key: '#queries',
+              key: 'queries',
               label: (
                 <span>
                   <CloudServerOutlined />
@@ -117,7 +124,7 @@ const ModelDetail: React.FC = () => {
               children: <Queries />,
             },
             {
-              key: '#settings',
+              key: 'settings',
               label: (
                 <span>
                   <SettingOutlined />
@@ -125,6 +132,16 @@ const ModelDetail: React.FC = () => {
                 </span>
               ),
               children: <ModelSettings />,
+            },
+            {
+              key: 'access',
+              label: (
+                <span>
+                  <LockOutlined />
+                  Access
+                </span>
+              ),
+              children: <ModelAccess />,
             },
           ]}
         />

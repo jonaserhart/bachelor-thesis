@@ -41,6 +41,7 @@ public class AnalysisModelService : IAnalysisModelService
                     .ThenInclude(x => x.KPIs)
                         .ThenInclude(x => x.Expression)
             .Include(x => x.ModelUsers)
+                .ThenInclude(x => x.User)
             .Include(x => x.Reports)
             .Include(x => x.Graphical).FirstOrDefaultAsync(x => x.Id == id);
 
@@ -64,6 +65,8 @@ public class AnalysisModelService : IAnalysisModelService
 
     public async Task<AnalysisModel> CreateAsync(AnalysisModelRequest request)
     {
+        var user = await m_userService.GetSelfAsync();
+
         var model = new AnalysisModel
         {
             Name = request.Name
@@ -72,12 +75,11 @@ public class AnalysisModelService : IAnalysisModelService
         await m_context.AnalysisModels.AddAsync(model);
         await m_context.SaveChangesAsync();
 
-        var user = await m_userService.GetSelfAsync();
-
         var userModel = new UserModel
         {
             Model = model,
             User = user,
+            Permission = ModelPermission.ADMIN
         };
 
         await m_context.UserModels.AddAsync(userModel);
@@ -133,9 +135,8 @@ public class AnalysisModelService : IAnalysisModelService
         return model;
     }
 
-    public async Task<Report> CreateReportAsync(CreateReportSubmission submission)
+    public async Task<Report> CreateReportAsync(Guid modelId, CreateReportSubmission submission)
     {
-        var modelId = submission.ModelId;
         var model = await GetByIdAsync(modelId);
         m_logger.LogDebug($"Creating report for model {modelId}: {model.Name}");
 
@@ -345,6 +346,51 @@ public class AnalysisModelService : IAnalysisModelService
         await m_context.Entry(item).Reference(x => x.Properties).LoadAsync();
         item.Properties ??= new GraphicalReportItemProperties();
         item.Properties.ListFields = submission.Properties?.ListFields ?? new List<string>();
+
+        await m_context.SaveChangesAsync();
+    }
+
+    public async Task<User?> AddUserToModelAsync(Guid modelId, AddUserToModelSubmission submission)
+    {
+        var model = await m_context.GetByIdOrThrowAsync<AnalysisModel>(modelId);
+        var lowerCaseEmail = submission.Email.ToLowerInvariant();
+
+        var user = await m_context.Users.FirstOrDefaultAsync(x => x.EMail == lowerCaseEmail);
+
+        if (user == null)
+        {
+            var authenticated = await m_userService.GetSelfAsync();
+            var request = new ModelAssociationRequest
+            {
+                IssuedBy = authenticated,
+                Email = submission.Email,
+                Model = model
+            };
+
+            await m_context.ModelAssociationRequests.AddAsync(request);
+            return null;
+        }
+
+        var userModel = new UserModel
+        {
+            Model = model,
+            User = user,
+            Permission = submission.Permission
+        };
+
+        await m_context.UserModels.AddAsync(userModel);
+        await m_context.SaveChangesAsync();
+
+        return user;
+    }
+
+    public async Task ChangeUserPermissionOnModelAsync(Guid modelId, Guid userId, ModelPermission permission)
+    {
+        var userModel = await m_context.UserModels.FindAsync(userId, modelId);
+        if (userModel == null)
+            throw new DbKeyNotFoundException(new { modelId, userId }, typeof(UserModel));
+
+        userModel.Permission = permission;
 
         await m_context.SaveChangesAsync();
     }

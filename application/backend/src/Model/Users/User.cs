@@ -13,5 +13,6 @@ public class User
     public string EMail { get; set; } = string.Empty;
     [JsonIgnore]
     public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+    [JsonIgnore]
     public IEnumerable<UserModel> UserModels { get; set; } = new List<UserModel>();
 }

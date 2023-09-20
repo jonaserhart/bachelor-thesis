@@ -2,10 +2,12 @@ import { Form, Input, InputRef } from 'antd';
 import { EditableContext } from './EditableContext';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { getLogger } from '../../util/logger';
+import { EditProps } from './CustomTable';
 
 interface EditableCellProps<T> {
   title: React.ReactNode;
   editable: boolean;
+  editProps: EditProps<T>;
   children: React.ReactNode;
   dataIndex: keyof T;
   record: T;
@@ -22,6 +24,7 @@ const EditableCell = <T,>(props: EditableCellProps<T>) => {
   const {
     title,
     editable,
+    editProps,
     children,
     dataIndex,
     record,
@@ -30,8 +33,8 @@ const EditableCell = <T,>(props: EditableCellProps<T>) => {
   } = props;
 
   useEffect(() => {
-    if (editing) {
-      inputRef.current!.focus();
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
     }
   }, [editing]);
 
@@ -64,7 +67,11 @@ const EditableCell = <T,>(props: EditableCellProps<T>) => {
             message: `${title} is required.`,
           },
         ]}>
-        <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+        {editProps.renderEditControl ? (
+          editProps.renderEditControl(save, inputRef, record)
+        ) : (
+          <Input ref={inputRef} onPressEnter={save} onBlur={save} />
+        )}
       </Form.Item>
     ) : (
       <div

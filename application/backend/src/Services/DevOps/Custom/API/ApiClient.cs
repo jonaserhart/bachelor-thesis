@@ -113,11 +113,14 @@ public sealed class ApiClient : IApiClient
 
         var fetchedWorkItems = new List<Dictionary<string, object>>();
 
+        var utc = new DateTime(asOf.Year, asOf.Month, asOf.Day, asOf.Hour, asOf.Minute, asOf.Second, DateTimeKind.Utc);
+
+        m_logger.LogDebug($"Requesting workitem states at {utc}");
         foreach (var id in ids)
         {
             try
             {
-                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: asOf);
+                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: utc);
                 if (workItem.Fields.TryGetValue("System.IterationPath", out var actualIteration) && iterationPath.Equals(actualIteration?.ToString()))
                 {
                     var wi = workItem.Fields.ToDictionary(x => x.Key, x => x.Value);
@@ -208,7 +211,7 @@ public sealed class ApiClient : IApiClient
         {
             try
             {
-                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: asOf);
+                var workItem = await witClient.GetWorkItemAsync(project, id, expand: WorkItemExpand.All, asOf: asOf.ToUniversalTime());
                 var parent = workItem.Fields.Where(x => x.Key == "System.Parent").FirstOrDefault();
                 if (int.TryParse(parent.Value?.ToString(), out var parentId))
                 {
@@ -216,7 +219,7 @@ public sealed class ApiClient : IApiClient
                     {
                         continue;
                     }
-                    var parentWorkItem = await witClient.GetWorkItemAsync(project, parentId, expand: WorkItemExpand.Fields, asOf: asOf);
+                    var parentWorkItem = await witClient.GetWorkItemAsync(project, parentId, expand: WorkItemExpand.Fields, asOf: asOf.ToUniversalTime());
                     if (parentWorkItem.Fields.TryGetValue("System.IterationPath", out var actualIteration) && iterationPath.Equals(actualIteration?.ToString()))
                     {
                         var wi = parentWorkItem.Fields.ToDictionary(x => x.Key, x => x.Value);

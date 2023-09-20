@@ -7,6 +7,7 @@ import {
   Typography,
   Empty,
   Table,
+  Divider,
 } from 'antd';
 import {
   GraphicalReportItem,
@@ -34,6 +35,8 @@ import { selectColors } from '../../../util/graphicalUtils';
 interface Props {
   item: GraphicalReportItem;
 }
+
+const { Title } = Typography;
 
 const GraphicalKPICard: React.FC<Props> = (props) => {
   const { item } = props;
@@ -172,6 +175,28 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
         return null;
     }
   }, [item.type, data]);
+
+  if (item.type === GraphicalReportItemType.Text) {
+    return (
+      <Card
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'relative',
+        }}>
+        <Divider orientation="left" orientationMargin={0}>
+          <Title
+            level={4}
+            style={{
+              margin: 0,
+              marginInline: 12,
+            }}>
+            {item.name}
+          </Title>
+        </Divider>
+      </Card>
+    );
+  }
 
   return (
     <Card

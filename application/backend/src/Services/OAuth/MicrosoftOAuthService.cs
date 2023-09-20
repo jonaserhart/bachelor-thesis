@@ -29,11 +29,11 @@ public class MicrosoftOAuthService : IOAuthService
 
     private static readonly ConcurrentDictionary<Guid, TokenModel> s_authorizationRequests = new();
 
-    public MicrosoftOAuthService(DataContext context, ILogger<MicrosoftOAuthService> logger, IOptions<OAuthConfig> oauthConfig, IUserService userService, IHttpClientFactory httpClientFactory, IOptions<DevOpsConfig> devOpsConfig)
+    public MicrosoftOAuthService(DataContext context, ILogger<MicrosoftOAuthService> logger, IOptions<AuthenticationConfig> authConfig, IUserService userService, IHttpClientFactory httpClientFactory, IOptions<DevOpsConfig> devOpsConfig)
     {
+        m_oauthConfig = (authConfig?.Value?.OAuth) ?? throw new ServiceConfigurationException("Could not create OAuth service 'MicrosoftOAuthService'. No OAuth config found in appsettings or environment.");
         m_context = context;
         m_logger = logger;
-        m_oauthConfig = oauthConfig.Value;
         m_userService = userService;
         m_httpClientFactory = httpClientFactory;
         m_devOpsConfig = devOpsConfig.Value;

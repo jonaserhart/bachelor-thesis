@@ -34,9 +34,9 @@ public class KPIService : IKPIService
         return found;
     }
 
-    public async Task<KPI> UpdateKPIAsync(KPIUpdate updated)
+    public async Task<KPI> UpdateKPIAsync(Guid kpiId, KPIUpdate updated)
     {
-        var found = await m_context.GetByIdOrThrowAsync<KPI>(updated.Id);
+        var found = await m_context.GetByIdOrThrowAsync<KPI>(kpiId);
         found.Name = updated.Name;
 
         await m_context.SaveChangesAsync();
@@ -305,7 +305,6 @@ public class KPIService : IKPIService
         var newKPIFolder = new KPIFolder
         {
             Name = name,
-
         };
 
         if (folderId != null)
@@ -324,7 +323,7 @@ public class KPIService : IKPIService
         return newKPIFolder;
     }
 
-    public async Task<KPIFolder> GetKPIFolderContents(Guid folderId)
+    public async Task<KPIFolder> GetKPIFolderWithContents(Guid folderId)
     {
         var folder = await m_context.GetByIdOrThrowAsync<KPIFolder>(folderId!);
         await m_context.Entry(folder).Collection(x => x.SubFolders).Query().LoadAsync();

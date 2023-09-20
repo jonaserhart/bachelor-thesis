@@ -44,6 +44,7 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
             new(LAST_ITER_END_WI_TASKS_QUERY, "GeoMan - Tasks at sprint end", Model.Enum.QueryReturnType.ObjectList),
             new(LAST_ITER_WI_REMOVED_TICKETS_QUERY, "GeoMan - Removed tickets", Model.Enum.QueryReturnType.ObjectList),
             new(LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY, "GeoMan - Tickets with blocker tasks", Model.Enum.QueryReturnType.ObjectList),
+            new(LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY, "GeoMan - Tickets with afterthought tasks", Model.Enum.QueryReturnType.ObjectList),
         };
     }
 

@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using backend.Extensions;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
@@ -39,17 +40,6 @@ public class DataContext : DbContext
             .HasOne(x => x.Model)
             .WithMany(x => x.ModelUsers)
             .HasForeignKey(x => x.ModelId);
-
-        var permissionValueComparer = new ValueComparer<IEnumerable<ModelPermission>>(
-                    (c1, c2) => c1.SequenceEqual(c2),
-                    c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-                    c => (IEnumerable<ModelPermission>)c.ToHashSet());
-        modelBuilder.Entity<UserModel>()
-                .Property(x => x.Permissions)
-                .HasConversion(
-                    permissions => string.Join(',', permissions),
-                    str => str.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList().Select(x => Enum.Parse<ModelPermission>(x)) ?? new List<ModelPermission>())
-                    .Metadata.SetValueComparer(permissionValueComparer);
 
         modelBuilder.Entity<MathOperationExpression>()
             .HasOne(x => x.Left)
@@ -102,6 +92,21 @@ public class DataContext : DbContext
                 .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
         });
 
+        modelBuilder.Entity<ModelAssociationRequest>(mar =>
+        {
+            mar
+                .Property(x => x.IssuedAt)
+                .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+
+            mar.HasOne(x => x.Model)
+                .WithMany()
+                .HasForeignKey(x => x.ModelId);
+
+            mar.HasOne(x => x.IssuedBy)
+                .WithMany()
+                .HasForeignKey(x => x.IssuedById);
+        });
+
         modelBuilder.Entity<KPI>()
             .Property(x => x.AcceptableValues)
             .HasDefaultValue("any");
@@ -123,7 +128,7 @@ public class DataContext : DbContext
         {
             model.HasMany(x => x.Graphical)
                 .WithOne(x => x.Model)
-                .HasForeignKey("ModelId")
+                .HasForeignKey(x => x.ModelId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             model.HasMany(x => x.KPIs)
@@ -202,6 +207,7 @@ public class DataContext : DbContext
     }
 
     public DbSet<User> Users { get; set; }
+    public DbSet<ModelAssociationRequest> ModelAssociationRequests { get; set; }
     public DbSet<UserModel> UserModels { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<AnalysisModel> AnalysisModels { get; set; }

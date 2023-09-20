@@ -8,5 +8,6 @@ public class GraphicalConfiguration
     public string Name { get; set; } = string.Empty;
     [JsonIgnore]
     public AnalysisModel? Model { get; set; }
+    public Guid? ModelId { get; set; }
     public List<GraphicalReportItem> Items { get; set; } = new List<GraphicalReportItem>();
 }
