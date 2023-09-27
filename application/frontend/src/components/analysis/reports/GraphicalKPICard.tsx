@@ -8,6 +8,7 @@ import {
   Empty,
   Table,
   Divider,
+  Spin,
 } from 'antd';
 import {
   GraphicalReportItem,
@@ -43,10 +44,10 @@ const { Title } = Typography;
 const GraphicalKPICard: React.FC<Props> = (props) => {
   const { item } = props;
 
-  const { report } = useContext(ReportContext);
+  const { report, loading } = useContext(ReportContext);
 
   const reportData = useMemo(
-    () => report?.kpisAndValues ?? undefined,
+    () => report?.reportData?.kpisAndValues ?? undefined,
     [report]
   );
 
@@ -254,7 +255,7 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
           height: '100%',
           width: '100%',
         }}>
-        {content}
+        {loading ? null : content}
       </div>
     </Card>
   );

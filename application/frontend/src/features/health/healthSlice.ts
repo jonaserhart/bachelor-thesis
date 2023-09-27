@@ -1,11 +1,19 @@
-import { PayloadAction, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { createAppAsyncThunk } from '../../app/hooks';
 import axios from '../../backendClient';
 
+type HealthStatus = 'Healthy' | 'Degraded' | 'Unhealthy';
+
 export interface State {
-  code: 'Healthy' | 'Degraded' | 'Unhealthy';
-  details: { key: string; value: string }[];
+  code: HealthStatus;
+  details: {
+    key: string;
+    value: {
+      status: HealthStatus;
+      details: string | undefined;
+    };
+  }[];
 }
 
 const initialState: State = {
@@ -32,14 +40,17 @@ const healthSlice = createSlice({
     });
 
     builder.addCase(checkHealthEndpoint.rejected, (state, action) => {
-      (state.details = [
+      state.details = [
         {
           key: 'Backend error',
-          value:
-            'There was an error requesting the health endpoint of the backend',
+          value: {
+            status: 'Unhealthy',
+            details:
+              'There was an error requesting the health endpoint of the backend',
+          },
         },
-      ]),
-        (state.code = 'Unhealthy');
+      ];
+      state.code = 'Unhealthy';
     });
   },
 });

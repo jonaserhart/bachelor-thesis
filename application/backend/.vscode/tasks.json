@@ -35,7 +35,10 @@
                 "--project",
                 "${workspaceFolder}/src/backend.csproj"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
         }
     ]
 }

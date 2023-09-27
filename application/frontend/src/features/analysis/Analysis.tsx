@@ -7,7 +7,7 @@ import {
 } from './analysisSlice';
 import { Button, Space, Spin, Typography, message } from 'antd';
 import CustomTable from '../../components/table/CustomTable';
-import { AnalysisModel, KPI } from './types';
+import { AnalysisModel } from './types';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import handleError from '../../util/handleError';
@@ -84,13 +84,13 @@ const Analysis: React.FC = () => {
             title: 'Name',
           },
           {
-            key: 'noKPIs',
-            title: '# KPIs',
-            dataIndex: 'kpis',
+            key: 'noReports',
+            title: 'Reports',
+            dataIndex: 'reports',
             render(value) {
-              const kpi = value as KPI[];
+              const kpi = value as Report[];
               if (kpi.length <= 0) {
-                return <div style={{ color: 'gray' }}>No kpis yet</div>;
+                return <div style={{ color: 'gray' }}>No reports yet</div>;
               }
               return kpi.length;
             },

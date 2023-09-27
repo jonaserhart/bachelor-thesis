@@ -47,17 +47,25 @@ const ServerInfoPage: React.FC = () => {
         description={
           <div>
             {health.details.map((d) => (
-              <p key={d.key}>{`${d.key}: ${d.value}`}</p>
+              <>
+                <p key={d.key}>{`${d.key}: ${d.value.status}`}</p>
+                {d.value.details && <p>{d.value.details}</p>}
+              </>
             ))}
           </div>
         }
         action={
           <Space direction="vertical">
-            <Button onClick={tryAgain} loading={loading} type="text">
+            <Button
+              style={{ marginInline: 20 }}
+              onClick={tryAgain}
+              loading={loading}
+              type="text">
               Request status again
             </Button>
             {health.code === 'Healthy' && (
               <Button
+                style={{ marginInline: 20 }}
                 onClick={() => {
                   nav('/');
                 }}

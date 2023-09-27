@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using backend.Model.Analysis.Graphical;
+using backend.Model.Analysis.Reports;
 using backend.Model.Analysis.KPIs;
 using backend.Model.Users;
 using Newtonsoft.Json;

@@ -14,6 +14,7 @@ using backend.Model.Users;
 using backend.Services.Security;
 using backend.Model.Security;
 using System.Runtime.CompilerServices;
+using backend.Model.Analysis.Reports;
 
 namespace backend.Controllers;
 

@@ -131,6 +131,7 @@ if (app.Environment.IsDevelopment())
     Console.WriteLine("DEVELOPMENT");
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseCors(cp => cp.SetIsOriginAllowed(host => true).AllowAnyHeader().AllowAnyMethod().AllowCredentials());
 }
 else
 {
@@ -156,7 +157,7 @@ app.MapHealthChecks("/healthz", new HealthCheckOptions
             status = new
             {
                 code = report.Status.ToString(),
-                details = report.Entries.Select(x => new { key = x.Key, value = x.Value }).ToArray()
+                details = report.Entries.Select(x => new { key = x.Key, value = new { status = x.Value.Status.ToString(), details = x.Value.Description } }).ToArray()
             }
         }
         );

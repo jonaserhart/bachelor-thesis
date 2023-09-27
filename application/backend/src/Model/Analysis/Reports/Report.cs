@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace backend.Model.Analysis;
+namespace backend.Model.Analysis.Reports;
 
 public class Report
 {
@@ -11,8 +11,5 @@ public class Report
     public long Created { get; set; }
     [JsonIgnore]
     public AnalysisModel? AnalysisModel { get; set; }
-    public Dictionary<string, QueryResult> QueryResults { get; set; } = new Dictionary<string, QueryResult>();
-
-    [JsonProperty("kpisAndValues")]
-    public Dictionary<Guid, object?> KPIsAndValues { get; set; } = new Dictionary<Guid, object?>();
+    public ReportData? ReportData { get; set; }
 }

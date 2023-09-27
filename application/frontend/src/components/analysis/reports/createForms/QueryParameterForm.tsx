@@ -93,6 +93,13 @@ const QueryParameterForm: React.FC = () => {
           .then((values) => {
             const flat = values.flatMap((x) => x);
             const dist = distinctByValueAggregate(flat, 'name', 'query');
+            dist.sort(function (a, b) {
+              const textA = a.name.toUpperCase();
+              const textB = b.name.toUpperCase();
+              if (textA < textB) return -1;
+              if (textA > textB) return 1;
+              return 0;
+            });
             setQueryParameters(dist);
           })
           .then(console.error)

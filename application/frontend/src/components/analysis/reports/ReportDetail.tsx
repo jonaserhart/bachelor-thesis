@@ -47,7 +47,7 @@ const ReportDetail: React.FC = () => {
                 KPI table
               </span>
             ),
-            children: report && <KpiReportListDisplay report={report} />,
+            children: <KpiReportListDisplay />,
           },
           {
             key: '#graphical',

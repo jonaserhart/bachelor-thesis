@@ -1,6 +1,7 @@
 using backend.Model.Analysis;
 using backend.Model.Analysis.Graphical;
 using backend.Model.Analysis.KPIs;
+using backend.Model.Analysis.Reports;
 using backend.Model.Exceptions;
 using backend.Model.Rest;
 using backend.Model.Users;
@@ -32,14 +33,11 @@ public class AnalysisModelService : IAnalysisModelService
     {
         var model = await m_context.AnalysisModels
             .Include(x => x.KPIs)
-                .ThenInclude(x => x.Expression)
             .Include(x => x.KPIFolders)
                 .ThenInclude(x => x.KPIs)
-                    .ThenInclude(x => x.Expression)
             .Include(x => x.KPIFolders)
                 .ThenInclude(x => x.SubFolders)
                     .ThenInclude(x => x.KPIs)
-                        .ThenInclude(x => x.Expression)
             .Include(x => x.ModelUsers)
                 .ThenInclude(x => x.User)
             .Include(x => x.Reports)
@@ -148,8 +146,11 @@ public class AnalysisModelService : IAnalysisModelService
         {
             Title = submission.Title,
             Notes = submission.Notes,
-            KPIsAndValues = result,
-            QueryResults = queriesAndResults,
+            ReportData = new ReportData
+            {
+                KPIsAndValues = result,
+                QueryResults = queriesAndResults,
+            },
             AnalysisModel = model
         };
 
@@ -166,8 +167,9 @@ public class AnalysisModelService : IAnalysisModelService
         await m_context.SaveChangesAsync();
     }
 
-    public IEnumerable<string> SelectAllRequiredQueries(KPIFolder folder)
+    public async Task<IEnumerable<string>> SelectAllRequiredQueries(KPIFolder folder)
     {
+        await m_context.Entry(folder).Collection(x => x.KPIs).Query().Include(x => x.Expression).LoadAsync();
         var queries = folder.KPIs
             .Where(x => x != null && x.Expression != null)
             .SelectMany(x => x.Expression!.GetRequiredQueries())
@@ -175,7 +177,8 @@ public class AnalysisModelService : IAnalysisModelService
 
         foreach (var subFolder in folder.SubFolders)
         {
-            queries.AddRange(SelectAllRequiredQueries(subFolder));
+            var childQueries = await SelectAllRequiredQueries(subFolder);
+            queries.AddRange(childQueries);
         }
 
         return queries;
@@ -184,6 +187,8 @@ public class AnalysisModelService : IAnalysisModelService
     public async Task<IEnumerable<string>> GetRequiredQueriesAsync(Guid modelId)
     {
         var model = await GetByIdAsync(modelId);
+
+        await m_context.Entry(model).Collection(x => x.KPIs).Query().Include(x => x.Expression).LoadAsync();
         var queries = model.KPIs
             .Where(x => x != null && x.Expression != null)
             .SelectMany(x => x.Expression!.GetRequiredQueries())
@@ -191,7 +196,8 @@ public class AnalysisModelService : IAnalysisModelService
 
         foreach (var folder in model.KPIFolders)
         {
-            queries.AddRange(SelectAllRequiredQueries(folder));
+            var folderQueries = await SelectAllRequiredQueries(folder);
+            queries.AddRange(folderQueries);
         }
 
         return queries.Distinct();
@@ -200,6 +206,7 @@ public class AnalysisModelService : IAnalysisModelService
     public async Task<Report> GetReportAsync(Guid id)
     {
         var report = await m_context.GetByIdOrThrowAsync<Report>(id);
+        await m_context.Entry(report).Reference(x => x.ReportData).LoadAsync();
         return report;
     }
 

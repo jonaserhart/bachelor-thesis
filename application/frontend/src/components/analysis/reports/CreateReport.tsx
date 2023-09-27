@@ -1,4 +1,15 @@
-import { Button, Divider, Form, Input, Spin, Steps } from 'antd';
+import {
+  Button,
+  Card,
+  Divider,
+  Form,
+  Input,
+  List,
+  Result,
+  Spin,
+  Steps,
+  Typography,
+} from 'antd';
 import { useForm, useWatch } from 'antd/es/form/Form';
 import React, { useCallback, useContext, useEffect } from 'react';
 import { useMemo, useState } from 'react';
@@ -11,6 +22,7 @@ import { ModelContext } from '../../../context/ModelContext';
 import { useNavigate } from 'react-router-dom';
 import KpiReportListDisplay from './KpiReportListDisplay';
 import { Report } from '../../../features/analysis/types';
+import CheckmarkSVG from '../../../svg/CheckmarkSVG';
 
 interface FormType {
   title: string;
@@ -132,18 +144,27 @@ const CreateReport: React.FC = () => {
         <QueryParameterForm />
       </React.Fragment>,
       <React.Fragment key="2">
-        <Divider orientationMargin={0} orientation="left">
-          Executing queries
-        </Divider>
-        <div style={{ minHeight: '300px', width: '100%' }}>
-          <Spin spinning />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            height: '100%',
+            marginTop: 50,
+            marginBottom: 50,
+          }}>
+          <Spin spinning size="large" style={{ marginBottom: 50 }} />
+          <Typography.Title level={4}>Executing queries...</Typography.Title>
         </div>
       </React.Fragment>,
       <React.Fragment key="3">
-        <Divider orientationMargin={0} orientation="left">
-          Computed KPIs
-        </Divider>
-        <div>{result && <KpiReportListDisplay report={result} />}</div>
+        <Result
+          status="success"
+          title={`Successfully created report ${result?.title ?? ''}!`}
+          subTitle="The report is saved and attached to your anaylsis model."
+        />
       </React.Fragment>,
     ],
     [title, result]

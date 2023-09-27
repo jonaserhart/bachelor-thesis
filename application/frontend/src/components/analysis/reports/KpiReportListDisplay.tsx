@@ -1,63 +1,157 @@
-import { useContext, useMemo } from 'react';
-import { Report } from '../../../features/analysis/types';
+import { useContext, useMemo, useState } from 'react';
 import { ModelContext } from '../../../context/ModelContext';
-import { Avatar, Card, List, Statistic } from 'antd';
-import { KeyOutlined } from '@ant-design/icons';
-import { isNumber } from 'util';
 import CustomTable from '../../table/CustomTable';
-import { useAppSelector } from '../../../app/hooks';
-import { selectAllKPIs } from '../../../features/analysis/analysisSlice';
+import { BackendError, useAppSelector } from '../../../app/hooks';
+import {
+  deleteKPI,
+  selectAllKPIs,
+} from '../../../features/analysis/analysisSlice';
+import { ReportContext } from '../../../context/ReportContext';
+import { Button, Space, Tag, Tree, Typography, message, theme } from 'antd';
+import { EditOutlined } from '@ant-design/icons';
+import { Expression } from 'typescript';
+import { KPI, KPIFolder } from '../../../features/analysis/types';
+import {
+  getAllKPIsInFolder,
+  mapToFolderStructure,
+} from '../../../util/kpiFolderUtils';
 
-interface Props {
-  report: Report;
-}
+const { Title } = Typography;
 
-const KpiReportListDisplay: React.FC<Props> = (props) => {
-  const { report } = props;
+const KpiReportListDisplay: React.FC = () => {
+  const { report } = useContext(ReportContext);
+
+  const {
+    token: { colorPrimary },
+  } = theme.useToken();
 
   const { model } = useContext(ModelContext);
 
   const modelId = useMemo(() => model?.id ?? '', [model]);
 
-  const modelKPIs = useAppSelector(selectAllKPIs(modelId));
+  const [selectedFolder, setSelectedFolder] = useState<KPIFolder | undefined>();
 
-  const kpis = useMemo(() => {
-    const ids = Object.keys(report.kpisAndValues);
+  const kpiValues = useMemo(() => {
+    return report?.reportData?.kpisAndValues ?? {};
+  }, [report]);
 
-    return modelKPIs
-      .filter((x) => ids.includes(x.id) && x.showInReport)
-      .map((x) => ({ ...x, value: report.kpisAndValues[x.id] }));
-  }, [modelKPIs, report.kpisAndValues]);
+  const kpis = useAppSelector(selectAllKPIs(modelId));
+
+  const kpiFolders = useMemo(() => {
+    return [
+      ...(model?.kpiFolders?.map(mapToFolderStructure) ?? []),
+      ...(model?.kpis?.map(mapToFolderStructure) ?? []),
+    ];
+  }, [model]);
+
+  const treeData = useMemo(() => {
+    return {
+      //@ts-ignore
+      name: 'KPIS',
+      id: 'root',
+      children: [...kpiFolders],
+      kpis: model?.kpis ?? [],
+    };
+  }, [kpiFolders, kpis]);
+
+  const kpisToDisplay = useMemo(() => {
+    return getAllKPIsInFolder(model, selectedFolder?.id);
+  }, [model, selectedFolder]);
 
   return (
-    <div>
-      <CustomTable
-        dataSource={kpis}
-        defaultColumns={[
-          {
-            key: 'name',
-            title: 'KPI',
-            dataIndex: 'name',
-            searchable: true,
-          },
-          {
-            key: 'value',
-            dataIndex: 'value',
-            title: 'Value',
-            render(value, record, index) {
-              if (Array.isArray(value)) {
-                return `List of length ${value.length}`;
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'start',
+        alignItems: 'start',
+      }}>
+      <div
+        style={{
+          width: '20%',
+          display: treeData.children.length > 0 ? 'block' : 'none',
+        }}>
+        <Tree
+          onSelect={(keys, info) => {
+            if (info.selectedNodes.length > 0) {
+              if (
+                //@ts-ignore
+                info.selectedNodes[0].id === 'root'
+              ) {
+                setSelectedFolder(undefined);
+                return;
               }
-              return value;
+              if (
+                //@ts-ignore
+                !info.selectedNodes[0].isKPI
+              ) {
+                //@ts-ignore
+                setSelectedFolder(info.selectedNodes[0]);
+              } else {
+                //@ts-ignore
+                nav(`/analyze/${modelId}/kpi/${info.selectedNodes[0].id}`);
+              }
+            }
+          }}
+          defaultExpandedKeys={['root']}
+          defaultSelectedKeys={['root']}
+          //@ts-ignore
+          treeData={[treeData]}
+          titleRender={(node) => {
+            return (
+              <Title
+                level={5}
+                style={{
+                  margin: 0,
+                  fontSize: 'medium',
+                  fontWeight: 'inherit',
+                  color:
+                    // @ts-ignore
+                    node.id === selectedFolder?.id ||
+                    // @ts-ignore
+                    (node.id === 'root' && !selectedFolder)
+                      ? colorPrimary
+                      : 'unset',
+                }}>
+                {
+                  // @ts-ignore
+                  node.name
+                }
+              </Title>
+            );
+          }}
+          showLine={true}
+          fieldNames={{
+            title: 'name',
+            key: 'id',
+            children: 'children',
+          }}
+        />
+      </div>
+      <div style={{ width: treeData.children.length > 0 ? '80%' : '100%' }}>
+        <CustomTable
+          dataSource={kpisToDisplay}
+          defaultColumns={[
+            {
+              key: 'name',
+              dataIndex: 'name',
+              title: 'Name',
+              searchable: true,
             },
-          },
-          {
-            key: 'unit',
-            dataIndex: 'unit',
-            title: 'Unit',
-          },
-        ]}
-      />
+            {
+              key: 'value',
+              dataIndex: 'id',
+              title: 'Computed Value',
+              render(value, record, index) {
+                if (value in kpiValues) {
+                  return kpiValues[value];
+                }
+                return 'Unknown value';
+              },
+            },
+          ]}
+        />
+      </div>
     </div>
   );
 };

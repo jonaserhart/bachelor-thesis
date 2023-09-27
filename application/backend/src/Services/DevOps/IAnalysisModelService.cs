@@ -1,5 +1,6 @@
 using backend.Model.Analysis;
 using backend.Model.Analysis.Graphical;
+using backend.Model.Analysis.Reports;
 using backend.Model.Rest;
 using backend.Model.Users;
 

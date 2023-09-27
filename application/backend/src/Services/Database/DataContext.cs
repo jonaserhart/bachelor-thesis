@@ -1,13 +1,12 @@
-using System.Security.Cryptography.X509Certificates;
 using backend.Extensions;
 using backend.Model.Analysis;
 using backend.Model.Analysis.Expressions;
 using backend.Model.Analysis.Graphical;
 using backend.Model.Analysis.KPIs;
+using backend.Model.Analysis.Reports;
 using backend.Model.Exceptions;
 using backend.Model.Users;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace backend.Services.Database;
 
@@ -79,17 +78,24 @@ public class DataContext : DbContext
 
         modelBuilder.Entity<Report>(report =>
         {
-            report
-                .Property(x => x.KPIsAndValues)
-                .HasJsonConversion();
-
-            report
-                .Property(x => x.QueryResults)
-                .HasJsonConversion();
+            report.HasOne(x => x.ReportData)
+                .WithOne(x => x.Report)
+                .HasForeignKey<ReportData>(x => x.ReportId);
 
             report
                 .Property(x => x.Created)
                 .HasDefaultValueSql("EXTRACT(EPOCH FROM NOW())::BIGINT");
+        });
+
+        modelBuilder.Entity<ReportData>(reportData =>
+        {
+            reportData
+                .Property(x => x.KPIsAndValues)
+                .HasJsonConversion();
+
+            reportData
+                .Property(x => x.QueryResults)
+                .HasJsonConversion();
         });
 
         modelBuilder.Entity<ModelAssociationRequest>(mar =>
@@ -234,6 +240,7 @@ public class DataContext : DbContext
 
     // Reports
     public DbSet<Report> Reports { get; set; }
+    public DbSet<ReportData> ReportData { get; set; }
 
     // config
     public DbSet<GraphicalConfiguration> GraphicalConfigurations { get; set; }

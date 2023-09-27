@@ -30,7 +30,7 @@ public class KPIService : IKPIService
         await m_context.Entry(found)
             .Reference(x => x.Expression)
             .Query()
-            .LoadAsync(); ;
+            .LoadAsync();
         return found;
     }
 
@@ -53,7 +53,7 @@ public class KPIService : IKPIService
     public async Task<T> SaveExpressionAsync<T>(Guid addToKPI, T expression) where T : Expression
     {
         var kpi = await m_context.GetByIdOrThrowAsync<KPI>(addToKPI);
-        m_context.Add<T>(expression);
+        m_context.Add(expression);
         kpi.Expression = expression;
         await m_context.SaveChangesAsync();
         return expression;
@@ -228,6 +228,12 @@ public class KPIService : IKPIService
 
     public async Task<(Dictionary<Guid, object?> result, Dictionary<string, QueryResult> queryResults)> EvaluateKPIs(IEnumerable<KPI> kpis, Dictionary<string, object?> queryParameterValues)
     {
+        foreach (var kpi in kpis)
+        {
+            // load related data
+            await m_context.Entry(kpi).Reference(x => x.Expression).LoadAsync();
+        }
+
         m_logger.LogDebug($"Evaluating KPIs...");
         var queries = kpis
             .Where(x => x != null && x.Expression != null)

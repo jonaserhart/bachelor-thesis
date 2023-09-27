@@ -122,16 +122,20 @@ export interface KPIFolder extends HasId {
   kpis: KPI[];
 }
 
-export interface Report extends HasId {
-  title: string;
-  notes: string;
-  created: number;
+interface ReportData {
   queryResults: {
     [key: string]: QueryResult;
   };
   kpisAndValues: {
     [key: string]: any;
   };
+}
+
+export interface Report extends HasId {
+  title: string;
+  notes: string;
+  created: number;
+  reportData: ReportData;
 }
 
 export interface GraphicalReportItemLayout {
