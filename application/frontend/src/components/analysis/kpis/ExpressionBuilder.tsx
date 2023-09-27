@@ -690,7 +690,6 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
           textAlign: 'left',
         }}
         onFinish={(values) => {
-          console.log('Finish: ', { ...values, id: expression.id });
           dispatch(
             addOrUpdateExpression({
               kpiId,

@@ -14,6 +14,11 @@ public class HealthCheck : IHealthCheck
     }
     public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
+        if (!m_devOpsProviderService.HasValidConfiguration())
+        {
+            return Task.FromResult(HealthCheckResult.Degraded("Dev ops service has invalid configuration"));
+        }
+
         var queries = m_devOpsProviderService.GetQueries();
         if (!queries.Any())
         {

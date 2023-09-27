@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: scrum-frontend-ingress
+  namespace: scrum
   labels:
     name: scrum-frontend-ingress
 spec:

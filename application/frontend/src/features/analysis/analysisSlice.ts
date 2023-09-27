@@ -157,7 +157,7 @@ export const updateKPIFolder = createAppAsyncThunk(
   prefix('updateKPIFolder'),
   async function (arg: { modelId: string; folderId: string; name: string }) {
     const reponse = await axios.put<KPIFolder>(
-      `/analysis/kmodels/${arg.modelId}/kpifolders/${arg.folderId}`,
+      `/analysis/models/${arg.modelId}/kpifolders/${arg.folderId}`,
       {
         name: arg.name,
       }

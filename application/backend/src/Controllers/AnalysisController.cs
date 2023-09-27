@@ -243,7 +243,7 @@ public class AnalysisController : Controller
     [Authorize]
     public async Task<ActionResult<IEnumerable<Query>>> GetCustomQueryParameters(string queryId)
     {
-        var parameters = await m_devOpsProviderService.GetQueryParametersAsync(queryId);
+        var parameters = await m_devOpsProviderService.GetQueryRuntimeParametersAsync(queryId);
         return Ok(parameters);
     }
 

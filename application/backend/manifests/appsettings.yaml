@@ -23,7 +23,6 @@ data:
                 "Name": "Microsoft OAuth"
               }
             ],
-            "CookieDomain": "westeurope.cloudapp.azure.com",
             "OAuth": {
               "AuthorizationUri": "https://app.vssps.visualstudio.com/oauth2/authorize",
               "TokenUri": "https://app.vssps.visualstudio.com/oauth2/token",
@@ -45,6 +44,10 @@ data:
                 "Type": "Config",
                 "Token": "PAT"
               }
-            ]
+            ],
+            "ServiceConfiguration": {
+                "project": "GeoMan",
+                "team": "0_DEV-Team 1"
+            }
           }
         }

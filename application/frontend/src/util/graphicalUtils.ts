@@ -1,15 +1,11 @@
 export function selectColors(n: number): string[] {
   const pastelColors: string[] = [
-    '#FFD1DC', // Pink
-    '#D1FFD1', // Light Green
-    '#D1D1FF', // Light Blue
-    '#FFF3D1', // Light Yellow
-    '#FFD1FF', // Lavender
-    '#D1FFFF', // Light Cyan
-    '#FFC4D1', // Light Rose
-    '#C4FFD1', // Mint
-    '#D1C4FF', // Periwinkle
-    '#FFF7D1', // Cream
+    '#8884d8', // Muted blue
+    '#82ca9d', // Muted green
+    '#d88488', // Muted coral
+    '#d8d084', // Muted yellow
+    '#84d8d1', // Muted turquoise
+    '#d8a484', // Muted peach
   ];
 
   let selectedColors: string[] = [];

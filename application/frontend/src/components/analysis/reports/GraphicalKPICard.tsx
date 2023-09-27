@@ -17,6 +17,7 @@ import { useContext, useMemo, useState } from 'react';
 import {
   Bar,
   BarChart,
+  CartesianGrid,
   Legend,
   Pie,
   PieChart,
@@ -31,6 +32,7 @@ import { ModelContext } from '../../../context/ModelContext';
 import { ReportContext } from '../../../context/ReportContext';
 import { WarningOutlined } from '@ant-design/icons';
 import { selectColors } from '../../../util/graphicalUtils';
+import CustomChartTooltip from '../../CustomChartTooltip';
 
 interface Props {
   item: GraphicalReportItem;
@@ -109,10 +111,18 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
     switch (item.type) {
       case GraphicalReportItemType.Plain:
         return (
-          <Statistic
-            value={data.data.length ? data.data[0].value : 'No value'}
-            suffix={data.data.length ? data.data[0].unit : undefined}
-          />
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Statistic
+              value={data.data.length ? data.data[0].value : 'No value'}
+              suffix={data.data.length ? data.data[0].unit : undefined}
+            />
+          </div>
         );
       case GraphicalReportItemType.List:
         const listFields = item?.properties?.listFields;
@@ -141,10 +151,15 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
         return (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.data}>
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Bar dataKey="value" fill="#000" />
-              <Tooltip />
+              <Bar dataKey="value" />
+              <Tooltip
+                cursor={false}
+                allowEscapeViewBox={{ y: true }}
+                content={<CustomChartTooltip />}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -159,15 +174,19 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
             <PieChart>
               <Pie
                 nameKey="name"
+                dataKey="value"
                 data={data.data}
                 cx="50%"
                 cy="50%"
+                innerRadius={40}
                 outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
               />
-              <Tooltip />
               <Legend />
+              <Tooltip
+                cursor={false}
+                allowEscapeViewBox={{ y: true }}
+                content={<CustomChartTooltip />}
+              />
             </PieChart>
           </ResponsiveContainer>
         );
@@ -207,6 +226,7 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
       }}
       bodyStyle={{
         height: '90%',
+        paddingLeft: 0,
       }}
       extra={
         data.warnings.length > 0 && (

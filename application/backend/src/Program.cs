@@ -30,9 +30,25 @@ builder.Services.AddControllers().AddNewtonsoftJson(opts =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var isRunningInContainer = false;
+
+if (bool.TryParse(Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER"), out var inContainer))
+{
+    isRunningInContainer = inContainer;
+}
+
 if (builder.Environment.IsDevelopment())
 {
-    builder.Configuration.AddJsonFile(Path.Join(builder.Environment.ContentRootPath, "src", "appsettings.Development.json"), optional: false, reloadOnChange: true);
+    var path = builder.Environment.ContentRootPath;
+    if (isRunningInContainer)
+    {
+        path = Path.Join(path, "appsettings.Development.json");
+    }
+    else
+    {
+        path = Path.Join(path, "src", "appsettings.Development.json");
+    }
+    builder.Configuration.AddJsonFile(path, optional: false, reloadOnChange: true);
 }
 else
 {
@@ -110,7 +126,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     Console.WriteLine("DEVELOPMENT");

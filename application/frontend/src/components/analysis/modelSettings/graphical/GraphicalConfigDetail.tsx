@@ -104,7 +104,6 @@ const GraphicalConfigDetail: React.FC = () => {
       minW?: number,
       minH?: number
     ) => {
-      console.log('Selcted widget of type: ', type);
       const position = findNextFreePosition({ width, height });
       const submission: GraphicalReportItemSubmission = {
         layout: {
@@ -198,14 +197,12 @@ const GraphicalConfigDetail: React.FC = () => {
 
   const onLayoutUpdate = useCallback(
     (newLayout: RGL.Layout[], oldItem: RGL.Layout, newItem: RGL.Layout) => {
-      console.log('On drag/resize stop: ', newLayout, oldItem, newItem);
       if (
         oldItem.x === newItem.x &&
         oldItem.y === newItem.y &&
         oldItem.h === newItem.h &&
         oldItem.w === newItem.w
       ) {
-        console.log('No changes');
         return;
       }
       const layoutsToPut: GraphicalReportItemLayout[] = newLayout

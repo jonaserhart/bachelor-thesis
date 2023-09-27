@@ -51,7 +51,7 @@ public class ApiClientFactory : IApiClientFactory
         }
 
         if (string.IsNullOrEmpty(token))
-            throw new UnauthorizedException($"No access token found, cannot create api client, tried ${m_config.TokenSources.Count} token sources [{string.Join(", ", m_config.TokenSources.Select(x => x.Type))}].");
+            throw new UnauthorizedException($"No access token found, cannot create api client, tried ${m_config.TokenSources.Count} token sources [{string.Join(", ", m_config.TokenSources.Select(x => x.Type.ToString()))}].");
 
         return await GetApiClientAsync(token);
     }

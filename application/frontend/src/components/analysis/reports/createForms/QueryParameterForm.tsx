@@ -113,13 +113,7 @@ const QueryParameterForm: React.FC = () => {
       case QueryParameterValueType.Select:
         return <Select options={qp.data} placeholder={qp.description} />;
       case QueryParameterValueType.Date:
-        return (
-          <DatePicker
-            onChange={console.log}
-            showTime
-            placeholder={qp.description}
-          />
-        );
+        return <DatePicker showTime placeholder={qp.description} />;
     }
   }, []);
 

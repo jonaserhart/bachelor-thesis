@@ -1,8 +1,6 @@
 import { useContext, useEffect, useMemo, useState } from 'react';
 import RGL, { WidthProvider } from 'react-grid-layout';
 import { ModelContext } from '../../../context/ModelContext';
-import { GraphicalConfigContext } from '../../../context/GraphicalConfigContext';
-import { GraphicalConfiguration } from '../../../features/analysis/types';
 import { Select, Form } from 'antd';
 import { useAppDispatch } from '../../../app/hooks';
 import { getGraphicalConfigDetails } from '../../../features/analysis/analysisSlice';
@@ -22,12 +20,6 @@ const GraphicalReportDisplay: React.FC = () => {
   );
 
   const availableConfigs = useMemo(() => model?.graphical ?? [], [model]);
-
-  useEffect(() => {
-    if (availableConfigs.length > 0) {
-      setSelectedLayout(availableConfigs[0].id);
-    }
-  }, [availableConfigs]);
 
   const configItems = useMemo(
     () => availableConfigs.find((x) => x.id === selectedLayout)?.items ?? [],

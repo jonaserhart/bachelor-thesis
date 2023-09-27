@@ -5,7 +5,7 @@ import {
 } from '@ant-design/icons';
 import { Breadcrumb, Button, Layout, Menu, Space, message, theme } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getMe, selectAuthenticatedUser } from '../features/auth/authSlice';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -16,6 +16,15 @@ import {
   State as BackendStatusInfo,
   checkHealthEndpoint,
 } from '../features/health/healthSlice';
+import { useSelector } from 'react-redux';
+import { selectModels } from '../features/analysis/analysisSlice';
+import {
+  AnalysisModel,
+  GraphicalConfiguration,
+  KPI,
+  Report,
+} from '../features/analysis/types';
+import { getAllKPIs } from '../util/kpiFolderUtils';
 
 const logger = getLogger('NavBar');
 
@@ -26,6 +35,85 @@ const NavBar: React.FC = () => {
 
   const nav = useNavigate();
   const location = useLocation();
+
+  const { modelId, reportId, kpiId, configId } = useParams();
+
+  const models = useSelector(selectModels);
+
+  const currentModel = useMemo(
+    () => models.find((model) => model.id === modelId),
+    [models, modelId]
+  );
+
+  const breadCrumbs = useMemo(() => {
+    const entries = [
+      {
+        title: 'SCRUM tool',
+        path: `/`,
+      },
+    ];
+
+    if (!currentModel) {
+      return entries;
+    }
+
+    if (location.pathname.includes('/analyze')) {
+      entries.push({
+        title: 'Analysis',
+        path: `/analyze`,
+      });
+    }
+
+    entries.push({
+      title: currentModel.name,
+      path: `/analyze/${currentModel.id}`,
+    });
+
+    if (location.pathname.includes('/report/')) {
+      entries.push({
+        title: 'Reports',
+        path: `/analyze/${currentModel.id}?tab=l8estreports`,
+      });
+      const report = currentModel?.reports?.find(
+        (report) => report.id === reportId
+      );
+      if (report) {
+        entries.push({
+          title: report.title,
+          path: `/analyze/${currentModel.id}/report/${report.id}`,
+        });
+      }
+    } else if (location.pathname.includes('/kpi/')) {
+      entries.push({
+        title: 'KPIs',
+        path: `/analyze/${currentModel.id}?tab=kpis`,
+      });
+      const kpi = getAllKPIs(currentModel).find((kpi) => kpi.id === kpiId);
+      if (kpi) {
+        entries.push({
+          title: kpi.name,
+          path: `/analyze/${currentModel.id}/kpi/${kpi.id}`,
+        });
+      }
+    } else if (location.pathname.includes('/graphicalConfig/')) {
+      entries.push({
+        title: 'Configuration',
+        path: `/analyze/${currentModel.id}?tab=settings`,
+      });
+
+      const config = currentModel?.graphical?.find(
+        (config) => config.id === configId
+      );
+      if (config) {
+        entries.push({
+          title: config.name,
+          path: `/analyze/${currentModel.id}/graphicalConfig/${config.id}`,
+        });
+      }
+    }
+
+    return entries;
+  }, [location, currentModel]);
 
   const dispatch = useAppDispatch();
 
@@ -61,23 +149,6 @@ const NavBar: React.FC = () => {
         return 'unknown';
     }
   }, [location]);
-
-  const getTokenName = useCallback((tn: string) => {
-    switch (tn) {
-      case 'analyze':
-        return 'Analysis';
-      default:
-        return tn;
-    }
-  }, []);
-
-  const pathTokens = useMemo(() => {
-    const tokens = location.pathname.split('/');
-    if (tokens.length > 1) {
-      return tokens.filter((x) => x.trim().length > 0).map(getTokenName);
-    }
-    return [];
-  }, [getTokenName, location.pathname]);
 
   return (
     <Layout>
@@ -115,7 +186,7 @@ const NavBar: React.FC = () => {
             ]}
           />
           <Space>
-            <Button type="primary" ghost icon={<UserOutlined />}>
+            <Button type="text" icon={<UserOutlined />}>
               Hello, {me?.displayName}
             </Button>
           </Space>
@@ -126,12 +197,30 @@ const NavBar: React.FC = () => {
           style={{
             marginTop: 10,
           }}
+          separator={
+            <div
+              style={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+              }}>
+              /
+            </div>
+          }
           items={[
-            {
-              title: 'Scrum tool',
-            },
-            ...pathTokens.map((x) => ({
-              title: x,
+            ...breadCrumbs.map((x) => ({
+              title: (
+                <Button
+                  style={{
+                    margin: 0,
+                  }}
+                  type="text">
+                  {x.title}
+                </Button>
+              ),
+              onClick() {
+                nav(x.path);
+              },
             })),
           ]}></Breadcrumb>
         <div

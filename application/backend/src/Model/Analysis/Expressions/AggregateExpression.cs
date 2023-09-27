@@ -39,7 +39,7 @@ public abstract class AggregateExpression : Expression
             {
                 var val = w.GetValueOrDefault(Field);
                 if (val == null) return double.NaN;
-                return System.Convert.ToDouble(val);
+                return Convert.ToDouble(val);
             })
             .Where(x => !double.IsNaN(x));
         }

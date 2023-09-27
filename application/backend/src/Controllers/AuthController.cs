@@ -63,7 +63,6 @@ public class AuthController : Controller
             SameSite = SameSiteMode.None,
             IsEssential = true,
             Secure = true,
-            Domain = m_authenticationConfig.CookieDomain
         };
 
         Response.Cookies.Append("refreshToken", token, cookieOptions);

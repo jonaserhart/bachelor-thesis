@@ -117,7 +117,6 @@ const KPIConfigForm: React.FC = () => {
       } else {
         valuesToSet.acceptableValues = parsed.value;
       }
-      console.log('Setting: ', valuesToSet);
 
       form.setFieldsValue({
         ...valuesToSet,
@@ -236,10 +235,9 @@ const KPIConfigForm: React.FC = () => {
                 {
                   required: true,
                   message: 'Value is required',
-                  type: 'number',
                 },
               ]}>
-              <Input onChange={onAccepableValuesUpdate} />
+              <Input type="number" onChange={onAccepableValuesUpdate} />
             </Form.Item>
             <Form.Item
               name={['acceptableValues', 'to']}
@@ -247,10 +245,9 @@ const KPIConfigForm: React.FC = () => {
                 {
                   required: true,
                   message: 'Value is required',
-                  type: 'number',
                 },
               ]}>
-              <Input onChange={onAccepableValuesUpdate} />
+              <Input type="number" onChange={onAccepableValuesUpdate} />
             </Form.Item>
           </Form.Item>
         );

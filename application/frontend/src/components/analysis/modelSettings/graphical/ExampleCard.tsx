@@ -1,10 +1,12 @@
 import {
   Bar,
   BarChart,
+  CartesianGrid,
   Legend,
   Pie,
   PieChart,
   ResponsiveContainer,
+  Sector,
   XAxis,
   YAxis,
 } from 'recharts';
@@ -30,6 +32,7 @@ import {
   message,
   theme,
 } from 'antd';
+import { Tooltip as TT } from 'recharts';
 import { useAppSelector } from '../../../../app/hooks';
 import {
   CloseOutlined,
@@ -40,6 +43,8 @@ import {
 import { selectAllKPIs } from '../../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../../context/ModelContext';
 import { mapToFolderStructure } from '../../../../util/kpiFolderUtils';
+import CustomChartTooltip from '../../../CustomChartTooltip';
+import { selectColors } from '../../../../util/graphicalUtils';
 
 const { Paragraph, Title } = Typography;
 
@@ -55,18 +60,23 @@ const isLeafNode = (
   return undefined;
 };
 
+const colors = selectColors(3);
+
 const multipleKpiData = [
   {
     name: 'KPI 1',
     value: 10,
+    fill: colors[0],
   },
   {
     name: 'KPI 2',
     value: 30,
+    fill: colors[1],
   },
   {
     name: 'KPI 3',
     value: 20,
+    fill: colors[2],
   },
 ];
 
@@ -159,15 +169,31 @@ const ExampleCard: React.FC<Props> = (props) => {
   const content = useMemo(() => {
     switch (type) {
       case GraphicalReportItemType.Plain:
-        return <Statistic value={80} suffix={'%'} />;
+        return (
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+            <Statistic value={80} suffix={'%'} />
+          </div>
+        );
 
       case GraphicalReportItemType.BarChart:
         return (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={multipleKpiData}>
+              <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis />
-              <Bar dataKey="value" fill="#8884d8" />
+              <Bar dataKey="value" />
+              <TT
+                cursor={false}
+                allowEscapeViewBox={{ y: true }}
+                content={<CustomChartTooltip />}
+              />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -176,15 +202,20 @@ const ExampleCard: React.FC<Props> = (props) => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
+                nameKey="name"
                 dataKey="value"
                 data={multipleKpiData}
+                cx="50%"
+                cy="50%"
                 innerRadius={40}
                 outerRadius={80}
-                fill="#82ca9d"
-                label
               />
-              <Tooltip />
               <Legend />
+              <TT
+                cursor={false}
+                allowEscapeViewBox={{ y: true }}
+                content={<CustomChartTooltip />}
+              />
             </PieChart>
           </ResponsiveContainer>
         );
@@ -290,6 +321,7 @@ const ExampleCard: React.FC<Props> = (props) => {
         style={{ height: 'inherit' }}
         bodyStyle={{
           height: '90%',
+          paddingLeft: 0,
         }}
         extra={
           <>
