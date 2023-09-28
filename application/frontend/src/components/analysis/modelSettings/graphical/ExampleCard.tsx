@@ -42,23 +42,14 @@ import {
 } from '@ant-design/icons';
 import { selectAllKPIs } from '../../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../../context/ModelContext';
-import { mapToFolderStructure } from '../../../../util/kpiFolderUtils';
+import {
+  isLeafNode,
+  mapToFolderStructure,
+} from '../../../../util/kpiFolderUtils';
 import CustomChartTooltip from '../../../CustomChartTooltip';
 import { selectColors } from '../../../../util/graphicalUtils';
 
 const { Paragraph, Title } = Typography;
-
-const isLeafNode = (
-  value: string,
-  data: (KPI | KPIFolder)[]
-): boolean | undefined => {
-  for (const node of data) {
-    if (node.id === value) {
-      return 'expression' in node;
-    }
-  }
-  return undefined;
-};
 
 const colors = selectColors(3);
 
@@ -251,44 +242,96 @@ const ExampleCard: React.FC<Props> = (props) => {
           width: '100%',
           height: '100%',
           position: 'relative',
+        }}
+        bodyStyle={{
+          padding: 0,
+          height: 'inherit',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
         }}>
-        {enableEdit && (
+        <div style={{ position: 'relative', height: '100%', width: '100%' }}>
           <div
-            className="drag-handle"
+            style={{
+              height: '100%',
+              width: '100%',
+              position: 'absolute',
+              display: 'flex',
+              alignItems: 'center',
+            }}>
+            <Divider orientation="left" orientationMargin={0}>
+              <Title
+                level={4}
+                style={{
+                  margin: 0,
+                  marginInline: 12,
+                  zIndex: 100,
+                  position: 'relative',
+                }}
+                editable={
+                  enableEdit && {
+                    onChange: (newTitle: string) => {
+                      onTitleChange(newTitle);
+                    },
+                    icon: busy ? (
+                      <Spin />
+                    ) : (
+                      <EditOutlined style={{ color: colorPrimary }} />
+                    ),
+                    tooltip: 'click to edit text',
+                  }
+                }>
+                {title}
+              </Title>
+            </Divider>
+          </div>
+          <div
             style={{
               position: 'absolute',
-              top: 0,
-              right: 0,
-              zIndex: 1,
+              zIndex: 100,
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
             }}>
-            <Tooltip title="Drag this element anywhere">
-              <Button icon={<DragOutlined />} type="text" />
-            </Tooltip>
+            {enableEdit && (
+              <>
+                <Dropdown
+                  menu={{
+                    items: [
+                      {
+                        key: 'delete',
+                        label: 'Delete',
+                        danger: true,
+                        onClick() {
+                          if (onDelete) {
+                            setBusy(true);
+                            onDelete()
+                              .then(() =>
+                                message.success(`Deleted item ${title}`)
+                              )
+                              .catch((err) => message.error(err.message))
+                              .finally(() => setBusy(false));
+                          }
+                        },
+                      },
+                    ],
+                  }}
+                  trigger={['click']}>
+                  <Tooltip title="Settings">
+                    <Button icon={<MoreOutlined />} type="dashed" />
+                  </Tooltip>
+                </Dropdown>
+                <div className="drag-handle" style={{ marginLeft: 10 }}>
+                  <Tooltip title="Drag this element anywhere">
+                    <Button icon={<DragOutlined />} type="dashed" />
+                  </Tooltip>
+                </div>
+              </>
+            )}
           </div>
-        )}
-        <Divider orientation="left" orientationMargin={0}>
-          <Title
-            level={4}
-            style={{
-              margin: 0,
-              marginInline: 12,
-            }}
-            editable={
-              !enableEdit && {
-                onChange: (newTitle: string) => {
-                  onTitleChange(newTitle);
-                },
-                icon: busy ? (
-                  <Spin />
-                ) : (
-                  <EditOutlined style={{ color: colorPrimary }} />
-                ),
-                tooltip: 'click to edit text',
-              }
-            }>
-            {title}
-          </Title>
-        </Divider>
+        </div>
       </Card>
     );
   }
@@ -301,9 +344,11 @@ const ExampleCard: React.FC<Props> = (props) => {
             style={{
               margin: 0,
               marginInline: 12,
+              zIndex: 100,
+              position: 'relative',
             }}
             editable={
-              !enableEdit && {
+              enableEdit && {
                 onChange: (newTitle: string) => {
                   onTitleChange(newTitle);
                 },
@@ -319,14 +364,43 @@ const ExampleCard: React.FC<Props> = (props) => {
           </Paragraph>
         }
         style={{ height: 'inherit' }}
-        bodyStyle={{
-          height: '90%',
-          paddingLeft: 0,
+        headStyle={{
+          height: 55,
         }}
-        extra={
-          <>
+        bodyStyle={{
+          padding: 0,
+          height: 'inherit',
+          bottom: 55,
+          position: 'relative',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <div style={{ position: 'relative', height: '100%', width: '100%' }}>
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              position: 'absolute',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              paddingTop: 60,
+            }}>
+            {content}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              height: '100%',
+              width: '100%',
+              paddingTop: 55,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
             {enableEdit && (
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+              <>
                 <Dropdown
                   menu={{
                     items: [
@@ -358,25 +432,17 @@ const ExampleCard: React.FC<Props> = (props) => {
                   }}
                   trigger={['click']}>
                   <Tooltip title="Settings">
-                    <Button icon={<MoreOutlined />} type="text" />
+                    <Button icon={<MoreOutlined />} type="dashed" />
                   </Tooltip>
                 </Dropdown>
                 <div className="drag-handle" style={{ marginLeft: 10 }}>
                   <Tooltip title="Drag this element anywhere">
-                    <Button icon={<DragOutlined />} type="text" />
+                    <Button icon={<DragOutlined />} type="dashed" />
                   </Tooltip>
                 </div>
-              </div>
+              </>
             )}
-          </>
-        }>
-        <div
-          style={{
-            position: 'relative',
-            height: '100%',
-            width: '100%',
-          }}>
-          {content}
+          </div>
           <div
             style={{
               display: configOpen ? 'unset' : 'none',
@@ -386,7 +452,7 @@ const ExampleCard: React.FC<Props> = (props) => {
               width: '100%',
               height: '100%',
               backgroundColor: 'rgba(0,0,0,0.2)',
-              zIndex: 2,
+              zIndex: 200,
               overflow: 'visible',
             }}>
             <div

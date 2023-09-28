@@ -486,7 +486,35 @@ const analysisSlice = createSlice({
     builder.addCase(getKPIDetails.fulfilled, (state, action) => {
       const modelId = action.meta.arg.modelId;
       const kpiId = action.meta.arg.kpiId;
-      setModelCollectionItem(state, action, modelId, kpiId, 'kpis');
+
+      const modelIndex = state.models.findIndex(
+        (x) => x.id === action.meta.arg.modelId
+      );
+
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      for (let kpiIndex in state.models[modelIndex].kpis) {
+        const kpi = state.models[modelIndex].kpis[kpiIndex];
+        if (kpi.id === kpiId) {
+          state.models[modelIndex].kpis[kpiIndex] = {
+            ...state.models[modelIndex].kpis[kpiIndex],
+            ...action.payload,
+          };
+          return;
+        }
+      }
+      updateKPIParentFolderInModel(
+        state.models[modelIndex],
+        kpiId,
+        (folder) =>
+          (folder.kpis = [
+            ...folder.kpis.filter((x) => x.id !== kpiId),
+            action.payload,
+          ])
+      );
     });
 
     builder.addCase(updateKPIDetails.fulfilled, (state, action) => {

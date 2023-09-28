@@ -44,6 +44,32 @@ export function acceptableValuesToString(values: AcceptableValuesType): string {
   }
 }
 
+export function isAcceptable(value: string | number, acceptableValues: string) {
+  const values = stringToAcceptableValues(`${acceptableValues}`);
+
+  switch (values.type) {
+    case 'string':
+    case 'number':
+      return values.value === value;
+    case 'numberArray':
+      if (Array.isArray(values.value) && typeof value === 'number') {
+        return values.value.includes(value);
+      }
+      return false;
+    case 'stringArray':
+      if (Array.isArray(values.value) && typeof value === 'string') {
+        return values.value.includes(value);
+      }
+      return false;
+    case 'range':
+      const range = values.value as NumberRange;
+      if (!range || typeof value !== 'number') return false;
+      return value <= range.to && value >= range.from;
+    case 'any':
+      return true;
+  }
+}
+
 export function stringToAcceptableValues(valueString: string): {
   type: ValuesType;
   value: SingleValue | ValueArray | NumberRange | 'any';

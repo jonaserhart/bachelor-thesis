@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import KpiReportListDisplay from './KpiReportListDisplay';
 import GraphicalReportDisplay from './GraphicalReportDisplay';
+import CompareReports from './compare/CompareReports';
 const { Title } = Typography;
 
 const ReportDetail: React.FC = () => {
@@ -61,6 +62,7 @@ const ReportDetail: React.FC = () => {
           },
           {
             key: '#rawdata',
+            disabled: true,
             label: (
               <span>
                 <InsertRowAboveOutlined />
@@ -77,7 +79,7 @@ const ReportDetail: React.FC = () => {
                 Compare
               </span>
             ),
-            children: <div>Compare</div>,
+            children: <CompareReports />,
           },
         ]}
       />

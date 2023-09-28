@@ -10,6 +10,7 @@ import {
   DatePicker,
   Descriptions,
   Divider,
+  Empty,
   Form,
   Input,
   InputNumber,
@@ -134,6 +135,14 @@ const QueryParameterForm: React.FC = () => {
           alignItems: 'center',
         }}>
         <Spin tip="Loading parameters" size="default" />
+      </div>
+    );
+  }
+
+  if (queryParameters.length <= 0) {
+    return (
+      <div style={{ marginBottom: 50 }}>
+        <Empty description="No parameters neccessary for this report" />
       </div>
     );
   }

@@ -10,6 +10,18 @@ type TreeItem = {
   isLeaf?: boolean;
 };
 
+export const isLeafNode = (
+  value: string,
+  data: (KPI | KPIFolder)[]
+): boolean | undefined => {
+  for (const node of data) {
+    if (node.id === value) {
+      return 'expression' in node;
+    }
+  }
+  return undefined;
+};
+
 export const mapToFolderStructure = (
   kpiOrFolder: KPI | KPIFolder
 ): TreeItem => {

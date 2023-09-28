@@ -13,6 +13,7 @@ import {
   Input,
   Select,
   Space,
+  Spin,
   Tooltip,
   Typography,
   message,
@@ -311,13 +312,28 @@ export const ExpressionBuilder: React.FC = () => {
     type: ExpressionType.Value,
   });
 
-  const { kpi } = useContext(KPIContext);
+  const { kpi, loading } = useContext(KPIContext);
 
   useEffect(() => {
     if (kpi) {
       setExpression(kpi.expression);
     }
   }, [kpi]);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          width: '100%',
+          height: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}>
+        <Spin />
+      </div>
+    );
+  }
 
   return <ExpressionForm expression={expression as Expression} />;
 };

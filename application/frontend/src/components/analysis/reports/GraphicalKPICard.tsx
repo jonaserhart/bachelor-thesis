@@ -203,17 +203,33 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
           width: '100%',
           height: '100%',
           position: 'relative',
+        }}
+        bodyStyle={{
+          padding: 0,
+          height: 'inherit',
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
         }}>
-        <Divider orientation="left" orientationMargin={0}>
-          <Title
-            level={4}
-            style={{
-              margin: 0,
-              marginInline: 12,
-            }}>
-            {item.name}
-          </Title>
-        </Divider>
+        <div
+          style={{
+            height: '100%',
+            width: '100%',
+            position: 'absolute',
+            display: 'flex',
+            alignItems: 'center',
+          }}>
+          <Divider orientation="left" orientationMargin={0}>
+            <Title
+              level={4}
+              style={{
+                margin: 0,
+                marginInline: 12,
+              }}>
+              {item.name}
+            </Title>
+          </Divider>
+        </div>
       </Card>
     );
   }
@@ -225,9 +241,17 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
       style={{
         height: 'inherit',
       }}
+      headStyle={{
+        height: 55,
+      }}
       bodyStyle={{
-        height: '90%',
-        paddingLeft: 0,
+        padding: 0,
+        height: 'inherit',
+        bottom: 55,
+        position: 'relative',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
       }}
       extra={
         data.warnings.length > 0 && (
@@ -251,9 +275,13 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
       }>
       <div
         style={{
-          position: 'relative',
           height: '100%',
           width: '100%',
+          position: 'absolute',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          paddingTop: 60,
         }}>
         {loading ? null : content}
       </div>
