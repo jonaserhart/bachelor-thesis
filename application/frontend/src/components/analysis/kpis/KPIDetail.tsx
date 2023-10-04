@@ -1,7 +1,7 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { KPIContext } from '../../../context/KPIContext';
 import { CodeOutlined, EditOutlined, SettingOutlined } from '@ant-design/icons';
-import { Divider, Spin, Tabs, Typography, message, theme } from 'antd';
+import { Spin, Tabs, Typography, message, theme } from 'antd';
 import { BackendError, useAppDispatch } from '../../../app/hooks';
 import { ModelContext } from '../../../context/ModelContext';
 import { updateKPIDetails } from '../../../features/analysis/analysisSlice';

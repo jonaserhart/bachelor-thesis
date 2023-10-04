@@ -11,8 +11,9 @@ type TokenPromiseFunction = {
 const instance = axios.create({
   withCredentials: true,
   baseURL:
-    window.__RUNTIME_CONFIG__.REACT_APP_BACKEND_URL ??
-    process.env.REACT_APP_BACKEND_URL,
+    process.env.NODE_ENV === 'development'
+      ? process.env.REACT_APP_BACKEND_URL
+      : window.__RUNTIME_CONFIG__.REACT_APP_BACKEND_URL,
 });
 
 /**

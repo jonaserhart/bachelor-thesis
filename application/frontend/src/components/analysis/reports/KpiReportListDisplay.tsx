@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { ModelContext } from '../../../context/ModelContext';
 import CustomTable from '../../table/CustomTable';
 import { useAppSelector } from '../../../app/hooks';
@@ -7,15 +7,15 @@ import { ReportContext } from '../../../context/ReportContext';
 import { Divider, Tag, Tree, Typography, theme } from 'antd';
 import { KPI, KPIFolder } from '../../../features/analysis/types';
 import {
+  TreeItem,
   getAllKPIsInFolder,
-  mapToFolderStructure,
+  mapToTreeStructureForReport,
 } from '../../../util/kpiFolderUtils';
 import {
-  NumberRange,
-  ValueArray,
+  acceptableValuesToPrettyString,
   isAcceptable,
-  stringToAcceptableValues,
 } from '../../../util/acceptableValueFunctions';
+import { DownOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
@@ -40,8 +40,12 @@ const KpiReportListDisplay: React.FC = () => {
 
   const kpiFolders = useMemo(() => {
     return [
-      ...(model?.kpiFolders?.map(mapToFolderStructure) ?? []),
-      ...(model?.kpis?.map(mapToFolderStructure) ?? []),
+      ...(model?.kpiFolders
+        ?.filter((x) => x.kpis.some((x) => x.showInReport))
+        ?.map(mapToTreeStructureForReport) ?? []),
+      ...(model?.kpis
+        ?.filter((x) => x.showInReport)
+        ?.map(mapToTreeStructureForReport) ?? []),
     ];
   }, [model]);
 
@@ -58,6 +62,33 @@ const KpiReportListDisplay: React.FC = () => {
   const kpisToDisplay = useMemo(() => {
     return getAllKPIsInFolder(model, selectedFolder?.id);
   }, [model, selectedFolder]);
+
+  const treeTitleRender = useCallback(
+    (node: TreeItem) => {
+      return (
+        <Title
+          level={5}
+          style={{
+            margin: 0,
+            fontSize: 'medium',
+            fontWeight: 'inherit',
+            color:
+              // @ts-ignore
+              node.id === selectedFolder?.id ||
+              // @ts-ignore
+              (node.id === 'root' && !selectedFolder)
+                ? colorPrimary
+                : 'unset',
+          }}>
+          {
+            // @ts-ignore
+            node.name
+          }
+        </Title>
+      );
+    },
+    [selectedFolder, colorPrimary]
+  );
 
   return (
     <div>
@@ -87,6 +118,7 @@ const KpiReportListDisplay: React.FC = () => {
             display: treeData.children.length > 0 ? 'block' : 'none',
           }}>
           <Tree
+            switcherIcon={<DownOutlined />}
             onSelect={(keys, info) => {
               if (info.selectedNodes.length > 0) {
                 if (
@@ -112,29 +144,7 @@ const KpiReportListDisplay: React.FC = () => {
             defaultSelectedKeys={['root']}
             //@ts-ignore
             treeData={[treeData]}
-            titleRender={(node) => {
-              return (
-                <Title
-                  level={5}
-                  style={{
-                    margin: 0,
-                    fontSize: 'medium',
-                    fontWeight: 'inherit',
-                    color:
-                      // @ts-ignore
-                      node.id === selectedFolder?.id ||
-                      // @ts-ignore
-                      (node.id === 'root' && !selectedFolder)
-                        ? colorPrimary
-                        : 'unset',
-                  }}>
-                  {
-                    // @ts-ignore
-                    node.name
-                  }
-                </Title>
-              );
-            }}
+            titleRender={treeTitleRender}
             showLine={true}
             fieldNames={{
               title: 'name',
@@ -172,23 +182,7 @@ const KpiReportListDisplay: React.FC = () => {
                 dataIndex: 'acceptableValues',
                 title: 'Optimal value',
                 render(value) {
-                  const values = stringToAcceptableValues(`${value}`);
-
-                  switch (values.type) {
-                    case 'string':
-                      return `"${values.value}"`;
-                    case 'number':
-                      return values.value.toString();
-                    case 'numberArray':
-                      return `in: ${(values.value as ValueArray).join(', ')}`;
-                    case 'stringArray':
-                      return `in: ${(values.value as ValueArray).join(', ')}`;
-                    case 'range':
-                      const range = values.value as NumberRange;
-                      return `Between ${range.from} and ${range.to}`;
-                    case 'any':
-                      return 'Any value';
-                  }
+                  return acceptableValuesToPrettyString(`${value}`);
                 },
               },
               {

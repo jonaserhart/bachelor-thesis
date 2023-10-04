@@ -34,6 +34,10 @@ import { ReportContext } from '../../../context/ReportContext';
 import { WarningOutlined } from '@ant-design/icons';
 import { selectColors } from '../../../util/graphicalUtils';
 import CustomChartTooltip from '../../CustomChartTooltip';
+import {
+  acceptableValuesToPrettyString,
+  isAcceptable,
+} from '../../../util/acceptableValueFunctions';
 
 interface Props {
   item: GraphicalReportItem;
@@ -99,6 +103,18 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
           value: reportData[dataSourceId],
           fill: colors[i],
         });
+        if (
+          kpi?.acceptableValues &&
+          !isAcceptable(reportData[dataSourceId], kpi.acceptableValues)
+        ) {
+          preparedWarnings.push(
+            `Value for '${
+              kpi.name
+            }' is not optimal (${acceptableValuesToPrettyString(
+              kpi.acceptableValues
+            )}).`
+          );
+        }
         i++;
       }
     }
@@ -267,6 +283,9 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
               />
             }>
             <Button
+              style={{
+                zIndex: 500,
+              }}
               type="text"
               icon={<WarningOutlined style={{ color: 'orange' }} />}
             />

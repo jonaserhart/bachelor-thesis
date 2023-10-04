@@ -1,3 +1,4 @@
+import { Typography } from 'antd';
 import { useMemo } from 'react';
 import { TooltipProps } from 'recharts';
 import {
@@ -11,10 +12,40 @@ const CustomChartTooltip = <TValue extends ValueType, TName extends NameType>({
   label,
 }: TooltipProps<TValue, TName>) => {
   const displayName = useMemo(() => {
-    if (payload && payload.length) {
-      return payload[0].payload.label ?? label ?? payload[0].name;
+    if (payload?.length) {
+      return label ?? payload[0].payload.label ?? payload[0].name;
     }
-  }, [payload]);
+    return '';
+  }, [payload, label]);
+
+  const content = useMemo(() => {
+    if (!payload) return undefined;
+
+    if (payload.length > 1) {
+      return (
+        <>
+          <Typography.Title level={5}>{displayName}</Typography.Title>
+          {payload.map((p) => {
+            return (
+              <p
+                style={{
+                  color: p.payload.fill ?? p.payload.color,
+                }}>{`${p.name} : ${p.value}`}</p>
+            );
+          })}
+        </>
+      );
+    } else if (payload.length > 0) {
+      return (
+        <p
+          style={{
+            color: payload[0].payload.fill ?? payload[0].payload.color,
+          }}>{`${displayName} : ${payload[0].value}`}</p>
+      );
+    } else {
+      return undefined;
+    }
+  }, [payload, displayName]);
 
   if (active && payload && payload.length) {
     return (
@@ -25,10 +56,7 @@ const CustomChartTooltip = <TValue extends ValueType, TName extends NameType>({
           paddingTop: 3,
           paddingBottom: 3,
         }}>
-        <p
-          style={{
-            color: payload[0].payload.fill,
-          }}>{`${displayName} : ${payload[0].value}`}</p>
+        {content}
       </div>
     );
   }

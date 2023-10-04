@@ -7,18 +7,20 @@ import {
   Radio,
   RadioChangeEvent,
   Select,
+  Tooltip,
   TreeSelect,
   Typography,
 } from 'antd';
 import {
   getAllKPIs,
   isLeafNode,
-  mapToFolderStructure,
+  mapToTreeStructureForReport,
 } from '../../../../util/kpiFolderUtils';
 import CompareTable from './CompareTable';
-import useDeepEffect, { useAppDispatch } from '../../../../app/hooks';
+import { useAppDispatch } from '../../../../app/hooks';
 import { getReportDetails } from '../../../../features/analysis/analysisSlice';
 import { formatDate } from '../../../../util/formatDate';
+import CompareGraphical from './CompareGraphical';
 
 type CompareMode = 'table' | 'graphical';
 
@@ -58,8 +60,12 @@ const CompareReports: React.FC = () => {
 
   const kpiFolders = useMemo(() => {
     return [
-      ...(model?.kpiFolders?.map(mapToFolderStructure) ?? []),
-      ...(model?.kpis?.map(mapToFolderStructure) ?? []),
+      ...(model?.kpiFolders
+        ?.filter((x) => x.kpis.some((x) => x.showInReport))
+        ?.map(mapToTreeStructureForReport) ?? []),
+      ...(model?.kpis
+        ?.filter((x) => x.showInReport)
+        ?.map(mapToTreeStructureForReport) ?? []),
     ];
   }, [model]);
   const [selectedKPIIds, setSelectedKPIIds] = useState<string[]>([]);
@@ -119,14 +125,18 @@ const CompareReports: React.FC = () => {
         ) {
           kpiVal = x.reportData.kpisAndValues[kpi.id];
         }
+        let valueToSet = undefined;
+        if (kpiVal) {
+          valueToSet = Array.isArray(kpiVal)
+            ? `List of length ${kpiVal.length}`
+            : `${typeof kpiVal === 'object' ? 'Object' : kpiVal}`;
+        }
         Object.assign(obj, {
           [kpi.id]: {
             kpiId: kpi.id,
             kpiName: kpi.name,
             kpiUnit: kpi.unit,
-            value: Array.isArray(kpiVal)
-              ? `List of length ${kpiVal.length}`
-              : `${typeof kpiVal === 'object' ? 'Object' : kpiVal}`,
+            value: valueToSet,
           },
         });
       });
@@ -146,13 +156,23 @@ const CompareReports: React.FC = () => {
           dataIndex: 'created',
           key: 'created',
           render: (val: any) => formatDate(val),
+          sorter: {
+            compare: (a: any, b: any) => a.created - b.created,
+          },
+          defaultSortOrder: 'descend',
         },
         ...selectedKPIs.map((kpi) => ({
           title: kpi.name,
           dataIndex: kpi.id,
           key: kpi.id,
           render: (val: any) =>
-            val ? `${val.value} ${val.kpiUnit}` : 'Unknown value',
+            val?.value ? (
+              `${val.value} ${val.kpiUnit}`
+            ) : (
+              <Tooltip title="Value was not computed in the context of this report">
+                Unknown value
+              </Tooltip>
+            ),
         })),
       ],
     };
@@ -175,7 +195,13 @@ const CompareReports: React.FC = () => {
           />
         );
       case 'graphical':
-        return 'Comoing soon 🚧';
+        return (
+          <CompareGraphical
+            loading={loadingReportdata}
+            fields={reportsAndData.fields}
+            reportsWithData={reportsAndData.reports}
+          />
+        );
     }
   }, [
     selectedMode,
@@ -230,7 +256,7 @@ const CompareReports: React.FC = () => {
             <TreeSelect
               onChange={onSelectKPIs}
               value={selectedKPIIds}
-              style={{ minWidth: 300 }}
+              style={{ minWidth: 300, maxWidth: '50%' }}
               multiple={true}
               treeData={kpiFolders}
               placeholder="Please select some KPIs"

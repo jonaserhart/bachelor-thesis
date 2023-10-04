@@ -6,15 +6,12 @@ import {
   Pie,
   PieChart,
   ResponsiveContainer,
-  Sector,
   XAxis,
   YAxis,
 } from 'recharts';
 import {
   GraphicalItemProperties,
   GraphicalReportItemType,
-  KPI,
-  KPIFolder,
 } from '../../../../features/analysis/types';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
@@ -44,7 +41,7 @@ import { selectAllKPIs } from '../../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../../context/ModelContext';
 import {
   isLeafNode,
-  mapToFolderStructure,
+  mapToTreeStructureForReport,
 } from '../../../../util/kpiFolderUtils';
 import CustomChartTooltip from '../../../CustomChartTooltip';
 import { selectColors } from '../../../../util/graphicalUtils';
@@ -219,8 +216,8 @@ const ExampleCard: React.FC<Props> = (props) => {
 
   const kpiFolders = useMemo(() => {
     return [
-      ...(model?.kpiFolders?.map(mapToFolderStructure) ?? []),
-      ...(model?.kpis?.map(mapToFolderStructure) ?? []),
+      ...(model?.kpiFolders?.map(mapToTreeStructureForReport) ?? []),
+      ...(model?.kpis?.map(mapToTreeStructureForReport) ?? []),
     ];
   }, [model]);
 
@@ -234,6 +231,13 @@ const ExampleCard: React.FC<Props> = (props) => {
       ].includes(type),
     [type]
   );
+
+  const treeSelectValue = useMemo(() => {
+    if (multipleKPIs) {
+      return selectedKPIs;
+    }
+    return selectedKPIs.length ? selectedKPIs[0] : undefined;
+  }, [multipleKPIs, selectedKPIs]);
 
   if (type === GraphicalReportItemType.Text) {
     return (
@@ -479,13 +483,7 @@ const ExampleCard: React.FC<Props> = (props) => {
                 style={{ minWidth: 300, minHeight: 100 }}>
                 <TreeSelect
                   onChange={onKPISelect}
-                  value={
-                    multipleKPIs
-                      ? selectedKPIs
-                      : selectedKPIs.length
-                      ? selectedKPIs[0]
-                      : undefined
-                  }
+                  value={treeSelectValue}
                   style={{ width: '100%' }}
                   multiple={multipleKPIs}
                   treeData={kpiFolders}

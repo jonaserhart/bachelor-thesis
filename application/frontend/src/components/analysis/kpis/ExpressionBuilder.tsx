@@ -2,7 +2,6 @@ import {
   ConditionConnection,
   Expression,
   ExpressionType,
-  KPI,
   SomeExpression,
   countIfOperatorsWithLabels,
 } from '../../../features/analysis/types';
@@ -18,7 +17,7 @@ import {
   Typography,
   message,
 } from 'antd';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import {
   BackendError,
   useAppDispatch,

@@ -26,10 +26,11 @@ import {
   updateKPIFolder,
 } from '../../../features/analysis/analysisSlice';
 import { useNavigate } from 'react-router-dom';
-import { BulbOutlined, EditOutlined } from '@ant-design/icons';
+import { DownOutlined, EditOutlined } from '@ant-design/icons';
 import {
+  TreeItem,
   getAllKPIsInFolder,
-  mapToFolderStructure,
+  mapToTreeStructure,
 } from '../../../util/kpiFolderUtils';
 
 const { Title } = Typography;
@@ -83,8 +84,8 @@ const KPIs: React.FC = () => {
 
   const kpiFolders = useMemo(() => {
     return [
-      ...(model?.kpiFolders?.map(mapToFolderStructure) ?? []),
-      ...(model?.kpis?.map(mapToFolderStructure) ?? []),
+      ...(model?.kpiFolders?.map(mapToTreeStructure) ?? []),
+      ...(model?.kpis?.map(mapToTreeStructure) ?? []),
     ];
   }, [model]);
 
@@ -129,6 +130,42 @@ const KPIs: React.FC = () => {
   const kpisToDisplay = useMemo(() => {
     return getAllKPIsInFolder(model, selectedFolder?.id);
   }, [model, selectedFolder]);
+
+  const treeTitleRender = useCallback(
+    (node: TreeItem) => (
+      <Title
+        level={5}
+        editable={
+          // @ts-ignore
+          node.id !== 'root' &&
+          // @ts-ignore
+          !node.isKPI && {
+            // @ts-ignore
+            onChange: (e) => onFolderRename(e, node.id),
+            icon: <EditOutlined style={{ color: colorPrimary }} />,
+            tooltip: 'click to edit name',
+          }
+        }
+        style={{
+          margin: 0,
+          fontSize: 'medium',
+          fontWeight: 'inherit',
+          color:
+            // @ts-ignore
+            node.id === selectedFolder?.id ||
+            // @ts-ignore
+            (node.id === 'root' && !selectedFolder)
+              ? colorPrimary
+              : 'unset',
+        }}>
+        {
+          // @ts-ignore
+          node.name
+        }
+      </Title>
+    ),
+    [selectedFolder, colorPrimary, onFolderRename]
+  );
 
   return (
     <>
@@ -191,6 +228,7 @@ const KPIs: React.FC = () => {
             display: treeData.children.length > 0 ? 'block' : 'none',
           }}>
           <Tree
+            switcherIcon={<DownOutlined />}
             onSelect={(keys, info) => {
               if (info.selectedNodes.length > 0) {
                 if (
@@ -216,40 +254,7 @@ const KPIs: React.FC = () => {
             defaultSelectedKeys={['root']}
             //@ts-ignore
             treeData={[treeData]}
-            titleRender={(node) => {
-              return (
-                <Title
-                  level={5}
-                  editable={
-                    // @ts-ignore
-                    node.id !== 'root' &&
-                    // @ts-ignore
-                    !node.isKPI && {
-                      // @ts-ignore
-                      onChange: (e) => onFolderRename(e, node.id),
-                      icon: <EditOutlined style={{ color: colorPrimary }} />,
-                      tooltip: 'click to edit name',
-                    }
-                  }
-                  style={{
-                    margin: 0,
-                    fontSize: 'medium',
-                    fontWeight: 'inherit',
-                    color:
-                      // @ts-ignore
-                      node.id === selectedFolder?.id ||
-                      // @ts-ignore
-                      (node.id === 'root' && !selectedFolder)
-                        ? colorPrimary
-                        : 'unset',
-                  }}>
-                  {
-                    // @ts-ignore
-                    node.name
-                  }
-                </Title>
-              );
-            }}
+            titleRender={treeTitleRender}
             showLine={true}
             fieldNames={{
               title: 'name',

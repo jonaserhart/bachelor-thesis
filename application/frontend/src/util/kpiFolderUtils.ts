@@ -1,6 +1,6 @@
 import { AnalysisModel, KPI, KPIFolder } from '../features/analysis/types';
 
-type TreeItem = {
+export interface TreeItem {
   id: string;
   name: string;
   children: TreeItem[];
@@ -8,7 +8,7 @@ type TreeItem = {
   icon?: React.ReactNode;
   isKPI?: boolean;
   isLeaf?: boolean;
-};
+}
 
 export const isLeafNode = (
   value: string,
@@ -22,18 +22,33 @@ export const isLeafNode = (
   return undefined;
 };
 
-export const mapToFolderStructure = (
+export const mapToTreeStructure = (kpiOrFolder: KPI | KPIFolder): TreeItem => {
+  return mapToTreeStructureAux(kpiOrFolder, false);
+};
+
+export const mapToTreeStructureForReport = (
   kpiOrFolder: KPI | KPIFolder
 ): TreeItem => {
+  return mapToTreeStructureAux(kpiOrFolder, true);
+};
+const mapToTreeStructureAux = (
+  kpiOrFolder: KPI | KPIFolder,
+  onlyReportKPIs: boolean
+): TreeItem => {
   if ('subFolders' in kpiOrFolder) {
+    const childFolders = kpiOrFolder.subFolders
+      .filter((x) =>
+        onlyReportKPIs ? x.kpis.some((x) => x.showInReport) : true
+      )
+      .map((x) => mapToTreeStructureAux(x, onlyReportKPIs));
+    const childKPIs = kpiOrFolder.kpis
+      .filter((x) => (onlyReportKPIs ? x.showInReport : true))
+      .map((x) => mapToTreeStructureAux(x, onlyReportKPIs));
     return {
       id: kpiOrFolder.id,
       name: kpiOrFolder.name,
       kpis: kpiOrFolder.kpis,
-      children: [
-        ...kpiOrFolder.subFolders.map(mapToFolderStructure),
-        ...kpiOrFolder.kpis.map(mapToFolderStructure),
-      ],
+      children: [...childFolders, ...childKPIs],
     };
   } else {
     return {

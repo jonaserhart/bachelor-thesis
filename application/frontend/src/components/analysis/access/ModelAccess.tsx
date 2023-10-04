@@ -11,12 +11,18 @@ import {
   message,
 } from 'antd';
 import CustomTable from '../../table/CustomTable';
-import { BackendError, useAppDispatch } from '../../../app/hooks';
+import {
+  BackendError,
+  useAppDispatch,
+  useAppSelector,
+} from '../../../app/hooks';
 import {
   addUserToModel,
   changeUserPermission,
 } from '../../../features/analysis/analysisSlice';
 import { ModelPermission } from '../../../features/analysis/types';
+import { User } from '../../../features/auth/types';
+import { selectAuthenticatedUser } from '../../../features/auth/authSlice';
 
 const { Title } = Typography;
 
@@ -25,6 +31,8 @@ const toFirstCharCamelCase = (str: string) =>
 
 const ModelAccess: React.FC = () => {
   const { model } = useContext(ModelContext);
+
+  const me = useAppSelector(selectAuthenticatedUser);
 
   const modelId = useMemo(() => model?.id ?? '', [model]);
 
@@ -181,6 +189,7 @@ const ModelAccess: React.FC = () => {
               renderEditControl(save, ref, value) {
                 return (
                   <Select
+                    disabled={value.userId === me?.id}
                     defaultValue={value.permission}
                     options={[
                       {
@@ -208,9 +217,11 @@ const ModelAccess: React.FC = () => {
             dataIndex: 'actions',
             title: 'Actions',
             render(value, record, index) {
+              const user = record as User;
               return (
                 <Space size="middle">
                   <Button
+                    disabled={user.id === me?.id}
                     danger
                     type="text"
                     onClick={() => {

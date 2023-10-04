@@ -3,27 +3,17 @@ import {
   DotChartOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Breadcrumb, Button, Layout, Menu, Space, message, theme } from 'antd';
+import { Breadcrumb, Button, Layout, Menu, Space, theme } from 'antd';
 import { Content, Footer, Header } from 'antd/es/layout/layout';
 import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { getMe, selectAuthenticatedUser } from '../features/auth/authSlice';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { getLogger } from '../util/logger';
 import handleError from '../util/handleError';
-import axios from '../backendClient';
-import {
-  State as BackendStatusInfo,
-  checkHealthEndpoint,
-} from '../features/health/healthSlice';
+import { checkHealthEndpoint } from '../features/health/healthSlice';
 import { useSelector } from 'react-redux';
 import { selectModels } from '../features/analysis/analysisSlice';
-import {
-  AnalysisModel,
-  GraphicalConfiguration,
-  KPI,
-  Report,
-} from '../features/analysis/types';
 import { getAllKPIs } from '../util/kpiFolderUtils';
 
 const logger = getLogger('NavBar');
@@ -48,7 +38,7 @@ const NavBar: React.FC = () => {
   const breadCrumbs = useMemo(() => {
     const entries = [
       {
-        title: 'SCRUM tool',
+        title: 'SCRUM',
         path: `/`,
       },
     ];

@@ -3,8 +3,6 @@ import { useSelector } from 'react-redux';
 import { selectAuthenticatedUser } from '../features/auth/authSlice';
 import { useNavigate } from 'react-router-dom';
 
-const { Title } = Typography;
-
 const Dashboard: React.FC = () => {
   const user = useSelector(selectAuthenticatedUser);
 

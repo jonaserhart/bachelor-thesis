@@ -375,6 +375,9 @@ public class AnalysisModelService : IAnalysisModelService
             };
 
             await m_context.ModelAssociationRequests.AddAsync(request);
+            await m_context.SaveChangesAsync();
+
+            m_logger.LogInformation($"Added model assoc request for model '{model.Name}' to user with email '{submission.Email}'.");
             return null;
         }
 

@@ -78,14 +78,6 @@ const ModelSettings: React.FC = () => {
             searchable: true,
           },
           {
-            key: 'items',
-            title: '# of Items',
-            dataIndex: 'items',
-            render(value) {
-              return value.length;
-            },
-          },
-          {
             fixed: 'right',
             width: 100,
             title: 'Action',
