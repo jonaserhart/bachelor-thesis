@@ -29,7 +29,25 @@ export interface QueryParameter {
   data: any;
 }
 
-export interface Query extends HasId {
+interface SimpleQuery extends HasId {
   name: string;
-  type: QueryReturnType;
+  type:
+    | QueryReturnType.Number
+    | QueryReturnType.String
+    | QueryReturnType.NumberList
+    | QueryReturnType.StringList;
+  additionalQueryData: {};
 }
+
+interface ObjectQuery extends HasId {
+  name: string;
+  type: QueryReturnType.ObjectList | QueryReturnType.Object;
+  additionalQueryData: {
+    possibleFields: {
+      name: string;
+      displayName: string;
+    }[];
+  };
+}
+
+export type Query = ObjectQuery | SimpleQuery;

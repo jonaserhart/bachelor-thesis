@@ -1,4 +1,5 @@
 using backend.Model.Analysis.KPIs;
+using backend.Model.Enum;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace backend.Model.Analysis.Expressions;
@@ -13,6 +14,7 @@ public abstract class LeftRightExpression : Expression
     public KPI? Left { get; set; }
 
     public KPI? Right { get; set; }
+    public override ExpressionResultType ReturnType => ExpressionResultType.Number;
 
     public override IEnumerable<string> GetRequiredQueries()
     {

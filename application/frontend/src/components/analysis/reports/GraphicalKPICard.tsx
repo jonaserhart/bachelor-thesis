@@ -142,18 +142,28 @@ const GraphicalKPICard: React.FC<Props> = (props) => {
           </div>
         );
       case GraphicalReportItemType.List:
-        const listFields = item?.properties?.listFields;
+        console.log('ITM:', item);
+        let listFields = item?.properties?.listFieldsWithLabels;
+        if (!listFields?.length) {
+          listFields = item?.properties?.listFields?.map((x) => ({
+            label: x,
+            value: x,
+          }));
+        }
         if (!listFields || listFields.length <= 0 || data.data.length <= 0) {
           return <Empty />;
         }
         const tableData = data.data[0].value;
 
         const columns = listFields.map((field) => ({
-          title: field,
-          dataIndex: field,
-          key: field,
+          title: field.label,
+          dataIndex: field.value,
+          key: field.value,
           render: (text: any) => text || '',
         }));
+
+        console.log('COLS: ', columns);
+        console.log('DATA: ', tableData);
 
         return (
           <div style={{ width: '100%', height: '100%', overflow: 'scroll' }}>

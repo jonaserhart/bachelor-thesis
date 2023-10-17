@@ -24,7 +24,6 @@ import {
 import {
   findKPIInFolder,
   getAllKPIs,
-  moveKPIBetweenFoldersOrToModel,
   updateKPIFolderInModel,
   updateKPIInModel,
   updateKPIParentFolderInModel,
@@ -69,6 +68,13 @@ export const updateModelDetails = createAppAsyncThunk(
       changedModel
     );
     return response.data;
+  }
+);
+
+export const deleteModel = createAppAsyncThunk(
+  prefix('deleteModel'),
+  async function (id: string) {
+    await axios.delete(`/analysis/models/${id}`);
   }
 );
 
@@ -190,6 +196,19 @@ export const addOrUpdateExpression = createAppAsyncThunk(
       }
     );
     return response.data;
+  }
+);
+
+export const removeConditionFromExpression = createAppAsyncThunk(
+  prefix('removeConditionFromExpression'),
+  async function (arg: {
+    kpiId: string;
+    modelId: string;
+    conditionId: string;
+  }) {
+    await axios.delete(
+      `/analysis/models/${arg.modelId}/kpis/${arg.kpiId}/expression/condition/${arg.conditionId}`
+    );
   }
 );
 
@@ -407,6 +426,13 @@ export const changeUserPermission = createAppAsyncThunk(
   }
 );
 
+export const removeUserFromModel = createAppAsyncThunk(
+  prefix('removeUserFromModel'),
+  async function (arg: { userId: string; modelId: string }) {
+    await axios.delete(`/analysis/models/${arg.modelId}/users/${arg.userId}`);
+  }
+);
+
 const analysisSlice = createSlice({
   name: PREFIX,
   initialState,
@@ -423,6 +449,9 @@ const analysisSlice = createSlice({
       if (index >= 0) {
         state.models[index] = action.payload;
       }
+    });
+    builder.addCase(deleteModel.fulfilled, (state, action) => {
+      state.models = state.models.filter((x) => x.id !== action.meta.arg);
     });
     builder.addCase(getModelDetails.fulfilled, (state, action) => {
       const index = state.models.findIndex((x) => x.id === action.payload.id);
@@ -569,6 +598,29 @@ const analysisSlice = createSlice({
         kpi.expression = { ...kpi.expression, ...action.payload };
       });
     });
+
+    builder.addCase(
+      removeConditionFromExpression.fulfilled,
+      (state, action) => {
+        const modelId = action.meta.arg.modelId;
+        const kpiId = action.meta.arg.kpiId;
+        const conditionId = action.meta.arg.conditionId;
+
+        const modelIndex = state.models.findIndex(
+          (x) => x.id === action.meta.arg.modelId
+        );
+
+        if (modelIndex < 0) {
+          logger.logError(`Could not find model with id ${modelId}`);
+          return;
+        }
+        updateKPIInModel(state.models[modelIndex], kpiId, (kpi) => {
+          (kpi.expression as any).conditions = (
+            kpi.expression as any
+          ).conditions.filter((x: any) => x.id !== conditionId);
+        });
+      }
+    );
 
     builder.addCase(createReport.fulfilled, (state, action) => {
       const modelId = action.meta.arg.modelId;
@@ -867,6 +919,22 @@ const analysisSlice = createSlice({
       }
 
       state.models[modelIndex].modelUsers[userIndex].permission = permission;
+    });
+
+    builder.addCase(removeUserFromModel.fulfilled, (state, action) => {
+      const { modelId, userId } = action.meta.arg;
+      const modelIndex = state.models.findIndex(
+        (x) => x.id === action.meta.arg.modelId
+      );
+
+      if (modelIndex < 0) {
+        logger.logError(`Could not find model with id ${modelId}`);
+        return;
+      }
+
+      state.models[modelIndex].modelUsers = state.models[
+        modelIndex
+      ].modelUsers.filter((x) => x.user.id !== userId);
     });
   },
 });

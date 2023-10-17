@@ -7,6 +7,7 @@ namespace backend.Model.Analysis.Expressions;
 public abstract class DoIfMultipleExpression : Expression
 {
     public List<Condition> Conditions { get; set; } = new List<Condition>();
+    public override ExpressionResultType ReturnType => ExpressionResultType.Number;
     public ConditionConnection Connection { get; set; } = ConditionConnection.All;
     public string? ExtractField { get; set; } = string.Empty;
 

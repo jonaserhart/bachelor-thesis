@@ -23,27 +23,34 @@ export const isLeafNode = (
 };
 
 export const mapToTreeStructure = (kpiOrFolder: KPI | KPIFolder): TreeItem => {
-  return mapToTreeStructureAux(kpiOrFolder, false);
+  return mapToTreeStructureAux(kpiOrFolder);
 };
+
+export const mapToTreeStructureWithCondition =
+  (condition: (kpi: KPI | KPIFolder) => boolean) =>
+  (kpiOrFolder: KPI | KPIFolder) => {
+    return mapToTreeStructureAux(kpiOrFolder, condition);
+  };
 
 export const mapToTreeStructureForReport = (
   kpiOrFolder: KPI | KPIFolder
 ): TreeItem => {
-  return mapToTreeStructureAux(kpiOrFolder, true);
+  return mapToTreeStructureAux(kpiOrFolder, (k) =>
+    'subFolders' in k ? k.kpis.some((x) => x.showInReport) : k.showInReport
+  );
 };
+
 const mapToTreeStructureAux = (
   kpiOrFolder: KPI | KPIFolder,
-  onlyReportKPIs: boolean
+  kpiFilterFn: (kpiOrFolder: KPI | KPIFolder) => boolean = (_) => true
 ): TreeItem => {
   if ('subFolders' in kpiOrFolder) {
     const childFolders = kpiOrFolder.subFolders
-      .filter((x) =>
-        onlyReportKPIs ? x.kpis.some((x) => x.showInReport) : true
-      )
-      .map((x) => mapToTreeStructureAux(x, onlyReportKPIs));
+      .filter(kpiFilterFn)
+      .map((x) => mapToTreeStructureAux(x, kpiFilterFn));
     const childKPIs = kpiOrFolder.kpis
-      .filter((x) => (onlyReportKPIs ? x.showInReport : true))
-      .map((x) => mapToTreeStructureAux(x, onlyReportKPIs));
+      .filter(kpiFilterFn)
+      .map((x) => mapToTreeStructureAux(x, kpiFilterFn));
     return {
       id: kpiOrFolder.id,
       name: kpiOrFolder.name,
@@ -246,7 +253,9 @@ export function moveKPIBetweenFoldersOrToModel(
     // assume kpi is on the model
     const kpiIndex = model.kpis.findIndex((x) => x.id === kpiId);
     if (kpiIndex < 0) {
-      throw new Error(`KPI with id ${kpiId} was not found on model ${model}`);
+      throw new Error(
+        `KPI with id ${kpiId} was not found on model ${model.name}`
+      );
     }
 
     // add kpi to destination folder
@@ -292,7 +301,7 @@ export function moveKPIBetweenFoldersOrToModel(
     throw new Error('KPI not found');
   }
 
-  updateKPIFolderInModel(model, to!, (folder) => folder.kpis.push({ ...kpi }));
+  updateKPIFolderInModel(model, to, (folder) => folder.kpis.push({ ...kpi }));
   updateKPIFolderInModel(
     model,
     folderFrom.id,

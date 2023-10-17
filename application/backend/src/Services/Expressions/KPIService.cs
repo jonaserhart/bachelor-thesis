@@ -8,6 +8,7 @@ using backend.Services.DevOps;
 using Microsoft.EntityFrameworkCore;
 using System.Dynamic;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace backend.Services.Expressions;
 
@@ -409,5 +410,25 @@ public class KPIService : IKPIService
             return;
         }
         throw new BadRequestException($"Please provide either folder or model to move KPI '{kpi.Name}' to");
+    }
+
+    public async Task DeleteKPIExpressionConditionAsync(Guid kpiId, Guid conditionId)
+    {
+        var kpi = await m_context.GetByIdOrThrowAsync<KPI>(kpiId);
+        await m_context.Entry(kpi).Reference(x => x.Expression).LoadAsync();
+
+        var condition = await m_context.ExpressionConditions.FirstOrDefaultAsync(x => x.Id == conditionId);
+        if (condition == null)
+        {
+            throw new DbKeyNotFoundException(conditionId, typeof(Condition));
+        }
+        if (condition.ExpressionId != kpi?.Expression?.Id)
+        {
+            throw new BadRequestException("Condition to delete is not on KPI that has the same expression!");
+        }
+
+        m_context.ExpressionConditions.Remove(condition);
+
+        await m_context.SaveChangesAsync();
     }
 }

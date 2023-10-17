@@ -1,4 +1,3 @@
-
 using backend.Services.DevOps;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
@@ -12,19 +11,13 @@ public class HealthCheck : IHealthCheck
     {
         m_devOpsProviderService = devOpsProviderService;
     }
-    public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+    public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
     {
         if (!m_devOpsProviderService.HasValidConfiguration())
         {
-            return Task.FromResult(HealthCheckResult.Degraded("Dev ops service has invalid configuration"));
+            return HealthCheckResult.Degraded("Dev ops service has invalid configuration");
         }
 
-        var queries = m_devOpsProviderService.GetQueries();
-        if (!queries.Any())
-        {
-            return Task.FromResult(HealthCheckResult.Degraded("No queries are available"));
-        }
-
-        return Task.FromResult(HealthCheckResult.Healthy());
+        return HealthCheckResult.Healthy();
     }
 }

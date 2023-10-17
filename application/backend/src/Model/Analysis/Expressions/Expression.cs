@@ -10,6 +10,8 @@ public abstract class Expression
 {
     public Guid Id { get; set; }
     public ExpressionType Type { get; set; }
+    [NotMapped]
+    public abstract ExpressionResultType ReturnType { get; }
 
     [JsonProperty("allowedQueryTypes")]
     [NotMapped]

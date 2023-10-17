@@ -6,6 +6,9 @@ namespace backend.Model.Analysis.Expressions;
 public class CountExpression : Expression
 {
     public override List<QueryReturnType> ALLOWED_QUERY_TYPES => new List<QueryReturnType> { QueryReturnType.NumberList, QueryReturnType.StringList, QueryReturnType.ObjectList };
+
+    public override ExpressionResultType ReturnType => ExpressionResultType.Number;
+
     public override object? Evaluate(Dictionary<string, QueryResult> data)
     {
         var queryResult = GetQueryResultByIdOrThrow(data);

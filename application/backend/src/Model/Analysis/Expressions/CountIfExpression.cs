@@ -12,6 +12,8 @@ public class CountIfExpression : Expression
     public string Field { get; set; } = string.Empty;
     public override List<QueryReturnType> ALLOWED_QUERY_TYPES => new List<QueryReturnType> { QueryReturnType.NumberList, QueryReturnType.StringList, QueryReturnType.ObjectList };
 
+    public override ExpressionResultType ReturnType => ExpressionResultType.Number;
+
     private bool CountIfString(object item)
     {
         var value = item.ToString() ?? string.Empty;

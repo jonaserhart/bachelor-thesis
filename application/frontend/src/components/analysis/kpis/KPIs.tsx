@@ -123,6 +123,7 @@ const KPIs: React.FC = () => {
       .unwrap()
       .then(() => {
         message.success('Deleted folder, subfolders and kpis');
+        setSelectedFolder(undefined);
       })
       .catch((err: BackendError) => message.error(err.message));
   }, [modelId, selectedFolder]);

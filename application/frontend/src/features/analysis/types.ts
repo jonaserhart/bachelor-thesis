@@ -15,8 +15,17 @@ export enum ExpressionType {
   CountIf = 'CountIf',
   CountIfMultiple = 'CountIfMultiple',
   SumIfMultiple = 'SumIfMultiple',
+  ListIfMultiple = 'ListIfMultiple',
   Count = 'Count',
   Plain = 'Plain',
+}
+
+export enum ExpressionResultType {
+  Number = 'Number',
+  String = 'String',
+  Object = 'Object',
+  ObjectList = 'ObjectList',
+  InheritFromQuery = 'InheritFromQuery',
 }
 
 export enum CountIfOperator {
@@ -82,6 +91,7 @@ export const countIfOperatorsWithLabels = [
 
 export interface Expression extends HasId {
   type: ExpressionType;
+  returnType: ExpressionResultType;
   queryId: string;
   allowedQueryTypes: QueryReturnType[];
 }
@@ -165,6 +175,7 @@ export type GraphicalReportItemData = {
 
 export interface GraphicalItemProperties extends HasId {
   listFields?: string[];
+  listFieldsWithLabels?: { label: string; value: string }[];
 }
 
 export interface GraphicalReportItem extends HasId {

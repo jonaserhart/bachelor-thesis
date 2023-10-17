@@ -34,6 +34,7 @@ const ReportDetail: React.FC = () => {
       <Title level={4} style={{ marginTop: 0 }}>
         {report?.title}
       </Title>
+      <Typography>{report?.notes}</Typography>
       <Tabs
         activeKey={activeKey}
         onChange={(activeKey) => {

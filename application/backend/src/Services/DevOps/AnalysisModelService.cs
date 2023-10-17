@@ -33,11 +33,14 @@ public class AnalysisModelService : IAnalysisModelService
     {
         var model = await m_context.AnalysisModels
             .Include(x => x.KPIs)
+                .ThenInclude(x => x.Expression)
             .Include(x => x.KPIFolders)
                 .ThenInclude(x => x.KPIs)
+                    .ThenInclude(x => x.Expression)
             .Include(x => x.KPIFolders)
                 .ThenInclude(x => x.SubFolders)
                     .ThenInclude(x => x.KPIs)
+                        .ThenInclude(x => x.Expression)
             .Include(x => x.ModelUsers)
                 .ThenInclude(x => x.User)
             .Include(x => x.Reports)
@@ -353,6 +356,7 @@ public class AnalysisModelService : IAnalysisModelService
         await m_context.Entry(item).Reference(x => x.Properties).LoadAsync();
         item.Properties ??= new GraphicalReportItemProperties();
         item.Properties.ListFields = submission.Properties?.ListFields ?? new List<string>();
+        item.Properties.ListFieldsWithLabels = submission.Properties?.ListFieldsWithLabels ?? new List<LabelAndValue>();
 
         await m_context.SaveChangesAsync();
     }
@@ -401,6 +405,33 @@ public class AnalysisModelService : IAnalysisModelService
             throw new DbKeyNotFoundException(new { modelId, userId }, typeof(UserModel));
 
         userModel.Permission = permission;
+
+        await m_context.SaveChangesAsync();
+    }
+
+    public async Task DeleteModelAsync(Guid id)
+    {
+        var model = await m_context.AnalysisModels.FindAsync(id);
+
+        if (model == null)
+        {
+            throw new DbKeyNotFoundException(id, typeof(AnalysisModel));
+        }
+
+        m_context.AnalysisModels.Remove(model);
+        await m_context.SaveChangesAsync();
+    }
+
+    public async Task RemoveUserFromModelAsync(Guid modelId, Guid userId)
+    {
+        var userModel = await m_context.UserModels.FindAsync(modelId, userId);
+
+        if (userModel == null)
+        {
+            throw new DbKeyNotFoundException(new { modelId, userId }, typeof(UserModel));
+        }
+
+        m_context.UserModels.Remove(userModel);
 
         await m_context.SaveChangesAsync();
     }

@@ -39,6 +39,19 @@ public sealed class ApiClient : IApiClient
         return iterations.Select(x => new AzureDevopsIteration { Id = x.Id, Name = x.Name, Path = x.Path });
     }
 
+    public async Task<List<PossibleObjectField>> GetAvailableFields(string project)
+    {
+        var workClient = m_connection.GetClient<WorkItemTrackingHttpClient>();
+        var fields = await workClient.GetFieldsAsync(project);
+
+        var dict = new List<PossibleObjectField>();
+        foreach (var field in fields)
+        {
+            dict.Add(new PossibleObjectField { DisplayName = field.Name, Name = field.ReferenceName });
+        }
+        return dict;
+    }
+
     public async Task<List<Dictionary<string, object>>> GetIterationTasksAsync(TeamContext teamContext, Guid iterationId)
     {
         var workItems = await GetIterationWorkItemsAsync(teamContext, iterationId);

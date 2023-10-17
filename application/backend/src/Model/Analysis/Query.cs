@@ -14,6 +14,7 @@ public class Query
     public string Id { get; }
     public string Name { get; }
     public QueryReturnType Type { get; }
+    public Dictionary<string, object?> AdditionalQueryData = new Dictionary<string, object?>();
 
     public override bool Equals(object? obj) => obj is Query query && Id.Equals(query.Id);
     public override int GetHashCode() => Id.GetHashCode();

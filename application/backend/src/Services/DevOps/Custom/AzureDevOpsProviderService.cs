@@ -59,7 +59,19 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
         };
     }
 
-    public List<Query> GetQueries() => m_queries;
+    public async Task<List<Query>> GetQueries()
+    {
+        var queryList = m_queries.ToList();
+        using var client = await m_apiClientFactory.GetApiClientAsync();
+
+        foreach (var q in queryList.Where(x => x.Type == Model.Enum.QueryReturnType.ObjectList || x.Type == Model.Enum.QueryReturnType.Object))
+        {
+            var fields = await client.GetAvailableFields(m_project!);
+            q.AdditionalQueryData.Add("possibleFields", fields);
+        }
+
+        return queryList;
+    }
     public Query GetQueryById(string id)
     {
         var query = m_queries.FirstOrDefault(x => x.Id == id) ?? throw new DbKeyNotFoundException(id, typeof(Query));
@@ -184,13 +196,18 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
         DateTime sprintStart;
         DateTime sprintEnd;
 
+        var result = new QueryResult
+        {
+            Type = query.Type
+        };
+
         switch (query.Id)
         {
             case LAST_ITER_WI_TASKS_QUERY:
                 iterationId = GetGuidParameterOrThrow(ITERATION_PARAMETER, parameterValues);
 
                 var tasks = await apiClient.GetIterationTasksAsync(new TeamContext(m_project, m_devTeam), iterationId);
-
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PARAMETER, Value = iterationId });
                 value = tasks;
                 break;
             case LAST_ITER_WI_TICKETS_QUERY:
@@ -198,48 +215,61 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
 
                 var userStoriesAndBugs = await apiClient.GetIterationTicketsAsync(new TeamContext(m_project, m_devTeam), iterationId);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PARAMETER, Value = iterationId });
                 value = userStoriesAndBugs;
                 break;
             case LAST_ITER_CAP_QUERY:
                 iterationId = GetGuidParameterOrThrow(ITERATION_PARAMETER, parameterValues);
                 var capacity = await apiClient.GetIterationCapacitiesAsync(new TeamContext(m_project, m_devTeam), iterationId);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PARAMETER, Value = iterationId });
                 value = double.Round(capacity, 2);
                 break;
             case LAST_ITER_START_WI_TICKETS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintStart = GetDateTimeParameterOrThrow(SPRINT_START_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
                 value = await apiClient.GetNormalTicketsAsOfAsync(m_project, iterationPath, sprintStart);
                 break;
             case LAST_ITER_START_WI_TASKS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintStart = GetDateTimeParameterOrThrow(SPRINT_START_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_START_PARAMETER, Value = sprintStart });
                 value = await apiClient.GetWorkItemsOfIterationAndAsOfAsync(m_project, iterationPath, sprintStart, "Task");
                 break;
             case LAST_ITER_END_WI_TICKETS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_END_PARAMETER, Value = sprintEnd });
                 value = await apiClient.GetNormalTicketsAsOfAsync(m_project, iterationPath, sprintEnd);
                 break;
             case LAST_ITER_END_WI_TASKS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_END_PARAMETER, Value = sprintEnd });
                 value = await apiClient.GetWorkItemsOfIterationAndAsOfAsync(m_project, iterationPath, sprintEnd, "Task");
                 break;
             case LAST_ITER_WI_TICKET_HAS_BLOCKERS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_END_PARAMETER, Value = sprintEnd });
                 value = await apiClient.GetBlockerTicketsAsOfAsync(m_project, iterationPath, sprintEnd);
                 break;
             case LAST_ITER_WI_TICKET_HAS_AFTERTHOUGHTTASKS_QUERY:
                 iterationPath = GetStringParameterOrThrow(ITERATION_PATH_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_END_PARAMETER, Value = sprintEnd });
                 value = await apiClient.GetAfterThoughtTicketsAsOfAsync(m_project, iterationPath, sprintEnd);
                 break;
             case LAST_ITER_WI_REMOVED_TICKETS_QUERY:
@@ -247,16 +277,16 @@ public class AzureDevOpsProviderService : IDevOpsProviderService
                 sprintStart = GetDateTimeParameterOrThrow(SPRINT_START_PARAMETER, parameterValues);
                 sprintEnd = GetDateTimeParameterOrThrow(SPRINT_END_PARAMETER, parameterValues);
 
+                result.ParameterValues.Add(new QueryParameterValue { Name = ITERATION_PATH_PARAMETER, Value = iterationPath });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_START_PARAMETER, Value = sprintStart });
+                result.ParameterValues.Add(new QueryParameterValue { Name = SPRINT_END_PARAMETER, Value = sprintEnd });
                 value = await apiClient.GetRemovedWorkItemsAsync(m_project, iterationPath, sprintEnd, sprintStart, "Task");
                 break;
             default:
                 throw new KeyNotFoundException($"Query with id {query.Id} not found.");
         }
-        var result = new QueryResult
-        {
-            Type = query.Type,
-            Value = value
-        };
+
+        result.Value = value;
 
         return result;
     }

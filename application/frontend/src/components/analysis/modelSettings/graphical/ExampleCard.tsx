@@ -8,10 +8,14 @@ import {
   ResponsiveContainer,
   XAxis,
   YAxis,
+  Tooltip as TT,
 } from 'recharts';
 import {
+  ExpressionResultType,
   GraphicalItemProperties,
   GraphicalReportItemType,
+  KPI,
+  KPIFolder,
 } from '../../../../features/analysis/types';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import {
@@ -29,7 +33,6 @@ import {
   message,
   theme,
 } from 'antd';
-import { Tooltip as TT } from 'recharts';
 import { useAppSelector } from '../../../../app/hooks';
 import {
   CloseOutlined,
@@ -41,10 +44,12 @@ import { selectAllKPIs } from '../../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../../context/ModelContext';
 import {
   isLeafNode,
-  mapToTreeStructureForReport,
+  mapToTreeStructureWithCondition,
 } from '../../../../util/kpiFolderUtils';
 import CustomChartTooltip from '../../../CustomChartTooltip';
 import { selectColors } from '../../../../util/graphicalUtils';
+import { selectQueries } from '../../../../features/queries/querySclice';
+import { QueryReturnType } from '../../../../features/queries/types';
 
 const { Paragraph, Title } = Typography;
 
@@ -112,6 +117,8 @@ const ExampleCard: React.FC<Props> = (props) => {
 
   const { model } = useContext(ModelContext);
 
+  const queries = useAppSelector(selectQueries);
+
   const modelId = useMemo(() => model?.id ?? '', [model]);
 
   const kpis = useAppSelector(selectAllKPIs(modelId));
@@ -142,11 +149,17 @@ const ExampleCard: React.FC<Props> = (props) => {
   );
 
   const onConfigChange = useCallback(
-    (values: string[]) => {
+    (
+      values: string[],
+      option:
+        | { label: string; value: string }
+        | { label: string; value: string }[]
+    ) => {
       setSelectedListFields(values);
       onGraphicalItemPropertiesChange({
         ...graphicalItemProperties,
         listFields: values,
+        listFieldsWithLabels: Array.isArray(option) ? option : [option],
       });
     },
     [setSelectedListFields, graphicalItemProperties]
@@ -214,12 +227,79 @@ const ExampleCard: React.FC<Props> = (props) => {
     }
   }, [type]);
 
+  const allowedKPITypes = useMemo(() => {
+    switch (type) {
+      case GraphicalReportItemType.Plain:
+        return Object.values(ExpressionResultType);
+      case GraphicalReportItemType.BarChart:
+      case GraphicalReportItemType.PieChart:
+        return [ExpressionResultType.Number];
+      case GraphicalReportItemType.List:
+        return [ExpressionResultType.ObjectList];
+      case GraphicalReportItemType.Text:
+      default:
+        return [];
+    }
+  }, [type]);
+
+  const kpiFilterFn = useCallback(
+    (k: KPI | KPIFolder) =>
+      'subFolders' in k
+        ? k.kpis.some((x) =>
+            x.showInReport &&
+            x.expression.returnType === ExpressionResultType.InheritFromQuery
+              ? queries
+                  .filter((q) => q.id === x.expression.queryId)
+                  .map((q) => {
+                    switch (q.type) {
+                      case QueryReturnType.Number:
+                        return ExpressionResultType.Number;
+                      case QueryReturnType.String:
+                        return ExpressionResultType.String;
+                      case QueryReturnType.Object:
+                        return ExpressionResultType.Object;
+                      case QueryReturnType.NumberList:
+                      case QueryReturnType.StringList:
+                      case QueryReturnType.ObjectList:
+                        return ExpressionResultType.ObjectList;
+                    }
+                  })
+                  .every((qtype) => allowedKPITypes.includes(qtype))
+              : allowedKPITypes.includes(x.expression.returnType)
+          )
+        : k.showInReport &&
+          (k.expression.returnType === ExpressionResultType.InheritFromQuery
+            ? queries
+                .filter((q) => q.id === k.expression.queryId)
+                .map((q) => {
+                  switch (q.type) {
+                    case QueryReturnType.Number:
+                      return ExpressionResultType.Number;
+                    case QueryReturnType.String:
+                      return ExpressionResultType.String;
+                    case QueryReturnType.Object:
+                      return ExpressionResultType.Object;
+                    case QueryReturnType.NumberList:
+                    case QueryReturnType.StringList:
+                    case QueryReturnType.ObjectList:
+                      return ExpressionResultType.ObjectList;
+                  }
+                })
+                .every((qtype) => allowedKPITypes.includes(qtype))
+            : allowedKPITypes.includes(k.expression.returnType)),
+    [allowedKPITypes, queries]
+  );
+
   const kpiFolders = useMemo(() => {
     return [
-      ...(model?.kpiFolders?.map(mapToTreeStructureForReport) ?? []),
-      ...(model?.kpis?.map(mapToTreeStructureForReport) ?? []),
+      ...(model?.kpiFolders
+        .filter(kpiFilterFn)
+        ?.map(mapToTreeStructureWithCondition(kpiFilterFn)) ?? []),
+      ...(model?.kpis
+        .filter(kpiFilterFn)
+        ?.map(mapToTreeStructureWithCondition(kpiFilterFn)) ?? []),
     ];
-  }, [model]);
+  }, [model, kpiFilterFn]);
 
   const canDefineKPIs = useMemo(
     () =>
@@ -238,6 +318,30 @@ const ExampleCard: React.FC<Props> = (props) => {
     }
     return selectedKPIs.length ? selectedKPIs[0] : undefined;
   }, [multipleKPIs, selectedKPIs]);
+
+  const selectedKPI = useMemo(() => {
+    if (typeof treeSelectValue === 'string') {
+      return kpis.find((x) => x.id === treeSelectValue);
+    }
+    return undefined;
+  }, [kpis, treeSelectValue]);
+
+  const kpiFieldOptions = useMemo(() => {
+    if (type === GraphicalReportItemType.List) {
+      if (selectedKPI) {
+        const query = queries.find(
+          (x) => x.id === selectedKPI.expression.queryId
+        );
+        if (query?.type === QueryReturnType.ObjectList) {
+          return query.additionalQueryData.possibleFields.map((x) => ({
+            label: x.displayName,
+            value: x.name,
+          }));
+        }
+      }
+    }
+    return [];
+  }, [type, queries, selectedKPI]);
 
   if (type === GraphicalReportItemType.Text) {
     return (
@@ -495,10 +599,19 @@ const ExampleCard: React.FC<Props> = (props) => {
                 />
                 {type === GraphicalReportItemType.List && (
                   <Select
+                    allowClear
+                    filterOption={(input, option) =>
+                      (option?.label?.toLowerCase() ?? '').includes(
+                        input.toLowerCase()
+                      )
+                    }
+                    mode="multiple"
+                    showSearch
                     value={selectedListFields}
-                    mode="tags"
+                    options={kpiFieldOptions}
                     onChange={onConfigChange}
                     style={{ width: '100%' }}
+                    disabled={!treeSelectValue}
                     placeholder="Add fields to display in your list"
                   />
                 )}

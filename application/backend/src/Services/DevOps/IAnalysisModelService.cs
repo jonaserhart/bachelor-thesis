@@ -28,4 +28,6 @@ public interface IAnalysisModelService
     Task UpdateGraphicalConfigItemKPIs(Guid id, UpdateKPIsOfGraphicalItemSubmission submission);
     Task<User?> AddUserToModelAsync(Guid modelId, AddUserToModelSubmission submission);
     Task ChangeUserPermissionOnModelAsync(Guid modelId, Guid userId, ModelPermission permission);
+    Task DeleteModelAsync(Guid id);
+    Task RemoveUserFromModelAsync(Guid modelId, Guid userId);
 }

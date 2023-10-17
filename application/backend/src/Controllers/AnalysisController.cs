@@ -75,6 +75,15 @@ public class AnalysisController : Controller
         return Ok(model);
     }
 
+    [HttpDelete("models/{id}")]
+    [ProducesResponseType(typeof(AnalysisModel), 200)]
+    public async Task<ActionResult<AnalysisModel>> DeleteModel(Guid id)
+    {
+        await m_securityService.AuthorizeModelAsync(id, Operations.DeleteModel, User);
+        await m_analysisModelService.DeleteModelAsync(id);
+        return Ok();
+    }
+
     [HttpPost("models/{modelId}/graphicalconfig")]
     [ProducesResponseType(typeof(GraphicalConfiguration), 200)]
     public async Task<ActionResult<GraphicalConfiguration>> CreateNewGraphicalConfig(Guid modelId)
@@ -221,12 +230,22 @@ public class AnalysisController : Controller
         return Ok();
     }
 
+    [HttpDelete("models/{modelId}/users/{userId}")]
+    [ProducesResponseType(typeof(void), 200)]
+    public async Task<ActionResult<User>> RemoveUserFromModel(Guid modelId, Guid userId)
+    {
+        await m_securityService.AuthorizeModelAsync(modelId, Operations.RemoveUserFromModel, User);
+
+        await m_analysisModelService.RemoveUserFromModelAsync(modelId, userId);
+        return Ok();
+    }
+
     [HttpGet("customqueries")]
     [ProducesResponseType(typeof(Query[]), 200)]
     [Authorize]
-    public ActionResult<IEnumerable<Query>> GetCustomQueries()
+    public async Task<ActionResult<IEnumerable<Query>>> GetCustomQueries()
     {
-        var queries = m_devOpsProviderService.GetQueries();
+        var queries = await m_devOpsProviderService.GetQueries();
         return Ok(queries);
     }
 
@@ -346,6 +365,16 @@ public class AnalysisController : Controller
         }
         var updated = await m_kpiService.UpdateExpressionAsync(kpiId, expression.Expression);
         return Ok(updated);
+    }
+
+    [HttpDelete("models/{modelId}/kpis/{kpiId}/expression/condition/{conditionId}")]
+    [ProducesResponseType(typeof(Expression), 200)]
+    public async Task<ActionResult<Expression>> DeleteKPIExpressionCondition(Guid modelId, Guid kpiId, Guid conditionId)
+    {
+        await m_securityService.AuthorizeModelAsync(modelId, Operations.EditKPI, User);
+
+        await m_kpiService.DeleteKPIExpressionConditionAsync(kpiId, conditionId);
+        return Ok();
     }
 
 }

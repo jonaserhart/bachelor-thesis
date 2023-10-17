@@ -7,6 +7,7 @@ namespace backend.Model.Analysis.Expressions;
 public abstract class AggregateExpression : Expression
 {
     protected abstract double AggregationFunction(IEnumerable<double> x);
+    public override ExpressionResultType ReturnType => ExpressionResultType.Number;
     public string Field { get; set; } = string.Empty;
 
     public override object? Evaluate(Dictionary<string, QueryResult> data)

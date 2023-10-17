@@ -21,6 +21,7 @@ public class Operations
     public const string DeleteReportOperation = "DeleteReportOperation";
     public const string ViewReportOperation = "ViewReportOperation";
     public const string AddUserToModelOperation = "AddUserToModelOperation";
+    public const string RemoveUserFromModelOperation = "RemoveUserFromModelOperation";
     public const string ChangeUserRoleOnModelOperation = "ChangeUserRoleOnModelOperation";
     public const string CreateKPIFolderOperation = "CreateKPIFolderOperation";
     public const string EditKPIFolderOperation = "EditKPIFolderOperation";
@@ -47,6 +48,7 @@ public class Operations
     public static OperationAuthorizationRequirement DeleteReport => new() { Name = DeleteReportOperation };
     public static OperationAuthorizationRequirement ViewReport => new() { Name = ViewReportOperation };
     public static OperationAuthorizationRequirement AddUserToModel => new() { Name = AddUserToModelOperation };
+    public static OperationAuthorizationRequirement RemoveUserFromModel => new() { Name = RemoveUserFromModelOperation };
     public static OperationAuthorizationRequirement ChangeUserRoleOnModel => new() { Name = ChangeUserRoleOnModelOperation };
     public static OperationAuthorizationRequirement CreateKPIFolder => new() { Name = CreateKPIFolderOperation };
     public static OperationAuthorizationRequirement EditKPIFolder => new() { Name = EditKPIFolderOperation };

@@ -65,7 +65,8 @@ public class DataContext : DbContext
             .HasValue<PlainQueryExpression>(backend.Model.Enum.ExpressionType.Plain)
             .HasValue<CountExpression>(backend.Model.Enum.ExpressionType.Count)
             .HasValue<CountIfMultipleExpression>(backend.Model.Enum.ExpressionType.CountIfMultiple)
-            .HasValue<SumIfMultipleExpression>(backend.Model.Enum.ExpressionType.SumIfMultiple);
+            .HasValue<SumIfMultipleExpression>(backend.Model.Enum.ExpressionType.SumIfMultiple)
+            .HasValue<ListIfMultipleExpression>(backend.Model.Enum.ExpressionType.ListIfMultiple);
 
         modelBuilder.Entity<DoIfMultipleExpression>(dme =>
         {
@@ -113,9 +114,11 @@ public class DataContext : DbContext
                 .HasForeignKey(x => x.IssuedById);
         });
 
-        modelBuilder.Entity<KPI>()
-            .Property(x => x.AcceptableValues)
-            .HasDefaultValue("any");
+        modelBuilder.Entity<KPI>(kpi =>
+        {
+            kpi.Property(x => x.AcceptableValues)
+                .HasDefaultValue("any");
+        });
 
         modelBuilder.Entity<MathOperationExpression>(moe =>
         {
@@ -196,6 +199,7 @@ public class DataContext : DbContext
         modelBuilder.Entity<GraphicalReportItemProperties>(properties =>
         {
             properties.Property(x => x.ListFields).HasJsonConversion();
+            properties.Property(x => x.ListFieldsWithLabels).HasJsonConversion();
         });
 
         modelBuilder.Entity<GraphicalItemDataSources>()

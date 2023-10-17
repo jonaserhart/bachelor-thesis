@@ -26,6 +26,7 @@ import {
 import {
   selectAllKPIs,
   addOrUpdateExpression,
+  removeConditionFromExpression,
 } from '../../../features/analysis/analysisSlice';
 import { ModelContext } from '../../../context/ModelContext';
 import { KPIContext } from '../../../context/KPIContext';
@@ -96,7 +97,7 @@ const descriptions = {
     title: 'Multiply',
     kind: 'Mathematical',
     description: `
-    Multiplies the result of two other KPIs (Left / Right). 
+    Multiplies the result of two other KPIs (Left * Right). 
     Useful to scale a value by a certain factor.
     `,
     arguments: [
@@ -248,6 +249,27 @@ const descriptions = {
       },
     ],
   },
+  [ExpressionType.ListIfMultiple]: {
+    title: 'List if (multiple)',
+    kind: 'Conditional',
+    description: `
+      List values of a query that they meet multiple conditions.
+    `,
+    arguments: [
+      {
+        name: 'Query',
+        description: 'Query to get data from',
+      },
+      {
+        name: 'Connection',
+        description: 'How the conditions are chained',
+      },
+      {
+        name: 'Conditions',
+        description: 'Conditions that are tested',
+      },
+    ],
+  },
   [ExpressionType.CountIf]: {
     title: 'Count if',
     kind: 'Conditional',
@@ -260,17 +282,17 @@ const descriptions = {
         description: 'Query to get data from',
       },
       {
+        name: 'Field',
+        description:
+          'If the query yields an object list you can specify a field which to extract first',
+      },
+      {
         name: 'Operator',
-        description: 'Operator whis is used to compare the values',
+        description: 'Operator which is used to compare the values',
       },
       {
         name: 'Compare value',
         description: 'Value to compare each item in the list to',
-      },
-      {
-        name: 'Field',
-        description:
-          'If the query yields an object list you can specify a field which to extract first',
       },
     ],
   },
@@ -382,6 +404,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
   const allowedQueryTypes = useMemo(() => {
     switch (type) {
       case ExpressionType.Value:
+      case ExpressionType.Plain:
         return Object.values(QueryReturnType);
       case ExpressionType.Add:
       case ExpressionType.Subtract:
@@ -400,6 +423,7 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
           QueryReturnType.StringList,
         ];
       case ExpressionType.CountIfMultiple:
+      case ExpressionType.ListIfMultiple:
       case ExpressionType.SumIfMultiple:
         return [QueryReturnType.ObjectList];
       default:
@@ -496,7 +520,22 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                   required: selectedQuery?.type === QueryReturnType.ObjectList,
                 },
               ]}>
-              <Input style={formInputStyles} />
+              <Select
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label?.toLowerCase() ?? '').includes(
+                    input.toLowerCase()
+                  )
+                }
+                options={
+                  selectedQuery?.type === QueryReturnType.ObjectList
+                    ? selectedQuery.additionalQueryData.possibleFields.map(
+                        (x) => ({ label: x.displayName, value: x.name })
+                      )
+                    : []
+                }
+              />
             </Form.Item>
           </>
         );
@@ -554,9 +593,22 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                   required: selectedQuery?.type === QueryReturnType.ObjectList,
                 },
               ]}>
-              <Input
+              <Select
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label?.toLowerCase() ?? '').includes(
+                    input.toLowerCase()
+                  )
+                }
                 disabled={selectedQuery?.type !== QueryReturnType.ObjectList}
-                style={formInputStyles}
+                options={
+                  selectedQuery?.type === QueryReturnType.ObjectList
+                    ? selectedQuery.additionalQueryData.possibleFields.map(
+                        (x) => ({ label: x.displayName, value: x.name })
+                      )
+                    : []
+                }
               />
             </Form.Item>
             <Form.Item name={['operator']} label="Operator">
@@ -597,9 +649,22 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
               />
             </Form.Item>
             <Form.Item name={['extractField']} label="Extract field">
-              <Input
+              <Select
+                allowClear
+                showSearch
+                filterOption={(input, option) =>
+                  (option?.label?.toLowerCase() ?? '').includes(
+                    input.toLowerCase()
+                  )
+                }
                 disabled={selectedQuery?.type !== QueryReturnType.ObjectList}
-                style={formInputStyles}
+                options={
+                  selectedQuery?.type === QueryReturnType.ObjectList
+                    ? selectedQuery.additionalQueryData.possibleFields.map(
+                        (x) => ({ label: x.displayName, value: x.name })
+                      )
+                    : []
+                }
               />
             </Form.Item>
             <Form.Item
@@ -636,7 +701,26 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                         extra={
                           <CloseOutlined
                             onClick={() => {
-                              remove(field.name);
+                              const val = form.getFieldValue([
+                                'conditions',
+                                field.name,
+                              ]);
+                              if (!val) {
+                                remove(field.key);
+                              } else {
+                                dispatch(
+                                  removeConditionFromExpression({
+                                    modelId,
+                                    kpiId,
+                                    conditionId: val.id,
+                                  })
+                                )
+                                  .unwrap()
+                                  .then(() => remove(field.key))
+                                  .catch((err: BackendError) =>
+                                    message.error(err.message)
+                                  );
+                              }
                             }}
                           />
                         }>
@@ -650,11 +734,166 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                                 QueryReturnType.ObjectList,
                             },
                           ]}>
-                          <Input
+                          <Select
+                            allowClear
+                            showSearch
+                            filterOption={(input, option) =>
+                              (option?.label?.toLowerCase() ?? '').includes(
+                                input.toLowerCase()
+                              )
+                            }
                             disabled={
                               selectedQuery?.type !== QueryReturnType.ObjectList
                             }
-                            style={formInputStyles}
+                            options={
+                              selectedQuery?.type === QueryReturnType.ObjectList
+                                ? selectedQuery.additionalQueryData.possibleFields.map(
+                                    (x) => ({
+                                      label: x.displayName,
+                                      value: x.name,
+                                    })
+                                  )
+                                : []
+                            }
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          name={[field.name, 'operator']}
+                          label="Operator">
+                          <Select
+                            options={countIfOperatorsWithLabels
+                              .filter((o) =>
+                                selectedQuery
+                                  ? o.allowed.includes(selectedQuery.type)
+                                  : false
+                              )
+                              .map((o) => ({
+                                label: o.label,
+                                value: o.value,
+                              }))}
+                          />
+                        </Form.Item>
+                        <Form.Item
+                          name={[field.name, 'compareValue']}
+                          label="Comparevalue">
+                          <Input style={formInputStyles} />
+                        </Form.Item>
+                      </Card>
+                    ))}
+
+                    <Button type="dashed" onClick={() => add()} block>
+                      + Add condition
+                    </Button>
+                  </div>
+                )}
+              </Form.List>
+            </Form.Item>
+          </>
+        );
+      case ExpressionType.ListIfMultiple:
+        return (
+          <>
+            <Form.Item
+              name={['queryId']}
+              label="Query"
+              rules={[{ required: true }]}>
+              <Select
+                options={queries
+                  .filter((x) => allowedQueryTypes.includes(x.type))
+                  .map((q) => ({
+                    label: q.name,
+                    value: q.id,
+                  }))}
+              />
+            </Form.Item>
+            <Form.Item
+              name={['connection']}
+              label="Connection"
+              rules={[{ required: true }]}>
+              <Select
+                options={[
+                  {
+                    label: 'All',
+                    value: ConditionConnection.All,
+                  },
+                  {
+                    label: 'Any',
+                    value: ConditionConnection.Any,
+                  },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item label="Conditions">
+              <Form.List name={['conditions']}>
+                {(fields, { add, remove }) => (
+                  <div
+                    style={{
+                      display: 'flex',
+                      rowGap: 16,
+                      flexDirection: 'column',
+                    }}>
+                    {fields.map((field) => (
+                      <Card
+                        size="small"
+                        title={`Condition ${field.name + 1}`}
+                        key={field.key}
+                        extra={
+                          <CloseOutlined
+                            onClick={() => {
+                              const val = form.getFieldValue([
+                                'conditions',
+                                field.name,
+                              ]);
+                              if (!val) {
+                                remove(field.key);
+                              } else {
+                                dispatch(
+                                  removeConditionFromExpression({
+                                    modelId,
+                                    kpiId,
+                                    conditionId: val.id,
+                                  })
+                                )
+                                  .unwrap()
+                                  .then(() => remove(field.key))
+                                  .catch((err: BackendError) =>
+                                    message.error(err.message)
+                                  );
+                              }
+                            }}
+                          />
+                        }>
+                        <Form.Item
+                          name={[field.name, 'field']}
+                          label="Field"
+                          rules={[
+                            {
+                              required:
+                                selectedQuery?.type ===
+                                QueryReturnType.ObjectList,
+                            },
+                          ]}>
+                          <Select
+                            allowClear
+                            showSearch
+                            filterOption={(input, option) =>
+                              (option?.label?.toLowerCase() ?? '').includes(
+                                input.toLowerCase()
+                              )
+                            }
+                            disabled={
+                              selectedQuery?.type !== QueryReturnType.ObjectList
+                            }
+                            options={
+                              selectedQuery?.type === QueryReturnType.ObjectList
+                                ? selectedQuery.additionalQueryData.possibleFields.map(
+                                    (x) => ({
+                                      label: x.displayName,
+                                      value: x.name,
+                                    })
+                                  )
+                                : []
+                            }
                           />
                         </Form.Item>
                         <Form.Item
@@ -796,6 +1035,10 @@ export const ExpressionForm: React.FC<ExpressionFormProps> = ({
                       {
                         label: 'Sum if (multiple)',
                         value: ExpressionType.SumIfMultiple,
+                      },
+                      {
+                        label: 'List if (multiple)',
+                        value: ExpressionType.ListIfMultiple,
                       },
                     ],
                   },

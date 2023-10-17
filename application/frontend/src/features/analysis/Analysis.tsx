@@ -1,6 +1,7 @@
 import { useAppDispatch, useAppSelector } from '../../app/hooks';
 import {
   createModel,
+  deleteModel,
   getMyModels,
   selectModels,
   updateModelDetails,
@@ -115,7 +116,12 @@ const Analysis: React.FC = () => {
                   }>
                   Details
                 </Button>
-                <Button danger type="text">
+                <Button
+                  onClick={() => {
+                    dispatch(deleteModel((record as AnalysisModel).id));
+                  }}
+                  danger
+                  type="text">
                   Delete{' '}
                 </Button>
               </Space>
