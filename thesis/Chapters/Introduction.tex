@@ -1,0 +1,172 @@
+\chapter{Introduction}
+\label{Chapter1}
+
+Agile methods are now deeply ingrained in almost every software development project initiated today.
+These iterative approaches to product development rely on evaluating the agile 
+process at each stage. By reflecting on past performance, 
+teams can make informed decisions to improve their future outcomes. 
+Many companies that adopt the specific agile method known as SCRUM also 
+rely on software tools to support their processes \parencite{Katsma2013Can}.
+
+Tools used to analyze SCRUM processes often require 
+a subscription or some form of payment. 
+Another common occurrence is that they are tightly integrated with ticket planning software, 
+limiting their usage to one provider. 
+This becomes evident when looking at SCRUM supporting software like Azure DevOps
+\footnote{Azure DevOps SCRUM capabilities: https://learn.microsoft.com/en-us/azure/devops/boards/sprints/scrum-overview?view=azure-devops}
+and Jira Boards\footnote{https://www.atlassian.com/software/jira/guides/boards/overview}
+While it may seem trivial to develop software capable of analyzing a specific 
+team's performance, the challenge lies in the diversity of companies and teams 
+using different software tools to log their SCRUM processes. 
+This diversity makes it difficult to create a solution to fit multiple teams or organizations. 
+Analyzing a team's performance involves considering various factors, 
+including source code interaction via version control, continuous integration builds, 
+sprint progression, and many more. 
+Gathering all this data without relying on manual steps can be challenging.
+
+The remainder of this thesis is structured as follows. 
+This chapter features a quick introduction to the thesis and 
+establishes the objectives, scope and limitations. 
+Chapter \ref{Chapter2} describes related work and a comprehensive 
+literature review on topics relevant to this thesis, like SCRUM. 
+Chapter \ref{Chapter3} focuses on defining the application of the 
+methodology used to produce artifacts for this thesis. 
+Chapter \ref{Chapter4} takes a more theoretical approach to evaluating 
+the usefulness of certain performance indicators used in SCRUM using a 
+survey and evaluating the results. 
+The artifact design process and description are laid out across chapter \ref{Chapter5}, 
+going into technical detail in terms of software development and project planning. 
+Chapter \ref{6} is focused on the evaluation of the artifact. 
+While the methods of evaluation are described in detail in Chapter \ref{Chapter5}, 
+the results are collected in this chapter. 
+Chapter \ref{Chapter7} concludes this thesis with a short summary, 
+an evaluation of contribution and a reflection on the process.
+ 
+\section{Significance}
+
+According to the 'State of Agile' survey, a popular annual survey conducted among 
+approximately 3,300 companies, it was found that 87\% of these companies utilize SCRUM 
+as their agile project management methodology \parencite{StateOfAgile2023}. 
+These companies have reported numerous benefits of agile methods, including increased 
+collaboration, better alignment with business needs, and improved work environments. 
+The survey also highlights the most commonly used tools for logging SCRUM processes, which 
+include Atlassian Jira, Mural/Miro, Microsoft Excel, Azure DevOps, and Microsoft Project. 
+SCRUM has gained significant popularity and has proven to be highly beneficial for the 
+organizations implementing it.
+
+Within the domain of SCRUM methodology and its associated tools, a noticeable 
+gap arises concerning the adaptability and customization of KPIs for team analysis. 
+Current SCRUM analysis tools often provide commonly known metrics like \textit{Velocity} or a teams \textit{Capacity}, 
+yet may fall short in addressing the distinct needs of various SCRUM teams. 
+This can be seen when reading documentation
+\footnote{Jira dashboard capabilities: https://www.atlassian.com/software/jira/guides/reports-dashboards/overview}
+\footnote{Zoho report capabilities: https://www.zoho.com/sprints/reports.html} of various SCRUM tools.  
+Recognizing the significance of this gap, the research seeks to bridge the divide between 
+standardized analysis approaches and the diverse requisites of SCRUM teams. 
+Through the development of an application facilitating the creation of custom KPIs, 
+the goal is to offer teams a more personalized and efficient approach to evaluating 
+their performance. By doing so, the thesis aspires to contribute to a more comprehensive 
+understanding of SCRUM team efficiency, potentially providing insights for SCRUM teams 
+encountering similar challenges.
+
+The widespread adoption of the SCRUM methodology is driven by its promise of agility, collaboration, and iterative progress. However, the complexity and time-intensive nature of the analysis process can sometimes present a significant hurdle for teams considering the adoption of SCRUM. This barrier arises as SCRUM's effectiveness hinges on continuous evaluation and adjustment, requiring teams to analyze their performance regularly. By introducing an application that simplifies the analysis process through the customization of KPIs, we aim to reduce this hurdle. The streamlined analysis approach offered by the application not only aligns with the fast-paced nature of SCRUM but also facilitates the incorporation of SCRUM methodology by making the assessment of team efficiency more accessible. This, in turn, holds the potential to attract a broader range of teams and organizations to embrace SCRUM, driving its wider adoption in diverse contexts.
+
+\section{Background}\label{background-section}
+
+The idea for this thesis stems from a real-world problem that was encountered by an 
+organization with the name VertiGIS LTD \footnote{https://www.vertigis.com}. 
+VergiGIS is a geographic information systems company
+providing solutions to other organizations all over the world.
+
+A particular SCRUM team developing one of their product
+lines analyzes their team performance using an Excel sheet. 
+The whole organization uses Azure DevOps for planning sprints, running pipelines and storing code.
+After each development sprint, a developer manually analyzes the sprint and computes KPI values
+that are not automatically computed by Azure DevOps.
+This process takes the developer about one to one and a half hours and is prone to errors.
+
+A simple software solution is requested by the organization to automatically compute KPI values using the 
+Azure DevOps REST API.
+This may not be an uncommon problem when teams want to analyze specific KPIs, so the application should be 
+designed to work as universally as possible. 
+This means supporting multiple planning software integrations and custom KPIs to meet specific team requirements.
+
+\section{Objectives} \label{Chapter1-Objectives}
+
+\subsection{Evaluating state-of-the-art}
+
+The primary objective of this thesis is to evaluate various methods and software tools to 
+build an application for analyzing the performance of a SCRUM team.
+To achieve this goal, extensive research will be conducted to identify 
+state-of-the-art trends and applications in the field. 
+The gathered research findings will serve as a knowledge base for initiating this thesis. 
+Based on this knowledge, a blueprint will be created to guide the development 
+of an application that aligns with the solution pattern for the identified research problem.
+
+\subsection{Application}
+A secondary objective of this thesis is to provide a simple application to evaluate a team's efficiency after a code sprint. 
+This solution will be developed using the design science research methodology and should satisfy the following conditions:
+
+\begin{itemize}
+    \item Faster evaluation of work items than the current 
+    solution of the team described in \ref{background-section}
+    \item Method to evaluate all needed SCRUM KPIs, which are at least the KPIs that the VertiGIS team evaluates right now
+\end{itemize}
+
+\subsubsection{Needed SCRUM KPIs}
+
+At least all of these KPIs need to be included in the final solution for it to be accepted. 
+These are KPIs that are evaluated by the partnering team right now.
+
+\textbf{KPIs associated to work items}
+
+\begin{itemize}
+    \item Tasks:
+    \begin{itemize}
+        \item number of story points (estimated work)
+        \item actual work needed to complete
+    \end{itemize}
+    \item User Stories / Bugs:
+    \begin{itemize}
+        \item number and story points of tasks (done and planned)
+        \item number and story points of high-priority items (done and planned)
+        \item number and story points of items added to the sprint after sprint start
+        \item number and story points of customer billable items
+        \item distinction and evaluation of story points according to 'not done' task state
+        \begin{itemize}
+            \item not started, active, testing, code review, ...
+        \end{itemize}
+        \item work items removed from the sprint
+    \end{itemize}
+\end{itemize}
+
+\textbf{KPIs associated with the sprint itself}
+
+\begin{itemize}
+    \item How much capacity was given for the sprint (how many developers, how many hours?)
+    \item How much of the planned work was completed?
+    \item How many User stories / Bugs were not even started?
+\end{itemize}
+
+\section{Scope and limitations}
+
+To provide a comprehensive understanding of the scope of this thesis, 
+this section lays out the boundaries in which this thesis operates. 
+The aim of this is to enhance transparency, enabling the reader to appreciate the applicability of the outcomes.
+
+\subsection{Scope}
+
+This thesis will be focused on how to analyze an agile team's efficiency and the tools used in these processes. 
+The agile method used must be SCRUM and the team must have a method of documenting 
+their sprints on some kind of software or digital database. 
+
+The performance indicators should be KPIs that the team can set themselves. 
+Therefore, the solution to the problem must include functions that let a user create KPIs themselves.
+
+\subsection{Limitations}
+
+The software project will be focused on using existing data to analyze. 
+The data will be limited to raw SCRUM sprint data from one team in the VertiGIS organization.
+The time constraint for this thesis is nine months from the first presentation given by the University of Innsbruck. 
+An important limitation of to state is the generalisability. Since the application itself will be using digital endpoints 
+and databases as sources, the application can only be used by teams who use a digital storyboard or digitally log their SCRUM process.

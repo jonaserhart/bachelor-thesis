@@ -1,0 +1,7 @@
+*.aux
+*.log
+*.lof
+*.toc
+*.pdf
+*.run.xml
+*.synctex.gz

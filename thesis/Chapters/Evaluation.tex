@@ -1,0 +1,129 @@
+% Chapter Template
+
+\chapter{Artifact Evaluation} 
+
+\label{Chapter6} 
+
+\section{Evaluation process and methods}
+
+The final artifact will be evaluated by checking the requirements from section \ref{Requirements}. Functional requirements will be evaluated by a QA team member of a partnering organization. The same organization will provide testers that fill out a survey to evaluate the nonfunctional requirements after using the artifact for two weeks. These results will be documented thoroughly in the next section.
+
+\section{Evaluation results}
+
+The evaluation of the functional requirements took place in two cycles, as the first evaluation was used to refine the artifact and remove any errors that were found. This section discusses both cycles and their results.
+
+\subsection{Functional requirements}
+
+The tested functionality includes every test case written for functional requirements. The test protocol produced is as follows:
+
+\begin{itemize}
+    \item \textbf{Login}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Get my models}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Create a new model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{View details of a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Change the KPI structure of a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Delete a KPI or folder}: \textcolor{mutedYellow}{Small error}
+    \begin{itemize}
+        \item Basic functionality OK
+        \item If 'New KPI' is clicked immediately after a folder is deleted, an error is displayed on the screen.
+    \end{itemize}
+    \item \textbf{Edit KPI Details}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Edit KPI Expression}: \textcolor{mutedYellow}{Small error, display errors}
+    \begin{itemize}
+        \item Basic functionality OK
+        \item Save button is broken after a reload of the expression form. 
+        \item Small display errors: Misspelled texts in expression description, order of form fields does not match description, one form field is displayed but not used under the hood. 
+    \end{itemize}
+    \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedPeach}{Not OK}
+    \begin{itemize}
+        \item Error displayed after adding a new dashboard. Reproduction: Click on a model, click on settings, add new layout, add new widget, select a widget. Browser logs read \textit{TypeError: Cannot read properties of undefined (reading 'map')}
+    \end{itemize}
+    \item \textbf{Delete a graphical dashboard}: \textcolor{mutedYellow}{Small error}
+    \begin{itemize}
+        \item Works, but cannot confirm that it works on a dashboard with widgets because of the error in the test case \textit{Add/Edit a graphical dashboard}
+    \end{itemize}
+    \item \textbf{Create a report}: \textcolor{mutedGreen}{OK}
+    \item \textbf{View a report}: \textcolor{mutedGreen}{OK}
+    \begin{itemize}
+        \item OK
+        \item Comment: description of the report is listed nowhere but can be entered when creating the report
+    \end{itemize}
+    \item \textbf{Delete a report}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Add a user to a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Change a user's permissions on a model}:\textcolor{mutedGreen}{OK}
+    \begin{itemize}
+        \item OK
+        \item Comment: would be nice to show a message when permissions are changed.
+    \end{itemize}
+    \item \textbf{Remove a user from a model}: \textcolor{mutedPeach}{Not OK}
+    \begin{itemize}
+        \item Nothing happens when the \textit{Remove from model} button is clicked.
+    \end{itemize}
+\end{itemize}
+
+The first test cycle revealed three small errors, two major errors and a few desired improvements.
+The second cycle contained all test cases again to make sure functionality was not broken when implementing the changes for the previous errors:
+
+\begin{itemize}
+    \item \textbf{Login}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Get my models}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Create a new model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{View details of a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Change the KPI structure of a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Delete a KPI or folder}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Edit KPI Details}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Edit KPI Expression}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedGreen}{OK
+    \item \textbf{Delete a graphical dashboard}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Create a report}: \textcolor{mutedGreen}{OK}
+    \item \textbf{View a report}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Delete a report}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Add a user to a model}: \textcolor{mutedGreen}{OK}
+    \item \textbf{Change a user's permissions on a model}:\textcolor{mutedGreen}{OK}
+    \item \textbf{Remove a user from a model}: \textcolor{mutedGreen}{OK}text}
+\end{itemize}
+
+The refinement of the artifact focused on eliminating the errors found in the first cycle. According to the second test report, the refinement was successful as no error could be reproduced when testing.
+
+\subsection{Nonfunctional requirements}
+
+As stated previously in section \ref{Requirements}, the nonfunctional requirements will be evaluated using a survey distributed among first testers of the application. The following section dives deeper into the answers to the survey. 
+
+Seven people that used the artefact extensively participated in this survey to rate this application and also gave some feedback for improvements.
+
+\subsubsection{Ratings}
+
+The mean of the ratings was calculated using the open source data analysis tool \textit{pandas}\footnote{https://pandas.pydata.org} available on the python platform. The computed values are listed in table \ref{tab:tool-ratings}.
+
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{p{8cm} r}
+    \hline
+        \textbf{Question} & \textbf{Mean value} \\ 
+     \hline
+        \textbf{Performance} & \\
+        How would you rate the speed of the application? & 4.83 \\
+        Did you experience any lag or delays while using the application? & 4.67 \\
+     \hline
+        \textbf{Usability} & \\
+        How easy was it to navigate through the application? & 4.17\\
+        Were the instructions and labels within the application clear and understandable? & 3.83 \\
+     \hline
+        \textbf{Reliability} & \\
+        How often did the application freeze? & 5.00 \\
+     \hline
+        \textbf{Compatibility} & \\
+        How well did the application work on your device and operating system? & 5.00 \\
+     \hline
+        \textbf{Overall experience} & \\
+        Overall, how satisfied are you with the application? & 4.17 \\
+        
+    \end{tabular}
+    \caption{Survey questions for nonfunctional requirements}
+    \label{tab:non-func-req}
+\end{table}
+
+This data indicates that the application worked well overall and testers were especially satisfied in terms of compatibility and reliability. 
+
+\section{Comparison with other tools and methods}

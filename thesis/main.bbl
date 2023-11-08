@@ -1,0 +1,496 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.2 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{nyt/global//global/global}
+  \entry{PercPerfOfMetrForAgileScrumEnv}{article}{}
+    \name{author}{2}{}{%
+      {{hash=AF}{%
+         family={Almeida},
+         familyi={A\bibinitperiod},
+         given={Fernando},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=CP}{%
+         family={Carneiro},
+         familyi={C\bibinitperiod},
+         given={Pedro},
+         giveni={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{AFCP1}
+    \strng{fullhash}{AFCP1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \verb{doi}
+    \verb 10.3390/info14060327
+    \endverb
+    \field{pages}{327}
+    \field{title}{Perceived Importance of Metrics for Agile Scrum Environments}
+    \field{volume}{14}
+    \field{journaltitle}{Information}
+    \field{month}{06}
+    \field{year}{2023}
+  \endentry
+
+  \entry{TopTenScrum}{article}{}
+    \name{author}{1}{}{%
+      {{hash=AB}{%
+         family={Aston},
+         familyi={A\bibinitperiod},
+         given={Ben},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \keyw{Scrum, Analysis, Software}
+    \strng{namehash}{AB1}
+    \strng{fullhash}{AB1}
+    \field{labelnamesource}{author}
+    \field{labelyear}{2022}
+    \field{labeldatesource}{}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{abstract}{%
+    This scrum software review covers 10 tools and all the info you need: pros and cons, pricing, features, integrations, and screenshots.%
+    }
+    \verb{url}
+    \verb https://thedigitalprojectmanager.com/tools/best-scrum-software/
+    \endverb
+    \field{month}{01}
+    \field{year}{2022}
+  \endentry
+
+  \entry{Atlassian2023}{online}{}
+    \name{author}{1}{}{%
+      {{hash=A}{%
+         family={Atlassian},
+         familyi={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{A1}
+    \strng{fullhash}{A1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{A}
+    \field{sortinithash}{A}
+    \field{note}{Accessed: 2023-09-18}
+    \field{title}{Scrum Metrics 101}
+    \verb{url}
+    \verb https://www.atlassian.com/agile/scrum/scrum-metrics
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{chengeta2021comparing}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=CK}{%
+         family={Chengeta},
+         familyi={C\bibinitperiod},
+         given={Kennedy},
+         giveni={K\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {ACM}%
+    }
+    \strng{namehash}{CK1}
+    \strng{fullhash}{CK1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2021}
+    \field{labeldatesource}{}
+    \field{sortinit}{C}
+    \field{sortinithash}{C}
+    \field{booktitle}{Proceedings of the 3rd International Conference on Compute and Data Analysis}
+    \verb{doi}
+    \verb 10.1145/3487923.3487934
+    \endverb
+    \field{pages}{1\bibrangedash 5}
+    \field{title}{Comparing the performance between Virtual Machines and Containers using deep learning credit models}
+    \verb{url}
+    \verb https://dl.acm.org/doi/pdf/10.1145/3487923.3487934
+    \endverb
+    \field{year}{2021}
+  \endentry
+
+  \entry{DockerGetStarted}{online}{}
+    \name{author}{1}{}{%
+      {{hash=D}{%
+         family={Docker},
+         familyi={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{D1}
+    \strng{fullhash}{D1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{note}{Accessed: 2023-09-18}
+    \field{title}{Get Started with Docker}
+    \verb{url}
+    \verb https://docs.docker.com/get-started/
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{felter2015updated}{inproceedings}{}
+    \name{author}{4}{}{%
+      {{hash=FW}{%
+         family={Felter},
+         familyi={F\bibinitperiod},
+         given={Wes},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=FA}{%
+         family={Ferreira},
+         familyi={F\bibinitperiod},
+         given={Alexandre},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=RR}{%
+         family={Rajamony},
+         familyi={R\bibinitperiod},
+         given={R.},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=RJ}{%
+         family={Rubio},
+         familyi={R\bibinitperiod},
+         given={J.},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {IEEE}%
+    }
+    \strng{namehash}{FW+1}
+    \strng{fullhash}{FWFARRRJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2015}
+    \field{labeldatesource}{}
+    \field{sortinit}{F}
+    \field{sortinithash}{F}
+    \field{booktitle}{2015 IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)}
+    \verb{doi}
+    \verb 10.1109/ISPASS.2015.7095802
+    \endverb
+    \field{pages}{171\bibrangedash 172}
+    \field{title}{An updated performance comparison of virtual machines and Linux containers}
+    \verb{url}
+    \verb http://domino.research.ibm.com/library/cyberdig.nsf/papers/0929052195
+    \verb DD819C85257D2300681E7B/$File/rc25482.pdf
+    \endverb
+    \field{year}{2015}
+  \endentry
+
+  \entry{uml_standard}{misc}{}
+    \name{author}{1}{}{%
+      {{hash=GOM}{%
+         family={Group},
+         familyi={G\bibinitperiod},
+         given={Object\bibnamedelima Management},
+         giveni={O\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GOM1}
+    \strng{fullhash}{GOM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2017}
+    \field{labeldatesource}{}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \field{note}{Version 2.5.1}
+    \field{title}{Unified Modeling Language (UML) Specification}
+    \verb{url}
+    \verb https://www.omg.org/spec/UML/2.5.1/PDF
+    \endverb
+    \field{year}{2017}
+  \endentry
+
+  \entry{DesignScienceHevner}{article}{}
+    \name{author}{8}{}{%
+      {{hash=HA}{%
+         family={Hevner},
+         familyi={H\bibinitperiod},
+         given={Alan},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=RA}{%
+         family={R},
+         familyi={R},
+         given={Alan},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=MS}{%
+         family={March},
+         familyi={M\bibinitperiod},
+         given={Salvatore},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=TS}{%
+         family={T},
+         familyi={T},
+         given={Salvatore},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=P}{%
+         family={Park},
+         familyi={P\bibinitperiod},
+      }}%
+      {{hash=PJ}{%
+         family={Park},
+         familyi={P\bibinitperiod},
+         given={Jinsoo},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=R}{%
+         family={Ram},
+         familyi={R\bibinitperiod},
+      }}%
+      {{hash=S}{%
+         family={Sudha},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HA+1}
+    \strng{fullhash}{HARAMSTSPPJRS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2004}
+    \field{labeldatesource}{}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \field{pages}{75\bibrangedash }
+    \field{title}{Design Science in Information Systems Research}
+    \field{volume}{28}
+    \field{journaltitle}{Management Information Systems Quarterly}
+    \field{month}{03}
+    \field{year}{2004}
+  \endentry
+
+  \entry{Katsma2013Can}{article}{}
+    \name{author}{1}{}{%
+      {{hash=KC}{%
+         family={Katsma},
+         familyi={K\bibinitperiod},
+         given={C.},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KC1}
+    \strng{fullhash}{KC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2013}
+    \field{labeldatesource}{}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \verb{doi}
+    \verb 10.1007/978-3-642-40951-6_10
+    \endverb
+    \field{title}{Can Agile Software Tools Bring the Benefits of a Task Board to Globally Distributed Teams?}
+    \field{year}{2013}
+  \endentry
+
+  \entry{AgileTransformationSurvey}{misc}{}
+    \name{author}{1}{}{%
+      {{hash=K}{%
+         family={{KPMG}},
+         familyi={K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{K1}
+    \strng{fullhash}{K1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2019}
+    \field{labeldatesource}{}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{note}{Online; accessed 7-November-2023}
+    \field{title}{Agile Transformation - From Agile experiments to operating model transformation - 2019 Survey on Agility}
+    \verb{url}
+    \verb https://assets.kpmg.com/content/dam/kpmg/be/pdf/2019/11/agile-transfo
+    \verb rmation.pdf
+    \endverb
+    \field{year}{2019}
+  \endentry
+
+  \entry{ASPNETDocumentation}{online}{}
+    \name{author}{1}{}{%
+      {{hash=M}{%
+         family={Microsoft},
+         familyi={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{M1}
+    \strng{fullhash}{M1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{note}{Accessed: 2023-09-18}
+    \field{title}{ASP.NET documentation | Microsoft Learn}
+    \verb{url}
+    \verb https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-7.0
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{AzureExtensions}{article}{}
+    \name{author}{1}{}{%
+      {{hash=MDT}{%
+         family={Microsoft},
+         familyi={M\bibinitperiod},
+         given={Documentation\bibnamedelima Team},
+         giveni={D\bibinitperiod\bibinitdelim T\bibinitperiod},
+      }}%
+    }
+    \keyw{Azure DevOps, Extensions}
+    \strng{namehash}{MDT1}
+    \strng{fullhash}{MDT1}
+    \field{labelnamesource}{author}
+    \field{labelyear}{2022}
+    \field{labeldatesource}{}
+    \field{sortinit}{M}
+    \field{sortinithash}{M}
+    \field{abstract}{%
+    Extensions overview%
+    }
+    \verb{url}
+    \verb https://learn.microsoft.com/en-us/azure/devops/extend/overview?view=a
+    \verb zure-devops
+    \endverb
+    \field{month}{10}
+    \field{year}{2022}
+  \endentry
+
+  \entry{ReactDev}{online}{}
+    \name{author}{1}{}{%
+      {{hash=R}{%
+         family={React},
+         familyi={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{R1}
+    \strng{fullhash}{R1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{note}{Accessed: 2023-09-18}
+    \field{title}{React - A JavaScript library for building user interfaces}
+    \verb{url}
+    \verb https://react.dev
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{TheScrumGuide}{article}{}
+    \name{author}{2}{}{%
+      {{hash=SK}{%
+         family={Schwaber},
+         familyi={S\bibinitperiod},
+         given={Ken},
+         giveni={K\bibinitperiod},
+      }}%
+      {{hash=SJ}{%
+         family={Sutherland},
+         familyi={S\bibinitperiod},
+         given={Jeff},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SKSJ1}
+    \strng{fullhash}{SKSJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2020}
+    \field{labeldatesource}{}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{The Scrum Guide}
+    \verb{url}
+    \verb https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf
+    \endverb
+    \field{year}{2020}
+  \endentry
+
+  \entry{Sealights2023}{online}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={Sealights},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S1}
+    \strng{fullhash}{S1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2023}
+    \field{labeldatesource}{}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{note}{Accessed: 2023-09-18}
+    \field{title}{11 Scrum Metrics and Their Value to Scrum Teams}
+    \verb{url}
+    \verb https://www.sealights.io/software-development-metrics/11-scrum-metric
+    \verb s-and-their-value-to-scrum-teams/
+    \endverb
+    \field{year}{2023}
+  \endentry
+
+  \entry{StateOfAgile2023}{article}{}
+    \name{author}{1}{}{%
+      {{hash=S}{%
+         family={Stateofagile},
+         familyi={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{S2}
+    \strng{fullhash}{S2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelyear}{2022}
+    \field{labeldatesource}{}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{title}{State of agile annual survey}
+    \verb{url}
+    \verb https://info.digital.ai/rs/981-LQX-968/images/AR-SA-2022-16th-Annual-
+    \verb State-Of-Agile-Report.pdf
+    \endverb
+    \field{journaltitle}{State of agile}
+    \field{year}{2022}
+  \endentry
+\enddatalist
+\endinput

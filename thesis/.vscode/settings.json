@@ -1,0 +1,19 @@
+{
+    "grammarly.selectors": [
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/Introduction.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/ResearchMethodology.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/KPIs.tex"
+        }
+    ]
+}
