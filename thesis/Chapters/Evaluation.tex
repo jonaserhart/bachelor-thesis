@@ -6,15 +6,20 @@
 
 \section{Evaluation process and methods}
 
-The final artifact will be evaluated by checking the requirements from section \ref{Requirements}. Functional requirements will be evaluated by a QA team member of a partnering organization. The same organization will provide testers that fill out a survey to evaluate the nonfunctional requirements after using the artifact for two weeks. These results will be documented thoroughly in the next section.
+The final artifact will be evaluated by checking the requirements from section \ref{Requirements}. 
+Functional requirements will be evaluated by a QA team member of a partnering organization (section \ref{background-section}).
+The same organization will provide testers who fill out a survey to evaluate the nonfunctional requirements after using the artifact for two weeks. 
+These results will be documented thoroughly in the next section.
 
 \section{Evaluation results}
 
-The evaluation of the functional requirements took place in two cycles, as the first evaluation was used to refine the artifact and remove any errors that were found. This section discusses both cycles and their results.
+The evaluation of the functional requirements took place in two cycles, as the first evaluation was used to refine the artifact and remove any errors that were found. 
+This section discusses both cycles and their results.
 
 \subsection{Functional requirements}
 
-The tested functionality includes every test case written for functional requirements. The test protocol produced is as follows:
+The tested functionality includes every test case written for functional requirements. 
+The test protocol produced is as follows:
 
 \begin{itemize}
     \item \textbf{Login}: \textcolor{mutedGreen}{OK}
@@ -36,7 +41,7 @@ The tested functionality includes every test case written for functional require
     \end{itemize}
     \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedPeach}{Not OK}
     \begin{itemize}
-        \item Error displayed after adding a new dashboard. Reproduction: Click on a model, click on settings, add new layout, add new widget, select a widget. Browser logs read \textit{TypeError: Cannot read properties of undefined (reading 'map')}
+        \item Error displayed after adding a new dashboard. Reproduction: Click on a model, click on settings, add a new layout, add a new widget, and select a widget. Browser logs read \textit{TypeError: Cannot read properties of undefined (reading 'map')}
     \end{itemize}
     \item \textbf{Delete a graphical dashboard}: \textcolor{mutedYellow}{Small error}
     \begin{itemize}
@@ -46,7 +51,7 @@ The tested functionality includes every test case written for functional require
     \item \textbf{View a report}: \textcolor{mutedGreen}{OK}
     \begin{itemize}
         \item OK
-        \item Comment: description of the report is listed nowhere but can be entered when creating the report
+        \item Comment: The description of the report is listed nowhere but can be entered when creating the report
     \end{itemize}
     \item \textbf{Delete a report}: \textcolor{mutedGreen}{OK}
     \item \textbf{Add a user to a model}: \textcolor{mutedGreen}{OK}
@@ -73,28 +78,31 @@ The second cycle contained all test cases again to make sure functionality was n
     \item \textbf{Delete a KPI or folder}: \textcolor{mutedGreen}{OK}
     \item \textbf{Edit KPI Details}: \textcolor{mutedGreen}{OK}
     \item \textbf{Edit KPI Expression}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedGreen}{OK
+    \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedGreen}{OK}
     \item \textbf{Delete a graphical dashboard}: \textcolor{mutedGreen}{OK}
     \item \textbf{Create a report}: \textcolor{mutedGreen}{OK}
     \item \textbf{View a report}: \textcolor{mutedGreen}{OK}
     \item \textbf{Delete a report}: \textcolor{mutedGreen}{OK}
     \item \textbf{Add a user to a model}: \textcolor{mutedGreen}{OK}
     \item \textbf{Change a user's permissions on a model}:\textcolor{mutedGreen}{OK}
-    \item \textbf{Remove a user from a model}: \textcolor{mutedGreen}{OK}text}
+    \item \textbf{Remove a user from a model}: \textcolor{mutedGreen}{OK}
 \end{itemize}
 
-The refinement of the artifact focused on eliminating the errors found in the first cycle. According to the second test report, the refinement was successful as no error could be reproduced when testing.
+The refinement of the artifact focused on eliminating the errors found in the first cycle. 
+According to the second test report, the refinement was successful as no error could be reproduced when testing.
 
 \subsection{Nonfunctional requirements}
 
-As stated previously in section \ref{Requirements}, the nonfunctional requirements will be evaluated using a survey distributed among first testers of the application. The following section dives deeper into the answers to the survey. 
+As stated previously in section \ref{Requirements}, the nonfunctional requirements will be evaluated using a survey distributed among the first testers of the application. 
+The following section dives deeper into the answers to the survey. 
 
-Seven people that used the artefact extensively participated in this survey to rate this application and also gave some feedback for improvements.
+Seven people who used the artifact extensively participated in this survey to rate this application and also gave some feedback for improvements.
 
 \subsubsection{Ratings}
 
-The mean of the ratings was calculated using the open source data analysis tool \textit{pandas}\footnote{https://pandas.pydata.org} available on the python platform. The computed values are listed in table \ref{tab:tool-ratings}.
-
+The mean of the ratings was calculated using the data analysis
+tools discussed in section \ref{introduction-methods}.
+The computed values are listed in table \ref{tab:tool-ratings}.
 
 \begin{table}[!h]
     \centering
@@ -121,9 +129,11 @@ The mean of the ratings was calculated using the open source data analysis tool 
         
     \end{tabular}
     \caption{Survey questions for nonfunctional requirements}
-    \label{tab:non-func-req}
+    \label{tab:tool-ratings}
 \end{table}
 
-This data indicates that the application worked well overall and testers were especially satisfied in terms of compatibility and reliability. 
-
-\section{Comparison with other tools and methods}
+This data indicates that the application worked well overall and testers 
+were especially satisfied in terms of compatibility and reliability. 
+Some features were requested by the company after this first period of testing. 
+While the application is functional and does everything that the organization needs, 
+the requested features will be implemented outside of the context of this thesis. 

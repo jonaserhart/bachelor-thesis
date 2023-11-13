@@ -14,6 +14,26 @@
             "language": "latex",
             "scheme": "file",
             "pattern": "Chapters/KPIs.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/Application.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "main.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/Evaluation.tex"
+        },
+        {
+            "language": "latex",
+            "scheme": "file",
+            "pattern": "Chapters/Conclusion.tex"
         }
     ]
 }
