@@ -172,8 +172,12 @@ headsepline, % Uncomment to get a line under the header
 \begin{titlepage}
 \begin{center}
 
-\vspace*{.06\textheight}
-{\scshape\LARGE \univname\par}\vspace{1.5cm} % University name
+\begin{figure}
+  \centering
+  \includegraphics[width=0.4\linewidth]{Figures/universitaet-innsbruck-logo-cmyk-farbe.jpg}
+\end{figure}
+
+{\scshape\LARGE \univname\par}\vspace{1cm} % University name
 \textsc{\Large Bachelor Thesis}\\[0.5cm] % Thesis type
 
 \HRule \\[0.4cm] % Horizontal line
@@ -183,13 +187,13 @@ headsepline, % Uncomment to get a line under the header
 \begin{minipage}[t]{0.4\textwidth}
 \begin{flushleft} \large
 \emph{Author:}\\
-\href{http://www.johnsmith.com}{\authorname} % Author name - remove the \href bracket to remove the link
+\authorname % Author name - remove the \href bracket to remove the link
 \end{flushleft}
 \end{minipage}
 \begin{minipage}[t]{0.4\textwidth}
 \begin{flushright} \large
 \emph{Supervisor:} \\
-\href{http://www.jamessmith.com}{\supname} % Supervisor name - remove the \href bracket to remove the link  
+\supname % Supervisor name - remove the \href bracket to remove the link  
 \end{flushright}
 \end{minipage}\\[3cm]
  
@@ -232,17 +236,6 @@ headsepline, % Uncomment to get a line under the header
 \rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
 \end{declaration}
 
-\cleardoublepage
-
-%----------------------------------------------------------------------------------------
-%	QUOTATION PAGE
-%----------------------------------------------------------------------------------------
-
-\vspace*{0.2\textheight}
-
-\noindent\enquote{\itshape Thanks to my solid academic training, today I can write hundreds of words on virtually any topic without possessing a shred of information, which is how I got a good job in journalism.}\bigbreak
-
-\hfill Dave Barry
 
 %----------------------------------------------------------------------------------------
 %	ABSTRACT PAGE
@@ -250,7 +243,18 @@ headsepline, % Uncomment to get a line under the header
 
 \begin{abstract}
 \addchaptertocentry{\abstractname} % Add the abstract to the table of contents
-The Thesis Abstract is written here (and usually kept to just this page). The page is kept centered vertically so can expand into the blank space above the title too\ldots
+Agile methods are widely used in project development today, offering flexible frameworks that can adapt to different projects.
+However, these methods, especially SCRUM, rely heavily on continuous evaluation and process adaptation.
+SCRUM uses Key Performance Indicators (KPIs) to provide feedback for teams to improve their development process.
+This thesis explores the importance of having a comprehensive set of KPIs for agile teams, focusing on identifying the essential KPIs for evaluating team performance in the SCRUM.
+A research question is to find out if such a set of essential KPIs can be defined or if teams would benefit from more customized KPIs for their sprints.
+A collaboration with a company will be made to develop an application.
+This application will offer teams that use digital SCRUM planning software a personalized analysis of their performance.
+Following the Design Science Research methodology, the application will be systematically designed and evaluated by the company.
+The ultimate aim is to contribute to improving the SCRUM experience for agile teams.
+As the application evolves, it is expected to benefit not only the collaborating company but also become a useful resource for other teams looking to enhance their SCRUM practices.
+
+This research and development process demonstrates a commitment to advancing the understanding and implementation of SCRUM in project development.
 \end{abstract}
 
 %----------------------------------------------------------------------------------------
@@ -259,9 +263,20 @@ The Thesis Abstract is written here (and usually kept to just this page). The pa
 
 \begin{acknowledgements}
 \addchaptertocentry{\acknowledgementname} % Add the acknowledgments to the table of contents
-I would like to acknowledge and give my thanks to my thesis supervisor Jäger Alexandra who made this work possible.
-Her advice guided the development of this thesis from the very beginning. 
-She introduced me to the concept of design science and con
+I would like to acknowledge and give my thanks to my thesis supervisor Alexandra Jäger MSc, whose guidance, expertise and support played a pivotal role in shaping this thesis.
+Alexandra Jäger not only provided insightful feedback but also introduced me to the fascinating world of design science which enriched the research and development process significantly.
+
+I extend my gratitude to the team leaders at VertiGIS FM, Sebastian Schulze and Tony Barthel, for their collaborative efforts in defining the requirements for the application developed in this thesis.
+Their contributions were instrumental in ensuring the relevance of the project within a practical context.
+
+A special thanks goes to the entire VertiGIS FM team and all participants who devoted their time and insights to the surveys conducted during this research.
+Your willingness to share valuable perspectives has contributed to the depth of this thesis.
+
+I am grateful to Thomas Huemer MSc, who evaluated the application, ensuring its quality and functionality.
+This step was integral to refining the final product.
+
+Although I am the sole student that took on this project it has been a team effort, and I am deeply appreciative of everyone who played a role in its successful completion.
+Thank you for your support, encouragement, and collaboration throughout this journey. 
 \end{acknowledgements}
 
 %----------------------------------------------------------------------------------------
@@ -294,13 +309,6 @@ She introduced me to the concept of design science and con
 \textbf{KVM} & \textbf{K}ernel-based \textbf{V}irtual \textbf{M}achine \\
 
 \end{abbreviations}
-
-
-%----------------------------------------------------------------------------------------
-%	DEDICATION
-%----------------------------------------------------------------------------------------
-
-\dedicatory{For/Dedicated to/To my\ldots} 
 
 %----------------------------------------------------------------------------------------
 %	THESIS CONTENT - CHAPTERS

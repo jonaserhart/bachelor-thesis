@@ -9,3 +9,6 @@
 *.out
 *.lot
 *-blx.bib
+*.blg
+*.fdb_latexmk
+*.fls

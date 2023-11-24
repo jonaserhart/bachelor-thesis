@@ -31,7 +31,7 @@ Reports should also be comparable to other reports.
 Users should be able to manage who has access to their templates 
 and what actions they can take in the context of their templates. 
 The user creation and authentication are not handled by the application itself. 
-Users are allowed to authenticate using OAUTH\footnote{https://oauth.net/2/}.
+Users are allowed to authenticate using OAUTH\footnote{\url{https://oauth.net/2/}}.
 
 \subsection{Functional Requirements}
 
@@ -440,7 +440,7 @@ Essentially, it's about laying a strong foundation from the get-go to ensure the
 When the sketch is finished the model will be implemented code-first using an ORM tool to map the coded model into a relational database. 
 
 Most models will have a property called \code{Id} in which they store a GUID value as the primary key for the relational database mapping. 
-The diagrams presented in this section were designed with the UML standard \footnote{\cite{uml_standard}} in mind. 
+The diagrams presented in this section were designed with the UML standard \footnote{UML standards document: \url{https://www.omg.org/spec/UML/2.5.1/PDF}} in mind. 
 However, it is worth noting that while every effort is made to comply with the UML conventions there might be subtle differences in the representation. 
 
 \begin{figure}
@@ -740,7 +740,7 @@ The requirement is to produce an artifact that will be used to extract
 data from the SCRUM platform Azure DevOps. 
 Therefore a viable option would be to develop an extension for this platform.
 Microsoft provides documentation on how to develop extensions for your 
-organizational DevOps platform \footnote{Developing extensions for Azure: https://learn.microsoft.com/en-us/azure/devops/extend/overview?view=azure-devops}.
+organizational DevOps platform \footnote{Developing extensions for Azure: \url{https://learn.microsoft.com/en-us/azure/devops/extend/overview?view=azure-devops}}.
 Simple authentication for users, storage provided by Azure and the 
 accessibility of use speak in favor of this method.
 The only downside, why it should be decided against, is that an extension for 
@@ -787,7 +787,7 @@ Relevant to this thesis and the decision made are the following points:
     \item \textbf{High availability}: Distributed architectures tend to offer better fault tolerance. Containerization further enhances this by allowing rapid redeployment of single components, ensuring minimal downtime.
     \item \textbf{Resource efficiency}: Containers are lightweight compared to traditional virtual machines. This means they start quickly and use fewer system resources. Multiple containers can be deployed onto a single machine which means that resources can be used more efficiently.
     \item \textbf{Consistent environments}: Containerization ensures that the application runs the same, regardless of where the container is deployed. This consistency can reduce the "it works on my machine" type of issues. 
-    \item \textbf{Personal experience}: Familiarity with the technology stack is invaluable. Having prior experience with distributed systems and containers ensured a smoother development process.
+    \item \textbf{Personal experience}: Familiarity with the technology stack is invaluable. Having prior experience with distributed systems and containers ensures a smoother development process.
 \end{itemize}
 
 Of course, the strategy of creating an application of containerized services is not suited for every application. 
@@ -812,7 +812,7 @@ ASP.NET is selected for this part of the application,
 which is a web application framework developed by Microsoft. 
 ASP.NET is built on the Common Language Runtime (CLR), 
 which means developers can write ASP.NET code using any supported .NET language like C\#, 
-VB.NET, and F\#. The choice for this project is to use ASP.NET with C\# \footnote{ASP.NET documentation: https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-7.0}.
+VB.NET, and F\#. The choice for this project is to use ASP.NET with C\# \footnote{ASP.NET documentation: \url{https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-7.0}}.
 
 \subsubsection{Database}
 
@@ -828,14 +828,14 @@ To present sprint metrics and data, configure how data is retrieved,
 and manage user access a user interface is essential.
 The front end of the application is coded in Typescript with the
 extended capabilities of the library React by Facebook 
-\footnote{React by Facebook: \cite{ReactDev}}. 
+\footnote{React by Facebook: \url{https://react.dev}}. 
 The user interface provides a method for the user to interact with the back-end API using controls rather than web requests which makes the application more accessible.  
 
 \subsubsection{Composition}
 
 The final artifact consists of three docker images: 
 one for the front end of the application, one for the back end,
-and one for the database\footnote{Docker: \cite{DockerGetStarted}}.
+and one for the database\footnote{Docker: \url{https://docs.docker.com/get-started/}}.
 Locally, this can be run via a provided 'docker-compose' file but in production,
 these images need to be hosted separately and configured in such a 
 way that they know each other's location.

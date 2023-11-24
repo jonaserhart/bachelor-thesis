@@ -13,8 +13,8 @@ a subscription or some form of payment.
 Another common occurrence is that they are tightly integrated with ticket planning software, 
 limiting their usage to one provider. 
 This becomes evident when looking at SCRUM supporting software like Azure DevOps
-\footnote{Azure DevOps SCRUM capabilities: https://learn.microsoft.com/en-us/azure/devops/boards/sprints/scrum-overview?view=azure-devops}
-and Jira Boards\footnote{https://www.atlassian.com/software/jira/guides/boards/overview}
+\footnote{Azure DevOps SCRUM capabilities: \url{https://learn.microsoft.com/en-us/azure/devops/boards/sprints/scrum-overview?view=azure-devops}}
+and Jira Boards\footnote{\url{https://www.atlassian.com/software/jira/guides/boards/overview}}
 While it may seem trivial to develop software capable of analyzing a specific 
 team's performance, the challenge lies in the diversity of companies and teams 
 using different software tools to log their SCRUM processes. 
@@ -36,7 +36,7 @@ the usefulness of certain performance indicators used in SCRUM using a
 survey and evaluating the results. 
 The artifact design process and description are laid out across chapter \ref{Chapter5}, 
 going into technical detail in terms of software development and project planning. 
-Chapter \ref{6} is focused on the evaluation of the artifact. 
+Chapter \ref{Chapter6} is focused on the evaluation of the artifact. 
 While the methods of evaluation are described in detail in Chapter \ref{Chapter5}, 
 the results are collected in this chapter. 
 Chapter \ref{Chapter7} concludes this thesis with a short summary, 
@@ -59,8 +59,8 @@ gap arises concerning the adaptability and customization of KPIs for team analys
 Current SCRUM analysis tools often provide commonly known metrics like \textit{Velocity} or a teams \textit{Capacity}, 
 yet may fall short in addressing the distinct needs of various SCRUM teams. 
 This can be seen when reading documentation
-\footnote{Jira dashboard capabilities: https://www.atlassian.com/software/jira/guides/reports-dashboards/overview}
-\footnote{Zoho report capabilities: https://www.zoho.com/sprints/reports.html} of various SCRUM tools.  
+\footnote{Jira dashboard capabilities: \url{https://www.atlassian.com/software/jira/guides/reports-dashboards/overview}}
+\footnote{Zoho report capabilities: \url{https://www.zoho.com/sprints/reports.html}} of various SCRUM tools.  
 Recognizing the significance of this gap, the research seeks to bridge the divide between 
 standardized analysis approaches and the diverse requisites of SCRUM teams. 
 Through the development of an application facilitating the creation of custom KPIs, 
@@ -74,8 +74,8 @@ The widespread adoption of the SCRUM methodology is driven by its promise of agi
 \section{Background}\label{background-section}
 
 The idea for this thesis stems from a real-world problem that was encountered by an 
-organization with the name VertiGIS LTD \footnote{https://www.vertigis.com}. 
-VergiGIS is a geographic information systems company
+organization with the name VertiGIS\footnote{\url{https://www.vertigis.com}}. 
+VertiGIS is a geographic information systems company
 providing solutions to other organizations all over the world.
 
 A particular SCRUM team developing one of their product
@@ -83,7 +83,7 @@ lines analyzes their team performance using an Excel sheet.
 The whole organization uses Azure DevOps for planning sprints, running pipelines and storing code.
 After each development sprint, a developer manually analyzes the sprint and computes KPI values
 that are not automatically computed by Azure DevOps.
-This process takes the developer about one to one and a half hours and is prone to errors.
+This process takes the developer about one to one and a half hours and, from their experience, is prone to errors.
 
 A simple software solution is requested by the organization to automatically compute KPI values using the 
 Azure DevOps REST API.
@@ -180,18 +180,18 @@ to be addressed in this section.
 To provide the most current information about the topic extensive 
 research has to be conducted using different tools.
 For this purpose, the research tools include 
-\textit{Google Scholar}\footnote{Google Scholar Search: https://scholar.google.com}, 
-\textit{Consensus.App} \footnote{Consensus App: https://consensus.app} and OpenAPIs 
-\textit{ChatGPT}\footnote{OpenAIs ChatGPT: https://chat.openai.com} in its 4th version, which 
+\textit{Google Scholar}\footnote{Google Scholar Search: \url{https://scholar.google.com}}, 
+\textit{Consensus.App} \footnote{Consensus App: \url{https://consensus.app}} and OpenAPIs 
+\textit{ChatGPT}\footnote{OpenAIs ChatGPT: \url{https://chat.openai.com}} in its 4th version, which 
 enabled using a research plugin called 
-\textit{Scholar.AI}\footnote{Scholar.AI Plugin: https://gptstore.ai/plugins/scholar-ai-net}.
+\textit{Scholar.AI}\footnote{Scholar.AI Plugin: \url{https://gptstore.ai/plugins/scholar-ai-net}}.
 The information provided by these tools is,
 of course, not taken at face value and double-checked manually. 
 To ensure language accuracy and enhance the overall reading experience, a free version of 
-\textit{Grammarly}\footnote{Grammarly Website: https://www.grammarly.com} is 
+\textit{Grammarly}\footnote{Grammarly Website: \url{https://www.grammarly.com}} is 
 used to spell check and rewrite passages
 of the thesis to be correct.
 To conduct surveys for this thesis, the University of Innsbruck provides a tool called
-LimeSurvey\footnote{umfrage.uibk.ac.at: https://umfrage.uibk.ac.at/limesurvey/allgemein/}.
-Python, specifically the \textit{pandas}\footnote{Pandas python library: https://pandas.pydata.org} 
+LimeSurvey\footnote{umfrage.uibk.ac.at: \url{https://umfrage.uibk.ac.at/limesurvey/allgemein/}}.
+Python, specifically the \textit{pandas}\footnote{Pandas python library: \url{https://pandas.pydata.org}} 
 library is used for data analysis to evaluate survey results.

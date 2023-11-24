@@ -1,0 +1,4 @@
+Diagramme:
+    Wirklich alle properties public? - Ja in C# haben properties automatisch einen getter und setter und sind daher public
+    Kardinalität wird entweder mit strich (1-1) oder aggregatspfeil (1-n) modelliert
+
