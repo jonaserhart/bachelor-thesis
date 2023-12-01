@@ -15,13 +15,13 @@ contributing to the overall usability and performance of the application.
 
 \subsection{Capabilities}
 
-Use cases and requirements are added to the design of the 
-artifact in the beginning to give an idea about the application's capabilities at first. 
-This determines the starting point for model design. 
-This definition is loosely written on paper at first and then reworked into 
+This section documents the process of finding specific requirements for the application.
+This determines the starting point for model design later.
+First, the main ideas are loosely written on paper and then reworked into 
 requirements in cooperation with the organization introduced in section \ref{background-section}. 
 The loose capabilities the application should have are as follows.
-The artifact should be able to store templates for report creation. 
+
+\textit{The artifact should be able to store templates for report creation. 
 That means it should allow users to create templates or models to base their reports on. 
 These templates should include information on how to get data and compute KPIs. 
 To meet the requirement of creating custom KPIs, there has to be functionality available to create and manage custom KPIs.
@@ -32,6 +32,9 @@ Users should be able to manage who has access to their templates
 and what actions they can take in the context of their templates. 
 The user creation and authentication are not handled by the application itself. 
 Users are allowed to authenticate using OAUTH\footnote{\url{https://oauth.net/2/}}.
+}
+
+Further sections in this chapter will rework these statements into concrete requirements that can be used to evaluate the application.
 
 \subsection{Functional Requirements}
 
@@ -39,17 +42,15 @@ Functional requirements are specific and describe the expected behavior of the a
 They focus on what the system should do and include specifications of operations 
 to take and outcomes to expect. 
 This includes user interaction or interaction with other systems if needed. 
-These types of requirements are typically captured from use cases. 
-Initially, the requirements were not as detailed. 
-After the artifact was completed, additional specifics were included in the requirements. 
-This was done to ensure that the quality assurance process could be conducted with precision,
-especially when examining the user interface. 
-Users can be categorized into three different roles.
-The three roles are Reader, Writer, and Admin. 
+
+However, before defining functional requirements, actors have to be established. 
+In the case of the envisioned application, the actors are the users of the application.
+These users can be categorized into three different roles: Reader, Writer, and Admin. 
 A higher-ranking role inherits the privileges of the roles below it. 
 For instance, an Admin has all the rights of a Writer,
 and a Writer possesses all the capabilities of a Reader.
-For the artifact created in this thesis, these will include: 
+
+For the artifact created in this thesis, the functional requirements are listed below: 
 
 \compactSection{Log in}
 \compactDescription{A Reader should be redirected to a login form on application startup. This form will allow the user to log in and guide them through the process. Once logged in, the user is redirected to the landing page.}
@@ -282,41 +283,38 @@ Nonfunctional requirements are concerned with how the system performs under spec
 They do not directly capture specific functionalities but are essential in 
 judging the usability, reliability, and performance of the system. 
 For evaluating this later in chapter \ref{Chapter6}, a survey is crafted and distributed among the first users. 
-The survey contains the questions listed in table \ref{tab:non-func-req}.
 
-\begin{table}[!h]
-    \centering
-    \begin{tabular}{p{8cm} p{6cm}}
-    \hline
-        \textbf{Question} & \textbf{Answer options} \\ 
-     \hline
-        \textbf{Performance} & \\
-        How would you rate the speed of the application? & 1 (Very slow) - 5 (Very fast) \\
-        Did you experience any lag or delays while using the application? & 1 (Always) - 5 (Never) \\
-     \hline
-        \textbf{Usability} & \\
-        How easy was it to navigate through the application? & 1 (Very difficult) - 5 (Very Easy) \\
-        Were the instructions and labels within the application clear and understandable? & 1 (Not clear at all) - 5 (Very clear) \\
-     \hline
-        \textbf{Reliability} & \\
-        How often did the application freeze? & 1 (Always) - 5 (Never) \\
-        Were there any features or functions that did not work as expected? & Yes (please specify), No \\
-     \hline
-        \textbf{Security} & \\
-        Did you encounter any security or privacy issues? & Yes (please specify), No \\
-     \hline
-        \textbf{Compatibility} & \\
-        What browser did you use to access the application? & Chrome, Edge, Opera, Firefox, Other (please specify) \\
-        How well did the application work on your device and operating system? & 1 (Very poorly) - 5 (Very well) \\
-     \hline
-        \textbf{Overall experience} & \\
-        Overall, how satisfied are you with the application? & 1 (Very dissatisfied) - 5 (Very satisfied) \\
-        What improvements, if any, would you suggest to enhance the application’s performance, security, or usability? & Text \\
-        
-    \end{tabular}
-    \caption{Survey questions for nonfunctional requirements}
-    \label{tab:non-func-req}
-\end{table}
+Non-functional requirements to evaluate the application include:
+
+\begin{itemize}
+    \item Performance:
+    \item \begin{itemize}
+        \item The speed of the application should be adequate (no excessive loading or blocking)
+        \item Users should not encounter a significant amount of lag
+    \end{itemize}
+    \item Usability:
+    \item \begin{itemize}
+        \item Users should be able to navigate through the application without any difficulties.
+        \item Instructions inside the user interface should be clear and not misleading.
+    \end{itemize}
+    \item Reliability:
+    \item \begin{itemize}
+        \item The application should never freeze.
+        \item Features and functions should work as described and expected.
+    \end{itemize}
+    \item Security:
+    \item \begin{itemize}
+        \item Users should not encounter any security or privacy issues.
+    \end{itemize}
+    \item Compatibility:
+    \item \begin{itemize}
+        \item Users should be able to access the application on their preferred web browser and operating system.
+    \end{itemize}
+    \item Overall experience:
+    \item \begin{itemize}
+        \item Users should be satisfied with the application overall.
+    \end{itemize}
+\end{itemize}
 
 \section{Use cases}
 
@@ -437,10 +435,9 @@ Before actually implementing this model it is sketched out on paper.
 This step ensures that there is a clear picture of how the data elements relate and interact with each other. 
 By mapping things out early, one can pinpoint potential issues and make necessary adjustments. 
 Essentially, it's about laying a strong foundation from the get-go to ensure the app's long-term efficiency and adaptability. 
-When the sketch is finished the model will be implemented code-first using an ORM tool to map the coded model into a relational database. 
-
-Most models will have a property called \code{Id} in which they store a GUID value as the primary key for the relational database mapping. 
-The diagrams presented in this section were designed with the UML standard \footnote{UML standards document: \url{https://www.omg.org/spec/UML/2.5.1/PDF}} in mind. 
+When the sketch is finished the model will be implemented code-first using an Object Relational Mapping (ORM) tool to map the coded model into a relational database. 
+Most models will have a property called \code{Id} in which they store a Global Unique Identifier (GUID) value as the primary key for the relational database mapping. 
+The diagrams presented in this section were designed with the Unified Modeling Language (UML) standard \footnote{UML standards document: \url{https://www.omg.org/spec/UML/2.5.1/PDF}} in mind. 
 However, it is worth noting that while every effort is made to comply with the UML conventions there might be subtle differences in the representation. 
 
 \begin{figure}
@@ -538,7 +535,7 @@ However, it is worth noting that while every effort is made to comply with the U
 \end{figure}
 
 
-\subsubsection{Analysis models}
+\subsubsection*{Analysis models}
 
 The idea of this application is to have a way to design a schema or model that can be followed to evaluate performance indicators about a SCRUM sprint. 
 The \code{AnalysisModel} data class is designed to do just that. 
@@ -551,7 +548,7 @@ The classes \code{KPI} and \code{Expression} are designed to store details about
 Also included in the \code{KPI} class is the configuration of the KPI like the unit to display and if it is supposed to show up on the final report. 
 If a team has a lot of KPIs to calculate, storing them in a list can become very confusing. 
 That's why the class \code{KPIFolder} is introduced so that a hierarchical structure can be offered. 
-This allows KPIs to be organized familiarly.
+This allows KPIs to be organized more clearly.
 
 \code{Expression}s are a way of telling the software how to evaluate raw data and reduce it to a KPI value. 
 For this application, a few different types of expressions suffice. 
@@ -561,11 +558,26 @@ To save actual reports and the data collected for them the \code{Report} class i
 It relates to an \code{AnalysisModel} which in turn can relate to many instances of the \code{Report} class. 
 The actual report data is held by the class \code{ReportData} which has a one-to-one relationship with the \code{Report} class as illustrated in figure \ref{fig:kpis-and-models}. 
 Since the shape of the data saved in a report heavily depends on the model configuration the properties \code{QueryResults} and \code{KPIsAndValues}, 
-which are holding the data, are saved in the database as JSON binary data. 
+which are holding the data, are saved in the database as JavaSscript Object Notation (JSON) binary data. 
 This makes sure the data received when executing queries can be stored in its raw form, which in turn means that the evaluation of KPIs can be designed more flexibly. 
 
 The class \code{GraphicalConfiguration} is used to store dashboards and layouts to display reports graphically. 
 This way dashboards can be configured dynamically and presented to the team.
+
+\subsubsection*{Expressions}\label{model-expressions}
+
+\code{Expression}s are tightly coupled with \code{KPI}s and are used to evaluate sprint data and reduce it to values that can be displayed in a sprint report.
+There are multiple types of expressions to evaluate different KPIs described in table \ref{tab:expression-types}.
+These expressions can be in one of four different categories.
+A \textit{Mathematical} expression is, unsurprisingly, used for mathematical operations.
+It is used to combine other KPIs to calculate numeric values.
+Aggregating an array of values can be achieved by using an expression of the \textit{Aggregation} category.
+These expressions can reduce an array to a single value, calculating things like the maximum, minimum or average.
+A \textit{Conditional} expression is used to filter a list of values and then perform an operation on them.
+This allows for KPIs to count or sum values only if they meet certain conditions.
+Lastly, \textit{Atomic} expressions can be used to represent simple, hard-set values or the plain value of a query. 
+These expressions are modeled as a hierarchical structure with the \code{Expression} class as a base.
+Their model is illustrated in figure \ref{fig:expression-hier}.
 
 \begin{table}[!h]
     \centering
@@ -602,7 +614,6 @@ This way dashboards can be configured dynamically and presented to the team.
     \caption{Descriptions of different expression types}
     \label{tab:expression-types}
 \end{table}
-
 
 \begin{figure}[!h]
     \centering
@@ -658,23 +669,7 @@ This way dashboards can be configured dynamically and presented to the team.
     \label{fig:expression-hier}
 \end{figure}
 
-
-\subsubsection{Expressions}\label{model-expressions}
-
-\code{Expression}s are tightly coupled with \code{KPI}s and are used to evaluate sprint data and reduce it to values that can be displayed in a sprint report.
-There are multiple types of expressions to evaluate different KPIs described in table \ref{tab:expression-types}.
-These expressions can be in one of four different categories.
-A \textit{Mathematical} expression is, unsurprisingly, used for mathematical operations.
-It is used to combine other KPIs to calculate numeric values.
-Aggregating an array of values can be achieved by using an expression of the \textit{Aggregation} category.
-These expressions can reduce an array to a single value, calculating things like the maximum, minimum or average.
-A \textit{Conditional} expression is used to filter a list of values and then perform an operation on them.
-This allows for KPIs to count or sum values only if they meet certain conditions.
-Lastly, \textit{Atomic} expressions can be used to represent simple, hard-set values or the plain value of a query. 
-These expressions are modeled as a hierarchical structure with the \code{Expression} class as a base.
-Their model is illustrated in figure \ref{fig:expression-hier}.
-
-\subsubsection{User management}
+\subsubsection*{User management}
 
 User management is crucial to an application that stores data multiple people should have access to. 
 User access is controlled at the level of analysis models. 
@@ -735,7 +730,7 @@ To meet the requirements of the partnering company this includes writing an exte
 specific platform and creating custom software that uses 
 REST endpoints if the platform exposes any.
 
-\subsubsection{Extension for a SCRUM platform}
+\subsubsection*{Extension for a SCRUM platform}
 The requirement is to produce an artifact that will be used to extract 
 data from the SCRUM platform Azure DevOps. 
 Therefore a viable option would be to develop an extension for this platform.
@@ -751,7 +746,7 @@ also works with external applications.
 In addition, only developers could evaluate sprints and view the 
 results because a Visual Studio license is required to access the platform.
 
-\subsubsection{Independent application}
+\subsubsection*{Independent application}
 An independent application can access work items and sprint info via a REST API provided by the most used SCRUM platforms like Atlassian Jira and Azure DevOps \parencite{TopTenScrum}.
 If needed in the future, more platforms can be integrated into this 
 application and it could be hosted anywhere. 
@@ -769,7 +764,7 @@ architecture. This is achieved by separating the front-end, back-end, and databa
 This choice is influenced by several factors and research pieces. 
 One paper explores the performance of traditional VM deployments and 
 contrasts them with the use of Linux containers. 
-The authors used KVM as a representative hypervisor and Docker as a container manager. 
+The authors used Kernel-based Virtual Machines (KVM) as a representative hypervisor and Docker as a container manager. 
 The results show that containers result in equal or better 
 performance than VMs in almost all cases \parencite{felter2015updated}. 
 Another study compares the performance of Docker containers and VMs using 
@@ -795,6 +790,8 @@ This section illustrates that this is the best choice for this specific applicat
 
 \subsection{Programming languages and frameworks}
 
+This section will describe the kind of application that is envisioned.
+It is established that it will be a web application, which leaves plenty of room for maneuver in terms of selecting the programming languages to implement it.
 Selecting a programming language for a project is often influenced by the developer's previous experience. 
 In many cases, developers lean towards languages they are already familiar with. 
 This eliminates the need to learn a new language. 
@@ -804,7 +801,7 @@ and enhances the quality of the final artifact.
 Since the application is split into three parts two programming languages and frameworks have to be selected in addition to a database system.
 
 
-\subsubsection{Back-end}
+\subsubsection*{Back-end}
 
 The heart of the application is its API which is used to create and evaluate KPIs, 
 issue and review Reports, and define dashboards for report presentation to a SCRUM team. 
@@ -814,7 +811,7 @@ ASP.NET is built on the Common Language Runtime (CLR),
 which means developers can write ASP.NET code using any supported .NET language like C\#, 
 VB.NET, and F\#. The choice for this project is to use ASP.NET with C\# \footnote{ASP.NET documentation: \url{https://learn.microsoft.com/en-us/aspnet/core/?view=aspnetcore-7.0}}.
 
-\subsubsection{Database}
+\subsubsection*{Database}
 
 A relational database is used to store reports, 
 KPIs, and other models that are needed for the application. 
@@ -822,7 +819,7 @@ The choice of provider is PostgreSQL because it's open source and easy to use wi
 The database schema is implemented code-first using an Object-Relational Mapping (ORM) framework for ASP.NET called Entity Framework. 
 This framework automatically takes care of any migrations that may need to be issued to the schema and allows incremental creation of the model code first.
 
-\subsubsection{Front-end}
+\subsubsection*{Front-end}
 
 To present sprint metrics and data, configure how data is retrieved,
 and manage user access a user interface is essential.
@@ -831,7 +828,7 @@ extended capabilities of the library React by Facebook
 \footnote{React by Facebook: \url{https://react.dev}}. 
 The user interface provides a method for the user to interact with the back-end API using controls rather than web requests which makes the application more accessible.  
 
-\subsubsection{Composition}
+\subsubsection*{Composition}
 
 The final artifact consists of three docker images: 
 one for the front end of the application, one for the back end,

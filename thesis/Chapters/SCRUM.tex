@@ -7,7 +7,7 @@
 
 In the ever-evolving landscape of project management and software development, 
 one methodology has risen to the top as a new standard for agility, collaboration, 
-and iterative progress - SCRUM. SCRUM, among other agile frameworks like XP\footnote{Extreme programming: \url{http://www.extremeprogramming.org/}} or Kanban\footnote{\url{https://www.ionos.com/digitalguide/websites/web-development/about-kanban/}} has become a pervasive framework employed by 
+and iterative progress - SCRUM. SCRUM, among other agile frameworks like XP\footnote{Extreme programming: \url{http://www.extremeprogramming.org/}} or Kanban\footnote{\url{https://www.ionos.com/digitalguide/websites/web-development/about-kanban/}}, has become a pervasive framework employed by 
 teams and organizations seeking a dynamic and responsive approach to complex projects. 
 Its simplicity, adaptability, and focus on delivering value have made it a preferred 
 choice in many economic sectors like software development 
@@ -19,8 +19,7 @@ It replaces traditional, linear project management approaches with an iterative,
 This section will include information about the SCRUM framework,
 exploring the roles of the Scrum Master, Production Owner,
 and Development Team members and how they work together to create and maintain projects. 
-Moreover, the challenges that SCRUM teams often face and how they navigate these 
-obstacles to deliver results will also be discussed. 
+Moreover, the challenges that SCRUM teams often face and how they navigate these obstacles to deliver results will also be discussed. 
 
 \subsection{Framework and Components}
 
@@ -114,10 +113,9 @@ While this flexibility is an asset, it can also lead to inconsistencies
 in quality and practices if not managed effectively.
 Moreover, SCRUM's success is contingent on integrating with the product and the landscape 
 the organization is building. This is a challenge today because teams may have ambitions to 
-use agile methods like SCRUM but are hindered by their products.
-To use data, 36\% of respondents of the agile transformation 
-survey \textit{disagree} or \textit{strongly disagree} that their entire landscape 
-was not suited for their agile ambition \parencite{AgileTransformationSurvey}.
+use agile methods like SCRUM but are hindered by the legacy products they already have because they don't integrate well with the SCRUM framework. 
+According to a survey on agile adaptation, 36\% of respondents stated that their entire landscape
+were not suited for their agile ambition \parencite{AgileTransformationSurvey}.
 Therefore, while SCRUM offers significant benefits, 
 it necessitates a thoughtful and committed approach to overcome these challenges effectively.
 
@@ -137,14 +135,13 @@ And lastly, Work capacity describes how many resources the team had to begin wit
 
 \section{Previous studies and state of the art}\label{SOTAStudies}
 
-When it comes to analyzing SCRUM processes, there are numerous software options available. 
-The software a company chooses often depends on its prior investments in planning tools. 
-Popular planning platforms like Jira Boards and Azure DevOps typically include basic analysis 
-features as well.
+When it comes to analyzing SCRUM processes, there are numerous options available. 
+This section will discuss other work and methods of evaluating the SCRUM process with a specific focus on KPIs.
+It will feature academic work in its focus but also include some sources gathered from articles on the web to get a full picture.
 
 \subsection{Relevant literature about KPIs and SCRUM Performance}
 
-\subsubsection{Perceived Importance of Metrics for Agile Scrum Environments}
+\subsubsection*{Perceived Importance of Metrics for Agile Scrum Environments}
 
 In a study published by Almeida and Carneiro in 2023 a survey about popular SCRUM metrics 
 was conducted \parencite{PercPerfOfMetrForAgileScrumEnv}. 
@@ -200,15 +197,15 @@ coordinates {
 \label{fig:ScrumMetricsImportance}
 \end{figure}
 
-\noindent The figure (\ref{fig:ScrumMetricsImportance}) shows the mean of perceived importance 
+\noindent Figure (\ref{fig:ScrumMetricsImportance}) shows the mean of perceived importance 
 of metrics that belong to a certain activity or category. 
 From this one can conclude that me most important metrics are linked to 
 team performance and the sprint retrospective.
 
-\noindent The table \ref{tab:ScrumMetricsImportanceTable} illustrates the KPIs and their 
+\noindent Table \ref{tab:ScrumMetricsImportanceTable} illustrates the KPIs and their 
 perceived importance within those categories. 
 The mode represents the most frequent response given by the 
-participants and the mean represents the mean value of all responses. In it's original form 
+participants and the mean represents the mean value of all responses. In its original form,
 this table is quite large and was reduced to the KPIs relevant to this thesis. KPIs that were removed
 were not relevant because they indicate performance in different SCRUM stages than planning and retrospective.
 The aim of this thesis is to bring forth a method of evaluating SCRUM sprints automatically and only the KPIs listed 
@@ -248,37 +245,36 @@ The data also suggests that certain metrics, such as the number of
 planned user stories and tasks, 
 should be determined before the sprint begins.
 
-\subsubsection{Master thesis: Agile project health indicators}
+\subsubsection*{Master thesis: Agile project health indicators}
 
 In a master thesis published in 2019, Alexandra Esguerra states that 
 performance indicators are essential for development and can be viewed as health checks for a project.
 She lays out the challenges when selecting KPIs for a project and emphasizes that
-the set of needed KPIs heavily depends on the team and the project itself.
+the set of needed KPIs heavily depends on the team and the project itself \parencite{AgileProjectHealthIndicatorsThesis}.
 
 A few different KPIs are mentioned and described as \textit{basis practices} in the analysis of agile methods in the following way:
 
 \begin{itemize}
-    \item \textbf{Velocity (Productivity)}: [...] You estimate this by defining the amount of completed user stories in very iteration. This measurement could help to estimate and see the overall productivity of the different teams.
-    \item \textbf{Burn-down Chart}: This is a good tool to plan and monitor the progress in agile methods. It is also a way to show the remaining work. This [...] could be a guiding process to decision making on what to add or drop in case there is any delay on the project.
-    \item \textbf{Schedule performance Indicator (SPI)}: This KPI will help to provide a clear view of the Schedule variance in the agile projects.
-    \item \textbf{Cost performance indicator (CPI)}: This KPI will show how efficiently the project is spending the budget compared to how effectively it is planned to be spend.
+    \item \textbf{Velocity (Productivity)}: [...] You estimate this by defining the amount of completed user stories in every iteration. This measurement could help to estimate and see the overall productivity of the different teams.
+    \item \textbf{Burn-down Chart}: This is a good tool to plan and monitor the progress of agile methods. It is also a way to show the remaining work. This [...] could be a guiding process to decision-making on what to add or drop in case there is any delay on the project.
+    \item \textbf{Schedule Performance Indicator (SPI)}: This KPI will help to provide a clear view of the Schedule variance in the agile projects.
+    \item \textbf{Cost performance indicator (CPI)}: This KPI will show how efficiently the project is spending the budget compared to how effectively it is planned to be spent \parencite{AgileProjectHealthIndicatorsThesis}.
 \end{itemize}
 
 The goal of the master thesis is to discover how KPIs can be applied in agile projects.
 It also encourages readers to change traditional ways of thinking when it comes to project management
 and shift to an agile mindset.
 
-Some parts of this master thesis are also relevant to this bachelor thesis.
+Some parts of this master's thesis are also relevant to this bachelor's thesis.
 It can be learned that KPIs are essential in an agile context and that they depend 
 heavily both on the project and the team that is using them.
 
-\subsection{Non - academic articles}
+\subsection{Non-academic articles}
 
 This section includes some mentions of articles on the internet written by bloggers and companies.
-While the intention behind these articles may be of educational nature it is important that the reader
-is informed that they are not of academical origin and are to be taken with a grain of salt.
+While the intention behind these articles may be educational the reader must be informed that they are not of academic origin and are to be taken with a grain of salt.
 
-Nevertheless they are relevant to this thesis to further push the point that teams require a spectrum of different 
+Nevertheless, they are relevant to this thesis to further push the point that teams require a spectrum of different 
 SCRUM KPIs that are tailored to their specific needs.
 
 \subsubsection*{SCRUM Metrics 101 - Atlassan}
@@ -286,15 +282,15 @@ SCRUM KPIs that are tailored to their specific needs.
 The article 'SCRUM Metrics 101' which was published by Erika Sa on the website 
 \textit{atlassian.com} describes how SCRUM metrics can enhance the 
 effectiveness of the process \parencite{Atlassian2023}. 
+Atlassian is a big contributor to the field of SCRUM and provides great software to record the SCRUM process.
 The article argues that these metrics are essential for making informed 
 decisions during and after a sprint. 
 The article also stresses that there is no universal set of 
 metrics that can work for any team using SCRUM. 
 Each team needs to choose metrics that are useful to their situation. 
 
-Erika Sa also explains that SCRUM metrics can be a great indicator of 
-erformance but should not be the sole ingredient to analyze a team's performance. 
-Harder to comprehend numbers like customer satisfaction should also be considered to
+Erika Sa also explains that SCRUM metrics can be a great indicator of performance but should not be the sole ingredient to analyze a team's performance. 
+Factors that are more difficult to quantify like customer satisfaction should also be considered to
 get the full picture.
 
 In summary, the article advocates for a balanced,
@@ -310,6 +306,7 @@ this are velocity, capacity, and quality of output.
 This article describes SCRUM metrics and how they are evaluated, 
 focusing only on the categories Sprint planning, Daily SCRUM, 
 and Sprint Retrospective \parencite{Sealights2023}. 
+It was published on the sealights website, a company dedicated to improving software quality.
 It describes the goals of KPIs used in SCRUM to measure the value of products 
 delivered by the team and the effectiveness of the method. According to this website, 
 KPIs may also help catch problems like dissatisfied developers early.

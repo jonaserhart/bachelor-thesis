@@ -6,7 +6,7 @@
 
 \section{Evaluation process and methods}
 
-The final artifact will be evaluated by checking the requirements from section \ref{Requirements}. 
+The final artifact will be evaluated by validating the requirements from section \ref{Requirements}. 
 Functional requirements will be evaluated by a QA team member of a partnering organization (section \ref{background-section}).
 The same organization will provide testers who fill out a survey to evaluate the nonfunctional requirements after using the artifact for two weeks. 
 These results will be documented thoroughly in the next section.
@@ -67,27 +67,7 @@ The test protocol produced is as follows:
 \end{itemize}
 
 The first test cycle revealed three small errors, two major errors and a few desired improvements.
-The second cycle contained all test cases again to make sure functionality was not broken when implementing the changes for the previous errors:
-
-\begin{itemize}
-    \item \textbf{Login}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Get my models}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Create a new model}: \textcolor{mutedGreen}{OK}
-    \item \textbf{View details of a model}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Change the KPI structure of a model}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Delete a KPI or folder}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Edit KPI Details}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Edit KPI Expression}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Add/Edit a graphical dashboard}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Delete a graphical dashboard}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Create a report}: \textcolor{mutedGreen}{OK}
-    \item \textbf{View a report}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Delete a report}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Add a user to a model}: \textcolor{mutedGreen}{OK}
-    \item \textbf{Change a user's permissions on a model}:\textcolor{mutedGreen}{OK}
-    \item \textbf{Remove a user from a model}: \textcolor{mutedGreen}{OK}
-\end{itemize}
-
+The second cycle contained all test cases again to make sure functionality was not broken when implementing the changes for the previous errors.
 The refinement of the artifact focused on eliminating the errors found in the first cycle. 
 According to the second test report, the refinement was successful as no error could be reproduced when testing.
 
@@ -97,8 +77,43 @@ As stated previously in section \ref{Requirements}, the nonfunctional requiremen
 The following section dives deeper into the answers to the survey. 
 
 Seven people who used the artifact extensively participated in this survey to rate this application and also gave some feedback for improvements.
+The survey contains the questions listed in table \ref{tab:non-func-req}.
 
-\subsubsection{Ratings}
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{p{8cm} p{6cm}}
+    \hline
+        \textbf{Question} & \textbf{Answer options} \\ 
+     \hline
+        \textbf{Performance} & \\
+        How would you rate the speed of the application? & 1 (Very slow) - 5 (Very fast) \\
+        Did you experience any lag or delays while using the application? & 1 (Always) - 5 (Never) \\
+     \hline
+        \textbf{Usability} & \\
+        How easy was it to navigate through the application? & 1 (Very difficult) - 5 (Very Easy) \\
+        Were the instructions and labels within the application clear and understandable? & 1 (Not clear at all) - 5 (Very clear) \\
+     \hline
+        \textbf{Reliability} & \\
+        How often did the application freeze? & 1 (Always) - 5 (Never) \\
+        Were there any features or functions that did not work as expected? & Yes (please specify), No \\
+     \hline
+        \textbf{Security} & \\
+        Did you encounter any security or privacy issues? & Yes (please specify), No \\
+     \hline
+        \textbf{Compatibility} & \\
+        What browser did you use to access the application? & Chrome, Edge, Opera, Firefox, Other (please specify) \\
+        How well did the application work on your device and operating system? & 1 (Very poorly) - 5 (Very well) \\
+     \hline
+        \textbf{Overall experience} & \\
+        Overall, how satisfied are you with the application? & 1 (Very dissatisfied) - 5 (Very satisfied) \\
+        What improvements, if any, would you suggest to enhance the application’s performance, security, or usability? & Text \\
+        
+    \end{tabular}
+    \caption{Survey questions for nonfunctional requirements}
+    \label{tab:non-func-req}
+\end{table}
+
+\subsubsection*{Ratings}
 
 \begin{table}[!h]
     \centering
@@ -138,7 +153,8 @@ The browsers that this application was tested on were Google Chrome\footnote{Goo
 
 This data indicates that the application worked well overall and testers 
 were especially satisfied in terms of compatibility and reliability. 
-As predicted, without any experience in UX or UI there are some cases where participants were not able to intuitively figure out some features of the application. 
+This means the goal of the thesis is met and the team at the partnering company is satisfied with the results. 
+As predicted, without any experience in User Experience (UX) or User interfaces (UI) there are some cases where participants were not able to intuitively figure out some features of the application. 
 Some features were requested by the company after this first period of testing. 
 While the application is functional and does everything that the organization needs, 
 the requested features will be implemented outside of the context of this thesis. 

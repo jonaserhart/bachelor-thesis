@@ -4,9 +4,11 @@
 
 \section{Methods of exploring the relevance of KPIs}
 
+This section will discuss the method of answering the research question specified in \ref{Chapter1-Objectives}.
+
 \subsection{Survey}
 
-\subsubsection{Distribution}
+\subsubsection*{Distribution}
 
 A comprehensive survey was designed to gain insights 
 into the perception and practical application of various KPIs in 
@@ -17,7 +19,7 @@ environments to ensure a varied set of responses.
 The survey was distributed electronically, ensuring 
 ease of access for all participants. 
 
-\subsubsection{Questions}
+\subsubsection*{Questions}
 
 Two sections in the survey help find out more about the respondent and their views on KPIs. 
 The following questions are presented to the participant:
@@ -66,45 +68,9 @@ The following questions are presented to the participant:
 
 The results of the survey are presented later in section \ref{kpi-survey-results}.
 
-\subsection{Criteria of evaluation} \label{CriteriaKPIEvaluation}
-
-The evaluation of the helpfulness of a KPI is a multifaceted process.
-In the context of this thesis, 
-the criteria for evaluating the helpfulness of a KPI are the responses from the survey.
-Below are the details of each criterion that may be considered when evaluating the helpfulness of a KPI:
-
-\subsubsection{Quantifiable Impact}
-
-A KPI is considered helpful if it yields quantifiable improvements 
-in team performance, project delivery, or other relevant areas.
-
-\subsubsection{Feasibility and accessibility}
-The ease of measuring data for a KPI is essential. 
-KPIs that require complex, time-consuming, or costly processes 
-to measure may not be considered helpful.
-
-\subsubsection{Clarity}
-
-A helpful KPI is clear and easily understood 
-by all team members. 
-It should communicate information that aids in 
-decision-making and performance improvement without ambiguity.
-
-\subsubsection{Actionability}
-The KPI should lead to actionable insights. 
-It is considered helpful if the data collected and 
-analyzed can be used to inform decisions and actions 
-that enhance performance.
-
-\subsubsection{Relevance over time}
-The KPI's ability to remain relevant over an extended period is vital. 
-It should adapt to a changing project and organization.
-
 \subsection{Approach}\label{approach-kpi-explore}
 
-Data from the survey is analyzed using analytical tools and techniques. 
-Each KPI is scored based on its adherence to the criteria.
-
+Data from the survey is analyzed using analytical tools and techniques in section \ref{kpi-explor}.
 This comprehensive approach gives a feeling of what 
 KPIs contribute tangible value to SCRUM practices and 
 team performance and may be classified as more helpful. 
@@ -131,17 +97,16 @@ detailed analysis of the survey data unfolds.
 
 \newpage
 
-\section{Exploration of KPIs}
+\section{Exploration of KPIs} \label{kpi-explor}
 
 This section will lay out the data collected by the survey and discuss how it fits the expected outcome. 
-It will also evaluate specific KPIs according to the criteria listed in section \ref{CriteriaKPIEvaluation}.
 For this process KPIs will be selected from the survey data that had outliers in ratings to find reasons why that may be the case. 
 
 \subsection{Survey data}\label{kpi-survey-results}
 
 The survey was filled out by 64 participants of which 49 filled out the survey until the end and were relevant to this thesis. Irrelevant entries included people who did not have any experience with SCRUM. The data was exported and analyzed in different ways.
 
-\subsubsection{Participants}
+\subsubsection*{Participants}
 
 The participants were, for the most part, very experienced in SCRUM. 
 26 stated that they used SCRUM for more than 4 years and 21 people chose an option placing them in the 1-4 years category, 
@@ -194,7 +159,7 @@ Other options chosen for this question include \textit{Observer}, \textit{Produc
     \label{fig:scrum_roles_bar_chart}
 \end{figure}
 
-\subsubsection{KPIs}
+\subsubsection*{KPIs}
 
 The biggest and most important part of the survey is the assessment 
 of the perceived helpfulness of KPIs. 
@@ -206,7 +171,8 @@ Every rating was used on each KPI at least once which reinforces the idea that d
 This can be seen by finding the maximum and minimum ratings for each KPI. 
 These data points are documented in table \ref{tab:kpi_ratings}.
 
-Some of the participants also decided to fill out the open-ended question at the end to bring in their own thoughts on what KPIs are helpful. Twelve of the respondents filled out this survey question. Since some answers were in German, they were translated into English to facilitate a universal understanding. The raw responses were then reduced to extract essential information, including the KPI name or a short description, the method of computation, and a detailed explanation where available. This process transformed the raw, verbose survey answers into concise, informative summaries of each proposed KPI. 
+Some of the participants also decided to fill out the open-ended question at the end to bring in their thoughts on what KPIs are helpful. Twelve of the respondents filled out this survey question. Since some answers were in German, they were translated into English to facilitate a universal understanding. The raw responses were then reduced to extract essential information, including the KPI name or a short description, the method of computation, and a detailed explanation where available. This process transformed the raw, verbose survey answers into concise, informative summaries of each proposed KPI.
+This post-processing yields the following list: 
 
 \begin{enumerate}
     \item \textbf{Quality of Refinements}
@@ -308,9 +274,9 @@ Some of the participants also decided to fill out the open-ended question at the
     \label{tab:kpi_ratings}
 \end{table}
 
-\subsubsection{Correlations and outliers in the data}
+\subsubsection*{Correlations and outliers in the data}
 
-There were no significant correlations in the survey data except ratings of KPIs that were similar. 
+There were no significant correlations in the survey data except ratings of similar KPIs. 
 When computing the correlation matrix, 
 two pairs of ratings for KPIs showed a high (>0.75) correlation. 
 The statements that can be inferred by this fact is that the KPIs \textit{Number of planned Tickets} and \textit{Number of done Tickets} are often used together as well as \textit{Blocker Tickets} and \textit{Blocker Tickets done}. 
@@ -322,13 +288,13 @@ Some KPIs discussed in the survey are going to be discussed further due to outli
 
 \paragraph{\textbf{Done story points}:} A value representing the amount of work that got done in a sprint. The second most popular KPI \textit{Done story points} gives quick feedback to the development team and is easy to compute by counting the story points in every closed ticket. In combination with other KPIs, this can be an indicator of how well the sprint goal was reached or how much of the planned work is still not done. 
 
-\paragraph{\textbf{Blocker Tickets \& Blocker Done}:} With a rating of about 3.20 and 2.82 these KPIs place sixth and second to last in the survey. The KPI \textit{Blocker Tickets} gives insight into how many emergency tickets were added after the planning. It is a metric of how unpredictable a sprint can be. If there are many blocker tickets in a sprint, this usually means planned work is left behind to prioritize the urgent blockers. It is very easy to compute since it is just a count of tickets that were marked as \textit{urgent} or \textit{blocker}. If this metric is often high, the development team might be able to plan less work before the sprint in order to leave some room for emergency tickets. The KPI \textit{Blocker Done} measures how many of those tickets were completed during the sprint. These two KPIs together can be important clues for planning a sprint. The greater the difference in values, the less leeway there was in the planning for emergency tickets. Among the opinions of the participants, these KPIs are not as helpful as others listed. 
+\paragraph{\textbf{Blocker Tickets \& Blocker Done}:} With a rating of about 3.20 and 2.82 these KPIs place sixth and second to last in the survey. The KPI \textit{Blocker Tickets} gives insight into how many emergency tickets were added after the planning. It is a metric of how unpredictable a sprint can be. If there are many blocker tickets in a sprint, this usually means planned work is left behind to prioritize the urgent blockers. It is very easy to compute since it is just a count of tickets that were marked as \textit{urgent} or \textit{blocker}. If this metric is often high, the development team might be able to plan less work before the sprint to leave some room for emergency tickets. The KPI \textit{Blocker Done} measures how many of those tickets were completed during the sprint. These two KPIs together can be important clues for planning a sprint. The greater the difference in values, the less leeway there was in the planning for emergency tickets. Among the opinions of the participants, these KPIs are not as helpful as others listed. 
 
 \paragraph{\textbf{Removed Tickets}:} This KPI scored the lowest on the survey with a rating of 2.45. It computes a list of tickets that got removed during a sprint. This removal may be the result of a prioritized ticket being moved into the sprint retroactively for example. The KPI is hard to compute at the end of the sprint and requires a snapshot of the sprint before it was started. The value of this KPI may be relevant to some teams that have to explain to a customer why a ticket was not done in the sprint although it was planned, but otherwise, its applications seem to be limited.
 
 \section{Practical implications}
 
-What are the practical implications for SCRUM teams today considering the data gathered in this short research chapter? 
+What are the practical implications for SCRUM teams today considering the data gathered in this short research chapter and how did it answer the research question of this thesis? 
 On the one hand, it seems as if the data collected supports the original hypotheses that quantifiable KPIs 
 favored by teams are not 'basic' or 'commonly used' KPIs as labeled by literature discussed in section \ref{SOTAStudies}.
 This is evident in two parts of the survey evaluation. 
@@ -339,6 +305,9 @@ Most KPIs that are popular, as stated in studies discussed earlier in the litera
 are still favorites with most people. 
 Unsurprisingly, which KPIs are seen as helpful depends on the years of experience and the SCRUM role. This is also supported by
 a thesis discussed in section \ref{SOTAStudies} \parencite{AgileProjectHealthIndicatorsThesis}.
+
+To answer the research question of this thesis: According to data gathered in Chapter \ref{Chapter2} and the research done for this thesis, it is hard to determine a finite set of KPIs to optimize Sprint evaluation for every team out there.
+In addition, it is established that teams may benefit from a customized solution. 
 
 Overall, this exploration leads to the conclusion that different teams require different KPIs that cannot be modeled as static
 if provided by a single application for multiple teams and different projects. 
